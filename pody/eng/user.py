@@ -22,7 +22,7 @@ def check_username(username: str):
     if not (res := validate_username(username))[0]: raise InvalidUsernameError(res[1])
 
 @dataclasses.dataclass
-class User:
+class UserRecord:
     userid: int
     name: str
     is_admin: bool
@@ -106,10 +106,10 @@ class UserDatabase:
 
     def check_user(self, credential: str):
         with self.cursor() as cur:
-            cur.execute("SELECT id FROM users WHERE credential = ?", (credential,))
+            cur.execute("SELECT id, username, is_admin, max_pods FROM users WHERE credential = ?", (credential,))
             res = cur.fetchone()
-            if res is None: return User(0, '', False, 0)
-            else: return User(*res)
+            if res is None: return UserRecord(0, '', False, 0)
+            else: return UserRecord(*res)
     
     def delete_user(self, username: str):
         with self.transaction() as cursor:

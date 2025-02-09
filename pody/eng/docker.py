@@ -1,6 +1,7 @@
 import docker
 import docker.types
 from dataclasses import dataclass, field
+from enum import Enum
 from typing import TYPE_CHECKING, Optional
 if TYPE_CHECKING:
     from docker.models.containers import _RestartPolicy
@@ -62,18 +63,30 @@ def create_container(
     )   # type: ignore
     return container.logs()
 
-def restart_container(
+class ContainerAction(Enum):
+    START = "start"
+    STOP = "stop"
+    RESTART = "restart"
+    KILL = "kill"
+    
+def container_action(
     client: docker.client.DockerClient,
-    container_name: str, 
-    execute_before_restart: Optional[str] = None, 
-    execute_after_restart: Optional[str] = None
+    container_name: str,
+    action: ContainerAction,
+    before_action: Optional[str] = None,
+    after_action: Optional[str] = None
     ):
     container = client.containers.get(container_name)
-    if not execute_before_restart is None:
-        container.exec_run(execute_before_restart, tty=True)
-    container.restart()
-    if not execute_after_restart is None:
-        container.exec_run(execute_after_restart, tty=True)
+    if not before_action is None:
+        container.exec_run(before_action, tty=True)
+    match action:
+        case ContainerAction.START: container.start()
+        case ContainerAction.STOP: container.stop()
+        case ContainerAction.RESTART: container.restart()
+        case ContainerAction.KILL: container.kill()
+        case _: raise ValueError(f"Invalid action {action}")
+    if not after_action is None:
+        container.exec_run(after_action, tty=True)
     return container.logs()
 
 def query_container_by_id(
