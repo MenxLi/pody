@@ -1,0 +1,25 @@
+[tool.poetry]
+name = "pody"
+version = "0.1.1"
+description = "Pod manager for docker, give limited access to docker for clients."
+authors = ["Li, Mengxun <mengxunli@whu.edu.cn>"]
+readme = "readme.md"
+
+[tool.poetry.dependencies]
+python = ">=3.10"   # PEP-622
+docker = "*"
+nvidia-ml-py = "*"
+fastapi = "0.*"
+uvicorn = "0.*"
+typer = "0.*"
+
+[tool.poetry.dev-dependencies]
+pytest = "*"
+
+[tool.poetry.scripts]
+pody-serve = "pody.cli.serve:main"
+pody-user = "pody.cli.user:app"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
