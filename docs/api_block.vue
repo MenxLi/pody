@@ -1,6 +1,6 @@
 <script setup lang="ts">
     import type { APIDescription } from './api_data';
-    import { ref, defineProps } from 'vue';
+    import { defineProps } from 'vue';
 
     const props = defineProps<{
         apiDesc: APIDescription;
@@ -10,7 +10,7 @@
 
 <template>
     <div>
-        <p>{{ props.apiDesc.description }}</p>
+        <p><span class="api-method">{{ props.apiDesc.method }}</span>{{ props.apiDesc.description }}</p>
         <div class="detail-block">
             <details class="compact">
                 <summary class="compact">Parameters</summary>
@@ -28,7 +28,8 @@
                 <!-- Put the example code in the slot with markdown -->
                 <slot></slot>
                 <div class="example-output" v-if="props.apiDesc.example.output">
-                    <code class="example-output">> {{ props.apiDesc.example.output }}</code>
+                    <i>Output:</i>
+                    <pre><code class="example-output">{{ props.apiDesc.example.output }}</code></pre> 
                 </div>
             </details>
         </div>
@@ -36,6 +37,19 @@
 </template>
 
 <style scoped>
+    p{
+        vertical-align: middle;
+    }
+    span.api-method {
+        color: var(--vp-c-green-1);
+        font-weight: bold;
+        font-size: small;
+        padding: 0.2em 0.5em;
+        background-color: var(--vp-code-bg);
+        margin-right: 0.5em;
+        border-radius: 0.2em;
+    }
+
     .detail-block {
         display: flex;
         flex-direction: column;
@@ -50,6 +64,13 @@
     code.example-desc {
         display: block;
         padding: 0.5em;
+    }
+
+    code.example-output {
+        font-size: x-small;
+        display: block;
+        overflow: auto;
+        background-color: var(--vp-code-bg);
     }
 
 </style>
