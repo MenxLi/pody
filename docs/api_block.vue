@@ -3,14 +3,19 @@
     import { defineProps } from 'vue';
 
     const props = defineProps<{
+        apiName: string;
         apiDesc: APIDescription;
     }>();
+
+    const id = props.apiName.replace(/[\s\/]/g, '-').slice(1);
 
 </script>
 
 <template>
     <div>
-        <p><span :class="`api-method ${props.apiDesc.method}`"
+        <hr>
+        <h3 :id=id>{{ props.apiName }}</h3>
+        <p class="compact" style="margin-bottom: 0.2rem"><span :class="`api-method ${props.apiDesc.method}`"
             >{{ props.apiDesc.method }}</span>{{ props.apiDesc.description }}</p>
         <div class="detail-block">
             <details class="compact" v-if="props.apiDesc.parameters">
@@ -38,6 +43,9 @@
 </template>
 
 <style scoped>
+    h3 {
+        color: var(--vp-c-brand);
+    }
     p{
         vertical-align: middle;
     }
@@ -55,7 +63,7 @@
     .detail-block {
         display: flex;
         flex-direction: column;
-        gap: 1em;
+        gap: 0.2rem;
     }
 
     .compact {
@@ -69,7 +77,8 @@
     }
 
     code.example-output {
-        font-size: x-small;
+        padding: 0.5em;
+        font-size: small;
         display: block;
         overflow: auto;
         background-color: var(--vp-code-bg);
