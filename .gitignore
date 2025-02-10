@@ -10,3 +10,6 @@ venv
 node_modules
 package-lock.json
 docs/.vitepress/cache
+
+.vscode
+_tests

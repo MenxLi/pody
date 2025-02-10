@@ -1,0 +1,10 @@
+
+# should be comma-separated list of ports or ranges
+# e.g. "20000,20002-20010"
+avaliable_ports = "20000-21000"
+
+# the ports will be mapped to the host machine 
+# under random available port
+[[images]]
+name = "ubuntu:jammy"
+ports = [22, 80]

@@ -10,8 +10,8 @@ outline: deep
 # HTTP API
 
 The API exposes interface for managing your own pods and query server status.  
-- HTTP method `GET` is used for querying data without side effects;  
-- HTTP method `POST` is used for creating or updating data.
+- `GET` method is used for querying data without side effects;  
+- `POST` method is used for creating or updating data.
 - All parameters are passed via query string in URLs.
 
 ::: tip
