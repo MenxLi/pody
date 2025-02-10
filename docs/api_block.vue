@@ -13,7 +13,7 @@
         <p><span :class="`api-method ${props.apiDesc.method}`"
             >{{ props.apiDesc.method }}</span>{{ props.apiDesc.description }}</p>
         <div class="detail-block">
-            <details class="compact">
+            <details class="compact" v-if="props.apiDesc.parameters">
                 <summary class="compact">Parameters</summary>
                 <ul>
                     <li v-for="paramName in Object.keys(props.apiDesc.parameters)">
