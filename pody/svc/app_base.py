@@ -17,8 +17,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-docker_client = docker.from_env()
-user_db = UserDatabase()
+g_client = docker.from_env()
+g_user_db = UserDatabase()
                     
 def handle_exception(fn):
     @wraps(fn)
@@ -41,7 +41,7 @@ def handle_exception(fn):
 
 async def get_user(credentials: HTTPBasicCredentials = Depends(HTTPBasic(auto_error=True))):
     key = hash_password(credentials.username, credentials.password)
-    user = user_db.check_user(key)
+    user = g_user_db.check_user(key)
     if user.userid == 0:
         raise InsufficientPermissionsError("Invalid username or password")
     return user
@@ -54,5 +54,5 @@ async def log_requests(request, call_next):
     response = await call_next(request)
     return response
 
-__all__ = ["app", "docker_client", "user_db", "get_user", "handle_exception"]
+__all__ = ["app", "g_client", "g_user_db", "get_user", "handle_exception"]
                 

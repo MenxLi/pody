@@ -11,4 +11,4 @@ router_pod = APIRouter(prefix="/pod")
 @handle_exception
 def restart_pod(tag: str, user: UserRecord = Depends(get_user)):
     container_name = f"{user.name}-{tag}"
-    return container_action(docker_client, container_name, ContainerAction.RESTART, after_action="service ssh restart")
+    return container_action(g_client, container_name, ContainerAction.RESTART, after_action="service ssh restart")
