@@ -14,9 +14,12 @@ outline: deep
 ## {{ apiName }}
 <APIBlock :api-desc="apiData[apiName]">
 
+<template v-if="apiData[apiName].example">
+
 ```sh-vue
 {{`${apiData[apiName].example.input} `}}
 ```
+</template>
 </APIBlock>
 
 </template>

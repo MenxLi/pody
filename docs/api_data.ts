@@ -11,7 +11,7 @@ export interface APIDescription {
             description: string
         }
     },
-    example: {
+    example?: {
         input: string, 
         description?: string | null,
         output?: string | null
@@ -33,7 +33,7 @@ const apiData: { [key: string]: APIDescription } ={
             }
         },
         example: {
-            "input": `${cmd} -X POST ${ex_ip}/pod/start?tag=mytag`,
+            "input": `${cmd} -X POST \\\n\t${ex_ip}/pod/start?tag=mytag`,
         }
     },
     "/pod/stop": {
@@ -45,9 +45,6 @@ const apiData: { [key: string]: APIDescription } ={
                 description: "The tag of the pod to stop, the actual pod name will be " + `<${ex_username}>-<tag>`
             }
         },
-        example: {
-            input: `${cmd} -X POST ${ex_ip}/pod/stop?tag=mytag`,
-        }
     },
     "/pod/restart": {
         method: "POST",
@@ -58,9 +55,6 @@ const apiData: { [key: string]: APIDescription } ={
                 description: "The tag of the pod to restart, the actual pod name will be " + `<${ex_username}>-<tag>`
             }
         },
-        example: {
-            input: `${cmd} -X POST ${ex_username}:${ex_password} ${ex_ip}/pod/restart?tag=mytag`,
-        }
     }, 
 
     // resource endpoints ========================================
@@ -74,7 +68,7 @@ const apiData: { [key: string]: APIDescription } ={
             }
         },
         example: {
-            input: `${cmd} ${ex_ip}/resource/gpu-ps?id=0,1`,
+            input: `${cmd} \\\n\t${ex_ip}/resource/gpu-ps?id=0,1`,
             output: `\
 {
     "0": [

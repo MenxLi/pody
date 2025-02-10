@@ -10,7 +10,8 @@
 
 <template>
     <div>
-        <p><span class="api-method">{{ props.apiDesc.method }}</span>{{ props.apiDesc.description }}</p>
+        <p><span :class="`api-method ${props.apiDesc.method}`"
+            >{{ props.apiDesc.method }}</span>{{ props.apiDesc.description }}</p>
         <div class="detail-block">
             <details class="compact">
                 <summary class="compact">Parameters</summary>
@@ -20,7 +21,7 @@
                     </li>
                 </ul>
             </details>
-            <details class="compact">
+            <details class="compact" v-if="props.apiDesc.example">
                 <summary class="compact">Example</summary>
                 <div v-if="props.apiDesc.example.description">
                     <code class="example-desc" >{{ props.apiDesc.example.description }}</code>
@@ -41,7 +42,6 @@
         vertical-align: middle;
     }
     span.api-method {
-        color: var(--vp-c-green-1);
         font-weight: bold;
         font-size: small;
         padding: 0.2em 0.5em;
@@ -49,6 +49,8 @@
         margin-right: 0.5em;
         border-radius: 0.2em;
     }
+    .api-method.GET{ color: var(--vp-c-green-1); }
+    .api-method.POST{ color: var(--vp-c-yellow-1); }
 
     .detail-block {
         display: flex;

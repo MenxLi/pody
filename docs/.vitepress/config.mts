@@ -8,7 +8,8 @@ export default defineConfig({
     // https://vitepress.dev/reference/default-theme-config
     nav: [
       { text: 'Home', link: '/' },
-      { text: 'Introduction', link: '/intro' }
+      { text: 'Introduction', link: '/intro' }, 
+      { text: 'API', link: '/api' }
     ],
 
     sidebar: [
@@ -16,6 +17,7 @@ export default defineConfig({
         text: 'Pody Documentations',
         items: [
           { text: 'Introduction', link: '/intro' },
+          { text: 'API', link: '/api' }
         ]
       }
     ],
