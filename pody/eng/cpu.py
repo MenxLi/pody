@@ -6,7 +6,7 @@ from .errors import ProcessNotFoundError
 class ProcessInfo:
     pid: int
     cmd: str
-    uptime: int
+    uptime: float
     cgroup: str
     memory_used: int
 

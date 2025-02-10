@@ -1,11 +1,13 @@
 from .app_base import *
 
+from fastapi import Depends
 from fastapi.routing import APIRouter
 from typing import Optional
 from docker import DockerClient
 
 from ..eng.errors import *
-from ..eng.docker import query_container_by_id
+from ..eng.user import UserRecord
+from ..eng.docker import query_container_by_id, list_docker_images
 from ..eng.gpu import list_processes_on_gpus, GPUProcess
 from ..eng.cpu import query_process
 
@@ -32,7 +34,7 @@ def gpu_status_impl(client: DockerClient, gpu_ids: list[int]):
     gpu_procs = list_processes_on_gpus(gpu_ids)
     return {gpu_id: [fmt_gpu_proc(proc) for proc in gpu_procs[gpu_id]] for gpu_id in gpu_procs}
 
-@router_resource.get("/gpu")
+@router_resource.get("/gpu-ps")
 @handle_exception
 def gpu_status(id: str):
     try:
@@ -40,3 +42,8 @@ def gpu_status(id: str):
     except ValueError:
         raise InvalidInputError("Invalid GPU ID")
     return gpu_status_impl(g_client, _ids)
+
+@router_resource.get("/images")
+@handle_exception
+def list_images(user: UserRecord = Depends(get_user)):
+    return list_docker_images(g_client)

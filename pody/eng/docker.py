@@ -1,4 +1,6 @@
 import docker
+import docker.models
+import docker.models.images
 import docker.types
 from dataclasses import dataclass, field
 from enum import Enum
@@ -23,6 +25,19 @@ class ContainerConfig:
     auto_remove = False
     detach = True
     entrypoint: Optional[str | list[str]] = None
+
+@dataclass
+class ContainerInfo:
+    name: str
+    status: str
+    image: str
+    port_mapping: list[str]     # e.g. ["8000:8000", "8888:8888"]
+    gpu_ids: list[int]
+    pass
+
+def _get_image_name(image: docker.models.images.Image):
+    image_name = image.tags[0] if image and image.tags else image.short_id if image.short_id else ""
+    return image_name
 
 def create_container(
     client: docker.client.DockerClient,
@@ -68,6 +83,8 @@ class ContainerAction(Enum):
     STOP = "stop"
     RESTART = "restart"
     KILL = "kill"
+    DELETE = "delete"
+    INFO = "info"
     
 def container_action(
     client: docker.client.DockerClient,
@@ -84,6 +101,37 @@ def container_action(
         case ContainerAction.STOP: container.stop()
         case ContainerAction.RESTART: container.restart()
         case ContainerAction.KILL: container.kill()
+        case ContainerAction.DELETE: 
+            container.remove(force=True)
+            return f"Container {container_name} deleted"
+        case ContainerAction.INFO:
+            raw_gpu_ids = container.attrs.get('HostConfig', {}).get('DeviceRequests')
+            gpu_ids = [int(id) for id in raw_gpu_ids[0].get('DeviceIDs')] if raw_gpu_ids is not None and len(raw_gpu_ids) > 0 else []
+            
+            port_mappings_dict = {}
+            port_dict = container.attrs['NetworkSettings']['Ports']
+            for host_port, container_ports in port_dict.items():
+                if container_ports:
+                    for port in container_ports:
+                        port_mappings_dict[port['HostPort']] = host_port.split('/')[0]
+
+            container_info = ContainerInfo(
+                name=container.name if container.name else container.id if container.id else "unknown",
+                status=container.status,
+                image=_get_image_name(container.image) if container.image else "unknown",
+                # port_mapping=[str(container.ports)],
+                port_mapping=[f"{host_port}:{container_port}" for host_port, container_port in port_mappings_dict.items()],
+                gpu_ids=gpu_ids
+            )
+            return container_info
+            # return {
+            #     "name": container.name,
+            #     "status": container.status,
+            #     "image": container.image.tags[0] if container.image and container.image.tags else container.image.id,
+            #     "ports": container.attrs['NetworkSettings']['Ports'],
+            #     "gpu": container.attrs.get('HostConfig', {}).get('DeviceRequests', []),
+            #     # "ports": container.ports,
+            # } 
         case _: raise ValueError(f"Invalid action {action}")
     if not after_action is None:
         container.exec_run(after_action, tty=True)
@@ -100,6 +148,30 @@ def query_container_by_id(
         "status": container.status,
         "ports": container.ports,
     }
+
+def list_docker_containers(
+    client: docker.client.DockerClient,
+    filter_name: str,
+    all: bool = True
+    ):
+    containers = client.containers.list(all=all, filters={"name": filter_name})
+    return [container.name for container in containers]
+
+def list_docker_images(client: docker.client.DockerClient):
+    filters = None
+    images = client.images.list(filters=filters)
+    return [_get_image_name(image) for image in images]
+
+def get_docker_used_ports(client: docker.client.DockerClient):
+    containers = client.containers.list(all=True)
+    used_ports = []
+    for container in containers:
+        port_dict = container.attrs['NetworkSettings']['Ports']
+        for host_port, container_ports in port_dict.items():
+            if container_ports:
+                for port in container_ports:
+                    used_ports.append(int(port['HostPort']))
+    return used_ports
 
 if __name__ == "__main__":
     client = docker.from_env()
