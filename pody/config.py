@@ -18,7 +18,7 @@ class _ImageConfig:
 
 @dataclass
 class Config:
-    avaliable_ports: list[int | tuple[int, int]]
+    available_ports: list[int | tuple[int, int]]
     images: list[_ImageConfig]
 
 def config():
@@ -58,6 +58,6 @@ def config():
     
     loaded = toml.load(config_path)
     return Config(
-        avaliable_ports=parse_ports(loaded['avaliable_ports']), 
+        available_ports=parse_ports(loaded['available_ports']), 
         images=[_ImageConfig(name=i['name'], ports=i['ports']) for i in loaded['images']], 
         )
