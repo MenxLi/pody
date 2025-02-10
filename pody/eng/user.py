@@ -12,8 +12,8 @@ def hash_password(username: str, password: str):
 def validate_username(username: str) -> tuple[bool, str]:
     if not 3 <= len(username) <= 20:
         return False, "Username must be between 3 and 20 characters"
-    if not username.isalnum():
-        return False, "Username must be alphanumeric"
+    if not username.isidentifier():
+        return False, "Username must be an identifier"
     if '-' in username or ':' in username:
         return False, "Username cannot contain '-' or ':'"
     return True, ""

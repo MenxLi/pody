@@ -12,6 +12,7 @@ nvidia-ml-py = "*"
 fastapi = "0.*"
 uvicorn = "0.*"
 typer = "0.*"
+psutil = "*"
 
 [tool.poetry.dev-dependencies]
 pytest = "*"
