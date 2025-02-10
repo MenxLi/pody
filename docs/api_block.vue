@@ -1,29 +1,10 @@
 <script setup lang="ts">
     import type { APIDescription } from './api_data';
-    import { codeToHtml } from 'shiki';
     import { ref, defineProps } from 'vue';
 
     const props = defineProps<{
         apiDesc: APIDescription;
     }>();
-
-    const codeToHtmlOptions = {
-        lang: 'sh',
-        theme: 'nord',
-        fontSize: '14px',
-        fontFamily: 'Fira Code',
-        highlight: true,
-    };
-
-    const exampleCode = ref<string>('');
-    const exampleCodeStr = `
-${props.apiDesc.example.description ? `# ${props.apiDesc.example.description}` : ''}
-${props.apiDesc.example.input}
-${props.apiDesc.example.output ? `> ${props.apiDesc.example.output}` : ''}
-    `;
-    codeToHtml(exampleCodeStr, codeToHtmlOptions).then((html) => {
-        exampleCode.value = html;
-    });
 
 </script>
 
@@ -41,26 +22,20 @@ ${props.apiDesc.example.output ? `> ${props.apiDesc.example.output}` : ''}
             </details>
             <details class="compact">
                 <summary class="compact">Example</summary>
-                <div class="code-block" v-html="exampleCode"></div>
+                <div v-if="props.apiDesc.example.description">
+                    <code class="example-desc" >{{ props.apiDesc.example.description }}</code>
+                </div>
+                <!-- Put the example code in the slot with markdown -->
+                <slot></slot>
+                <div class="example-output" v-if="props.apiDesc.example.output">
+                    <code class="example-output">> {{ props.apiDesc.example.output }}</code>
+                </div>
             </details>
         </div>
     </div>
 </template>
 
 <style scoped>
-    .endpoint {
-        color: var(--vp-c-brand);
-    }
-
-    .code-block {
-        overflow-x: auto;
-        border-radius: 1em;
-        padding-inline: 1em;
-        background-color: #2e3440;
-
-        scrollbar-width: none;
-    }
-
     .detail-block {
         display: flex;
         flex-direction: column;
@@ -70,6 +45,11 @@ ${props.apiDesc.example.output ? `> ${props.apiDesc.example.output}` : ''}
     .compact {
         margin: 0em;
         padding: 0em;
+    }
+
+    code.example-desc {
+        display: block;
+        padding: 0.5em;
     }
 
 </style>

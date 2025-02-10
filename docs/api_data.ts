@@ -31,7 +31,6 @@ const api_data: { [key: string]: APIDescription } ={
             }
         },
         "example": {
-            "description": "Restart a pod named " + `${ex_username}-mytag`,
             "input": `${cmd} -X POST ${ex_username}:${ex_password} ${ex_ip}/pod/restart?tag=mytag`,
         }
     }, 
@@ -45,9 +44,7 @@ const api_data: { [key: string]: APIDescription } ={
             }
         },
         "example": {
-            "description": "Stop a pod named " + `${ex_username}-mytag`,
             "input": `${cmd} -X POST ${ex_ip}/pod/stop?tag=mytag`,
-            "output": null
         }
     },
     "/pod/start": {
@@ -60,9 +57,7 @@ const api_data: { [key: string]: APIDescription } ={
             }
         },
         "example": {
-            "description": "Start a pod named " + `${ex_username}-mytag`,
             "input": `${cmd} -X POST ${ex_ip}/pod/start?tag=mytag`,
-            "output": null
         }
     },
 }
