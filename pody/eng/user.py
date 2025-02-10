@@ -12,10 +12,14 @@ def hash_password(username: str, password: str):
 def validate_username(username: str) -> tuple[bool, str]:
     if not 3 <= len(username) <= 20:
         return False, "Username must be between 3 and 20 characters"
+    if username == 'shared':
+        return False, "Username 'shared' is reserved"
     if not username.isidentifier():
         return False, "Username must be an identifier"
     if '-' in username or ':' in username:
         return False, "Username cannot contain '-' or ':'"
+    if username.startswith('_') or username.endswith('_'):
+        return False, "Username cannot start or end with '_'"
     return True, ""
 
 def check_username(username: str):
