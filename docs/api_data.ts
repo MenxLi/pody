@@ -44,7 +44,7 @@ const apiData: { [key: string]: APIDescription } ={
 
     "/pod/delete": {
         method: "POST",
-        description: "Delete a pod",
+        description: "Delete a pod. Please be careful, this operation is irreversible",
         parameters: {
             tag: {
                 type: "string",
@@ -53,7 +53,7 @@ const apiData: { [key: string]: APIDescription } ={
         }
     },
 
-    "pod/info": {
+    "/pod/info": {
         method: "GET",
         description: "Get the information of a pod",
         parameters: {
@@ -102,6 +102,16 @@ const apiData: { [key: string]: APIDescription } ={
             }
         },
     },
+    // "/pod/kill": {
+    //     method: "POST",
+    //     description: "Kill a pod, without doing any cleanup",
+    //     parameters: {
+    //         tag: {
+    //             type: "string",
+    //             description: "The tag of the pod to stop"
+    //         }
+    //     },
+    // },
     "/pod/restart": {
         method: "POST",
         description: "Restart a pod",
@@ -114,9 +124,18 @@ const apiData: { [key: string]: APIDescription } ={
     }, 
 
     // resource endpoints ========================================
+    "/resource/images": {
+        method: "GET",
+        description: "List all available images",
+        example: {
+            input: `${cmd} \\\n\t${ex_ip}/resource/images`,
+            output: `(A list of all available images)`
+        }
+    },
+
     "/resource/gpu-ps": {
         method: "GET",
-        description: "Get the process list of the GPU",
+        description: "Get the process list running on the GPU(s)",
         parameters: {
             id: {
                 type: "string",
