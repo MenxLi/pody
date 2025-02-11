@@ -1,13 +1,18 @@
 from typing import List, Optional
 import sys, os
 
-from pody.api import PodyAPI
+from pody.api import PodyAPI, ClientRequestError
 from rich.console import Console
 import typer
 
-
 def cli_command():
     return sys.argv[0].split(os.sep)[-1]
+def error_dict(e: ClientRequestError):
+    return {
+        "error_code": e.error_code,
+        "message": e.error_message,
+        "context": e.error_context,
+    }
 
 app = typer.Typer(
     help = """Pody CLI client, please refer to [docs]/api for more information. """, 
@@ -30,9 +35,13 @@ def get(
     plain: bool = False
     ):
     api = PodyAPI()
-    res = api.get(path, parse_va_args(args))
-    if plain: print(res)
-    else: console.print(res)
+    try:
+        res = api.get(path, parse_va_args(args))
+        if plain: print(res)
+        else: console.print(res)
+    except ClientRequestError as e:
+        console.print(error_dict(e))
+        exit(1)
 
 @app.command(no_args_is_help=True, help=f"POST request to Pody API, e.g. {cli_command()} post /pod/restart ins:my_pod")
 def post(
@@ -41,6 +50,10 @@ def post(
     plain: bool = False
     ):
     api = PodyAPI()
-    res = api.post(path, parse_va_args(args))
-    if plain: print(res)
-    else: console.print(res)
+    try:
+        res = api.post(path, parse_va_args(args))
+        if plain: print(res)
+        else: console.print(res)
+    except ClientRequestError as e:
+        console.print(error_dict(e))
+        exit(1)
