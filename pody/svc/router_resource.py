@@ -11,6 +11,8 @@ from ..eng.docker import query_container_by_id, list_docker_images
 from ..eng.gpu import list_processes_on_gpus, GPUProcess
 from ..eng.cpu import query_process
 
+from ..config import config
+
 router_resource = APIRouter(prefix="/resource")
 
 def gpu_status_impl(client: DockerClient, gpu_ids: list[int]):
@@ -46,4 +48,7 @@ def gpu_status(id: str):
 @router_resource.get("/images")
 @handle_exception
 def list_images(user: UserRecord = Depends(get_user)):
-    return list_docker_images(g_client)
+    server_config = config()
+    raw_images = list_docker_images(g_client)
+    allowed_images = [image.name for image in server_config.images]
+    return [image for image in raw_images if image in allowed_images]

@@ -16,8 +16,13 @@ router_pod = APIRouter(prefix="/pod")
 def create_pod(tag: str, image: str, user: UserRecord = Depends(get_user)):
     server_config = config()
     container_name = f"{user.name}-{tag}"
-    used_port_list = get_docker_used_ports(g_client)
 
+    # check image
+    allowed_images = [i_image.name for i_image in server_config.images]
+    if image not in allowed_images:
+        raise PermissionError(f"Image {image} is not allowed")
+
+    # hanlding port
     def to_individual_port(ports: list[int | tuple[int, int]]) -> list[int]:
         res = []
         for port in ports:

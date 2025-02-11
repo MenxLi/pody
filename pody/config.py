@@ -15,6 +15,7 @@ DATA_HOME = pathlib.Path(os.environ.get('PODY_HOME', os.path.expanduser('~/.pody
 class _ImageConfig:
     name: str           # e.g. "ubuntu2204-cuda121:latest"
     ports: list[int]    # e.g. [22, 80, 443]
+    description: str = ""
 
 @dataclass
 class Config:
