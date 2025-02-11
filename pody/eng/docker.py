@@ -42,7 +42,7 @@ def _get_image_name(image: docker.models.images.Image):
 def create_container(
     client: docker.client.DockerClient,
     config: ContainerConfig
-    ):
+    ) -> str:
     if not config.gpu_ids is None:
         gpus = [
             docker.types.DeviceRequest(
@@ -76,7 +76,7 @@ def create_container(
         entrypoint=config.entrypoint
 
     )   # type: ignore
-    return container.logs()
+    return container.logs().decode()
 
 class ContainerAction(Enum):
     START = "start"
@@ -84,7 +84,6 @@ class ContainerAction(Enum):
     RESTART = "restart"
     KILL = "kill"
     DELETE = "delete"
-    INFO = "info"
     
 def container_action(
     client: docker.client.DockerClient,
@@ -92,7 +91,7 @@ def container_action(
     action: ContainerAction,
     before_action: Optional[str] = None,
     after_action: Optional[str] = None
-    ):
+    ) -> str:
     container = client.containers.get(container_name)
     if not before_action is None:
         container.exec_run(before_action, tty=True)
@@ -104,38 +103,31 @@ def container_action(
         case ContainerAction.DELETE: 
             container.remove(force=True)
             return f"Container {container_name} deleted"
-        case ContainerAction.INFO:
-            raw_gpu_ids = container.attrs.get('HostConfig', {}).get('DeviceRequests')
-            gpu_ids = [int(id) for id in raw_gpu_ids[0].get('DeviceIDs')] if raw_gpu_ids is not None and len(raw_gpu_ids) > 0 else []
-            
-            port_mappings_dict = {}
-            port_dict = container.attrs['NetworkSettings']['Ports']
-            for host_port, container_ports in port_dict.items():
-                if container_ports:
-                    for port in container_ports:
-                        port_mappings_dict[port['HostPort']] = host_port.split('/')[0]
-
-            container_info = ContainerInfo(
-                name=container.name if container.name else container.id if container.id else "unknown",
-                status=container.status,
-                image=_get_image_name(container.image) if container.image else "unknown",
-                # port_mapping=[str(container.ports)],
-                port_mapping=[f"{host_port}:{container_port}" for host_port, container_port in port_mappings_dict.items()],
-                gpu_ids=gpu_ids
-            )
-            return container_info
-            # return {
-            #     "name": container.name,
-            #     "status": container.status,
-            #     "image": container.image.tags[0] if container.image and container.image.tags else container.image.id,
-            #     "ports": container.attrs['NetworkSettings']['Ports'],
-            #     "gpu": container.attrs.get('HostConfig', {}).get('DeviceRequests', []),
-            #     # "ports": container.ports,
-            # } 
         case _: raise ValueError(f"Invalid action {action}")
     if not after_action is None:
         container.exec_run(after_action, tty=True)
-    return container.logs()
+    return container.logs().decode()
+
+def inspect_container(client: docker.client.DockerClient, container_id: str):
+    container = client.containers.get(container_id)
+    raw_gpu_ids = container.attrs.get('HostConfig', {}).get('DeviceRequests')
+    gpu_ids = [int(id) for id in raw_gpu_ids[0].get('DeviceIDs')] if raw_gpu_ids is not None and len(raw_gpu_ids) > 0 else []
+    
+    port_mappings_dict = {}
+    port_dict = container.attrs['NetworkSettings']['Ports']
+    for host_port, container_ports in port_dict.items():
+        if container_ports:
+            for port in container_ports:
+                port_mappings_dict[port['HostPort']] = host_port.split('/')[0]
+
+    container_info = ContainerInfo(
+        name=container.name if container.name else container.id if container.id else "unknown",
+        status=container.status,
+        image=_get_image_name(container.image) if container.image else "unknown",
+        port_mapping=[f"{host_port}:{container_port}" for host_port, container_port in port_mappings_dict.items()],
+        gpu_ids=gpu_ids
+    )
+    return container_info
 
 def query_container_by_id(
     client: docker.client.DockerClient,
@@ -153,7 +145,7 @@ def list_docker_containers(
     client: docker.client.DockerClient,
     filter_name: str,
     all: bool = True
-    ):
+    ) -> list[str]:
     containers = client.containers.list(all=all, filters={"name": filter_name})
     return [container.name for container in containers]
 

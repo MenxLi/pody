@@ -6,7 +6,7 @@ from fastapi import Depends
 from fastapi.routing import APIRouter
 
 from ..eng.user import UserRecord
-from ..eng.docker import ContainerAction, ContainerConfig, create_container, container_action, list_docker_containers, list_docker_images, get_docker_used_ports
+from ..eng.docker import ContainerAction, ContainerConfig, create_container, container_action, list_docker_containers, get_docker_used_ports, inspect_container
 
 from ..config import config
 
@@ -14,9 +14,9 @@ router_pod = APIRouter(prefix="/pod")
 
 @router_pod.post("/create")
 @handle_exception
-def create_pod(tag: str, image: str, user: UserRecord = Depends(get_user)):
+def create_pod(ins: str, image: str, user: UserRecord = Depends(get_user)):
     server_config = config()
-    container_name = f"{user.name}-{tag}"
+    container_name = f"{user.name}-{ins}"
 
     # check image
     allowed_images = [i_image.name for i_image in server_config.images]
@@ -56,37 +56,37 @@ def create_pod(tag: str, image: str, user: UserRecord = Depends(get_user)):
         gpu_ids=None,
         memory_limit="96g", 
     )
-    return create_container(g_client, container_config)
+    return {"log": create_container(g_client, container_config)}
 
 @router_pod.post("/delete")
 @handle_exception
-def delete_pod(tag: str, user: UserRecord = Depends(get_user)):
-    container_name = f"{user.name}-{tag}"
-    return container_action(g_client, container_name, ContainerAction.DELETE)
+def delete_pod(ins: str, user: UserRecord = Depends(get_user)):
+    container_name = f"{user.name}-{ins}"
+    return {"log": container_action(g_client, container_name, ContainerAction.DELETE)}
 
 @router_pod.post("/restart")
 @handle_exception
-def restart_pod(tag: str, user: UserRecord = Depends(get_user)):
-    container_name = f"{user.name}-{tag}"
-    return container_action(g_client, container_name, ContainerAction.RESTART, after_action="service ssh restart")
+def restart_pod(ins: str, user: UserRecord = Depends(get_user)):
+    container_name = f"{user.name}-{ins}"
+    return {"log": container_action(g_client, container_name, ContainerAction.RESTART, after_action="service ssh restart")}
 
 @router_pod.post("/stop")
 @handle_exception
-def stop_pod(tag: str, user: UserRecord = Depends(get_user)):
-    container_name = f"{user.name}-{tag}"
-    return container_action(g_client, container_name, ContainerAction.STOP)
+def stop_pod(ins: str, user: UserRecord = Depends(get_user)):
+    container_name = f"{user.name}-{ins}"
+    return {"log": container_action(g_client, container_name, ContainerAction.STOP)}
 
 @router_pod.post("/start")
 @handle_exception
-def start_pod(tag: str, user: UserRecord = Depends(get_user)):
-    container_name = f"{user.name}-{tag}"
-    return container_action(g_client, container_name, ContainerAction.START, after_action="service ssh restart")
+def start_pod(ins: str, user: UserRecord = Depends(get_user)):
+    container_name = f"{user.name}-{ins}"
+    return {"log": container_action(g_client, container_name, ContainerAction.START, after_action="service ssh restart")}
 
 @router_pod.get("/info")
 @handle_exception
-def info_pod(tag: str, user: UserRecord = Depends(get_user)):
-    container_name = f"{user.name}-{tag}"
-    return container_action(g_client, container_name, ContainerAction.INFO)
+def info_pod(ins: str, user: UserRecord = Depends(get_user)):
+    container_name = f"{user.name}-{ins}"
+    return inspect_container(g_client, container_name)
 
 @router_pod.get("/list")
 @handle_exception
