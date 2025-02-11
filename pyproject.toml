@@ -2,7 +2,7 @@
 name = "pody"
 version = "0.1.1"
 description = "Pod manager for docker, give limited access to docker for clients."
-authors = ["Li, Mengxun <mengxunli@whu.edu.cn>"]
+authors = ["Li, Mengxun <mengxunli@whu.edu.cn>",  "Li, Jiayu <jiayu.li@whu.edu.cn>"]
 readme = "readme.md"
 include = ["pody/config.template.toml"]
 
