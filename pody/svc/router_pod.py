@@ -33,25 +33,30 @@ def create_pod(tag: str, image: str, user: UserRecord = Depends(get_user)):
                 res.append(port)
         return res
 
+    used_port_list = get_docker_used_ports(g_client)
     available_port_list = list(set(to_individual_port(server_config.available_ports)) - set(used_port_list))
-    if len(available_port_list) == 0:
+
+    target_image = [i_image for i_image in server_config.images if i_image.name == image][0]
+    target_ports = target_image.ports
+    if len(target_ports) > len(available_port_list):
         raise PermissionError("No available port")
     
     random.shuffle(available_port_list)
+    port_mapping = [f'{available_port_list[i]}:{target_ports[i]}' for i in range(len(target_ports))]
 
     # handling volume
     volume_mappings = [Template(mapping).substitute(username=user.name) for mapping in server_config.volume_mappings]
 
+    # create container
     container_config = ContainerConfig(
         image_name=image,
         container_name=container_name,
         volumes=volume_mappings,
-        port_mapping=[f"{ssh_port}:22"] + ([f"{extra_port}:8000"] if extra_port else []),
+        port_mapping=port_mapping,
         gpu_ids=None,
         memory_limit="96g", 
     )
     return create_container(g_client, container_config)
-    # return container_action(g_client, container_name, ContainerAction.RESTART, after_action="service ssh restart")
 
 @router_pod.post("/delete")
 @handle_exception
