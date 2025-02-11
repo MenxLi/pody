@@ -60,7 +60,9 @@ class PodyAPI:
         if path.startswith('/'):
             path = path[1:]
         def f(**kwargs):
-            url = f"{self.api_base}/{path}" + "?" + urllib.parse.urlencode(search_params)
+            url = f"{self.api_base}/{path}"
+            if "?" in path: url += "&" + urllib.parse.urlencode(search_params)
+            else: url += "?" + urllib.parse.urlencode(search_params)
             headers: dict = kwargs.pop('headers', {})
             headers.update(extra_headers)
             with requests.Session() as s:
@@ -81,3 +83,12 @@ class PodyAPI:
     def post(self, path: str, search_params: dict = {}, extra_headers: dict = {}):
         return self._fetch_factory('POST', path, search_params, extra_headers)().json()
     
+    def fetch_auto(self, path: str, search_params: dict = {}, extra_headers: dict = {}):
+        """ Perform an automatic GET or POST request based on the path.  """
+        pinfo = self.get('/pinfo', {"path": path})
+        if len(pinfo['methods']) > 1:
+            raise ValueError(f"Auto fetch not support ambiguous methods: {pinfo['methods']}")
+        match pinfo['methods'][0]:
+            case 'GET': return self.get(path, search_params, extra_headers)
+            case 'POST': return self.post(path, search_params, extra_headers)
+            case _: raise ValueError(f"Method not supported: {pinfo['methods']}")

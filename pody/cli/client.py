@@ -57,3 +57,21 @@ def post(
     except ClientRequestError as e:
         console.print(error_dict(e))
         exit(1)
+
+@app.command(no_args_is_help=True, help=
+            "Automatic infer method for the path "
+            "(an additional request will be made to fetch the path info), \n"
+            f"e.g. {cli_command()} auto /pod/restart ins:my_pod")
+def auto(
+    path: str, 
+    args: Optional[List[str]] = typer.Argument(None, help="Query parameters in the form of key:value, separated by space"), 
+    plain: bool = False
+    ):
+    api = PodyAPI()
+    try:
+        res = api.fetch_auto(path, parse_va_args(args))
+        if plain: print(res)
+        else: console.print(res)
+    except ClientRequestError as e:
+        console.print(error_dict(e))
+        exit(1)
