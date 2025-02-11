@@ -1,4 +1,5 @@
 import random
+from string import Template
 
 from .app_base import *
 from fastapi import Depends
@@ -37,13 +38,14 @@ def create_pod(tag: str, image: str, user: UserRecord = Depends(get_user)):
         raise PermissionError("No available port")
     
     random.shuffle(available_port_list)
-    ssh_port = available_port_list[0]
-    extra_port = available_port_list[1]
+
+    # handling volume
+    volume_mappings = [Template(mapping).substitute(username=user.name) for mapping in server_config.volume_mappings]
 
     container_config = ContainerConfig(
         image_name=image,
         container_name=container_name,
-        volumes=[f"/data/{user.name}:/data/{user.name}"],
+        volumes=volume_mappings,
         port_mapping=[f"{ssh_port}:22"] + ([f"{extra_port}:8000"] if extra_port else []),
         gpu_ids=None,
         memory_limit="96g", 

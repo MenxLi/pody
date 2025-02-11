@@ -64,7 +64,7 @@ def create_container(
     container = client.containers.run(
         image=config.image_name,
         name=config.container_name,
-        volumes={vol.split(":")[0]: {"bind": vol.split(":")[1], "mode": "rw"} for vol in config.volumes},
+        volumes={vol.split(":")[0]: {"bind": vol.split(":")[1], "mode": vol.split(":")[2] if len(vol) > 2 else 'ro'} for vol in config.volumes},
         ports={port.split(":")[1]: port.split(":")[0] for port in config.port_mapping},     # type: ignore
         device_requests=gpus,
         mem_limit=config.memory_limit,

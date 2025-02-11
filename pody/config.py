@@ -21,6 +21,7 @@ class _ImageConfig:
 class Config:
     available_ports: list[int | tuple[int, int]]
     images: list[_ImageConfig]
+    volume_mappings: list[str]
 
 def config():
     def parse_ports(ports_str: str) -> list[int | tuple[int, int]]:
@@ -61,4 +62,5 @@ def config():
     return Config(
         available_ports=parse_ports(loaded['available_ports']), 
         images=[_ImageConfig(name=i['name'], ports=i['ports']) for i in loaded['images']], 
+        volume_mappings=loaded['volume_mappings'],
         )
