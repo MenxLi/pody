@@ -4,6 +4,7 @@ outline: deep
 
 <script setup lang="ts">
     import apiData from './api_data.ts';
+    import { fmtCurlCmd, fmtPodyCmd } from './api_data.ts';
     import APIBlock from './api_block.vue';
 </script>
 
@@ -28,7 +29,10 @@ curl -s ... | python -m json.tool
 <template v-if="apiData[apiName].example">
 
 ```sh-vue
-{{`${apiData[apiName].example.input} `}}
+{{`${fmtCurlCmd( apiData[apiName].method, apiName, apiData[apiName].example.input)} `}}
+```
+```sh-vue
+{{`${fmtPodyCmd( apiData[apiName].method, apiName, apiData[apiName].example.input)} `}}
 ```
 </template>
 </APIBlock>

@@ -2,6 +2,25 @@ const ex_ip = "http://10.256.1.10";
 const ex_username = "username";
 const ex_password = "password";
 
+export function fmtCurlCmd(method: string, url: string, params: Record<string, string>)  {
+    let cmd = `curl -u ${ex_username}:${ex_password} -X ${method} "${ex_ip}${url}`;
+    if (Object.keys(params).length === 0) { return cmd; }
+    else { cmd += "?"; }
+    for (let key in params) {
+        cmd += `${new URLSearchParams({[key]: params[key]}).toString()}`;
+    }
+    return cmd;
+}
+
+export function fmtPodyCmd(method: string, url: string, params: Record<string, string>) {
+    let cmd = `pody ${method.toLowerCase()} ${url}`;
+    for (let key in params) {
+        const safeParam = params[key].match(/^[a-zA-Z0-9_\-]+$/) ? params[key] : `"${params[key]}"`;
+        cmd += ` ${key}:${safeParam}`;
+    }
+    return cmd;
+}
+
 export interface APIDescription {
     method: "GET" | "POST",
     description: string,
@@ -12,13 +31,11 @@ export interface APIDescription {
         }
     },
     example?: {
-        input: string, 
+        input: Record<string, string>,
         description?: string | null,
         output?: string | null
     }
 }
-
-const cmd = `curl -u ${ex_username}:${ex_password}`;
 
 const apiData: { [key: string]: APIDescription } ={
 
@@ -37,7 +54,8 @@ const apiData: { [key: string]: APIDescription } ={
             }
         },
         example: {
-            input: `${cmd} -X POST \\\n\t"${ex_ip}/pod/create?tag=mytag&image=ubuntu2204-cuda12.1:latest"`,
+            // input: `${cmd} -X POST \\\n\t"${ex_ip}/pod/create?tag=mytag&image=ubuntu2204-cuda12.1:latest"`,
+            input: {tag: "mytag", image: "ubuntu2204-cuda12.1:latest"},
             output: `(The output should be the pod info in json)`
         }
     }, 
@@ -63,7 +81,8 @@ const apiData: { [key: string]: APIDescription } ={
             }
         },
         example: {
-            input: `${cmd} \\\n\t${ex_ip}/pod/info?tag=mytag`,
+            // input: `${cmd} \\\n\t${ex_ip}/pod/info?tag=mytag`,
+            input: {tag: "mytag"},
             output: `(TO BE FILLED)`
         }
     },
@@ -72,7 +91,8 @@ const apiData: { [key: string]: APIDescription } ={
         method: "GET",
         description: "List all pods for the user",
         example: {
-            input: `${cmd} \\\n\t${ex_ip}/pod/list`,
+            // input: `${cmd} \\\n\t${ex_ip}/pod/list`,
+            input: {},
             output: `(A list of all pods for the user)`
         }
     },
@@ -88,7 +108,8 @@ const apiData: { [key: string]: APIDescription } ={
             }
         },
         example: {
-            "input": `${cmd} -X POST \\\n\t${ex_ip}/pod/start?tag=mytag`,
+            // "input": `${cmd} -X POST \\\n\t${ex_ip}/pod/start?tag=mytag`,
+            "input": {tag: "mytag"},
             "output": `(Text output of the pod start command)`
         }
     },
@@ -102,16 +123,6 @@ const apiData: { [key: string]: APIDescription } ={
             }
         },
     },
-    // "/pod/kill": {
-    //     method: "POST",
-    //     description: "Kill a pod, without doing any cleanup",
-    //     parameters: {
-    //         tag: {
-    //             type: "string",
-    //             description: "The tag of the pod to stop"
-    //         }
-    //     },
-    // },
     "/pod/restart": {
         method: "POST",
         description: "Restart a pod",
@@ -128,7 +139,8 @@ const apiData: { [key: string]: APIDescription } ={
         method: "GET",
         description: "List all available images",
         example: {
-            input: `${cmd} \\\n\t${ex_ip}/resource/images`,
+            // input: `${cmd} \\\n\t${ex_ip}/resource/images`,
+            input: {},
             output: `(A list of all available images)`
         }
     },
@@ -137,13 +149,14 @@ const apiData: { [key: string]: APIDescription } ={
         method: "GET",
         description: "Get the process list running on the GPU(s)",
         parameters: {
-            id: {
+            "gpu-id": {
                 type: "string",
                 description: "The id(s) of the GPU, multiple ids can be separated by comma"
             }
         },
         example: {
-            input: `${cmd} \\\n\t${ex_ip}/resource/gpu-ps?id=0,1`,
+            // input: `${cmd} \\\n\t${ex_ip}/resource/gpu-ps?id=0,1`,
+            input: {'gpu-id': "0,1"},
             output: `\
 {
     "0": [
