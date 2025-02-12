@@ -75,3 +75,19 @@ def auto(
     except ClientRequestError as e:
         console.print(error_dict(e))
         exit(1)
+
+@app.command(help=f"Display help for the path, e.g. {cli_command()} help /pod/restart")
+def help(
+    path: Optional[str] = typer.Argument('/', help="Path to get help for"),
+    _: Optional[List[str]] = typer.Argument(None, help="Ignored"), 
+    ):
+    def fmt_path_info(r):
+        return f"{r['path']} [{', '.join(r['methods'])}]: {r['params']}"
+    api = PodyAPI()
+    try:
+        res = api.get("/help", {"path": path})
+        for r in res:
+            console.print(fmt_path_info(r))
+    except ClientRequestError as e:
+        console.print(error_dict(e))
+        exit(1)

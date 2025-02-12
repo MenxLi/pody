@@ -23,7 +23,7 @@ pytest = "*"
 [tool.poetry.scripts]
 pody-serve = "pody.cli.serve:main"
 pody-user = "pody.cli.user:app"
-pody-api = "pody.cli.client:app"
+pody = "pody.cli.client:app"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

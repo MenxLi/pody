@@ -40,7 +40,7 @@ class PodyAPI:
         if not self.username: raise ValueError("$PODY_USERNAME not set.")
         if not self.password: raise ValueError("$PODY_PASSWORD not set.")
         self._config = {
-            "timeout": 5,
+            "timeout": None,
             "verify": None,
         }
     
@@ -49,8 +49,8 @@ class PodyAPI:
         timeout: Optional[int] = None,
         verify: Optional[bool] = None,
         ) -> Self:
-        if timeout is not None: self._config["timeout"] = timeout
-        if verify is not None: self._config["verify"] = verify
+        if timeout is not None: self._config["timeout"] = timeout # type: ignore
+        if verify is not None: self._config["verify"] = verify # type: ignore
         return self
     
     def _fetch_factory(
@@ -85,10 +85,14 @@ class PodyAPI:
     
     def fetch_auto(self, path: str, search_params: dict = {}, extra_headers: dict = {}):
         """ Perform an automatic GET or POST request based on the path.  """
-        pinfo = self.get('/pinfo', {"path": path})
-        if len(pinfo['methods']) > 1:
-            raise ValueError(f"Auto fetch not support ambiguous methods: {pinfo['methods']}")
-        match pinfo['methods'][0]:
+        help_list = self.get('/help', {"path": path})
+        if len(help_list) == 0: raise ValueError(f"Path not found: {path}")
+        if len(help_list) > 1: raise ValueError(f"Ambiguous path: {path}")
+
+        endpoint = help_list[0]
+        if len(endpoint['methods']) > 1:
+            raise ValueError(f"Auto fetch not support ambiguous methods: {endpoint['methods']}")
+        match endpoint['methods'][0]:
             case 'GET': return self.get(path, search_params, extra_headers)
             case 'POST': return self.post(path, search_params, extra_headers)
-            case _: raise ValueError(f"Method not supported: {pinfo['methods']}")
+            case _: raise ValueError(f"Method not supported: {endpoint['methods']}")
