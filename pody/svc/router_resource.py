@@ -47,7 +47,7 @@ def gpu_status(id: str):
 
 @router_resource.get("/images")
 @handle_exception
-def list_images(user: UserRecord = Depends(get_user)):
+def list_images(user: UserRecord = Depends(require_permission("all"))):
     server_config = config()
     raw_images = list_docker_images(g_client)
     allowed_images = [image.name for image in server_config.images]

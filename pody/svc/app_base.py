@@ -46,6 +46,15 @@ async def get_user(credentials: HTTPBasicCredentials = Depends(HTTPBasic(auto_er
         raise InsufficientPermissionsError("Invalid username or password")
     return user
 
+def require_permission(permission: str = "all"):
+    def _require_permission(user = Depends(get_user)):
+        if permission == 'all' or user.is_admin: 
+            return user
+        if permission == 'admin' and not user.is_admin:
+            raise PermissionError(f"User does not have permission: {permission}")
+        return user
+    return _require_permission
+
 @app.middleware("http")
 async def log_requests(request, call_next):
     print(f"Request: {request.url}")
@@ -54,5 +63,5 @@ async def log_requests(request, call_next):
     response = await call_next(request)
     return response
 
-__all__ = ["app", "g_client", "g_user_db", "get_user", "handle_exception"]
+__all__ = ["app", "g_client", "g_user_db", "get_user", "require_permission", "handle_exception"]
                 

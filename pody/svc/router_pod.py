@@ -15,7 +15,7 @@ router_pod = APIRouter(prefix="/pod")
 
 @router_pod.post("/create")
 @handle_exception
-def create_pod(ins: str, image: str, user: UserRecord = Depends(get_user)):
+def create_pod(ins: str, image: str, user: UserRecord = Depends(require_permission("all"))):
     server_config = config()
     container_name = f"{user.name}-{ins}"
 
@@ -73,31 +73,31 @@ def create_pod(ins: str, image: str, user: UserRecord = Depends(get_user)):
 
 @router_pod.post("/delete")
 @handle_exception
-def delete_pod(ins: str, user: UserRecord = Depends(get_user)):
+def delete_pod(ins: str, user: UserRecord = Depends(require_permission("all"))):
     container_name = f"{user.name}-{ins}"
     return {"log": container_action(g_client, container_name, ContainerAction.DELETE)}
 
 @router_pod.post("/restart")
 @handle_exception
-def restart_pod(ins: str, user: UserRecord = Depends(get_user)):
+def restart_pod(ins: str, user: UserRecord = Depends(require_permission("all"))):
     container_name = f"{user.name}-{ins}"
     return {"log": container_action(g_client, container_name, ContainerAction.RESTART, after_action="service ssh restart")}
 
 @router_pod.post("/stop")
 @handle_exception
-def stop_pod(ins: str, user: UserRecord = Depends(get_user)):
+def stop_pod(ins: str, user: UserRecord = Depends(require_permission("all"))):
     container_name = f"{user.name}-{ins}"
     return {"log": container_action(g_client, container_name, ContainerAction.STOP)}
 
 @router_pod.post("/start")
 @handle_exception
-def start_pod(ins: str, user: UserRecord = Depends(get_user)):
+def start_pod(ins: str, user: UserRecord = Depends(require_permission("all"))):
     container_name = f"{user.name}-{ins}"
     return {"log": container_action(g_client, container_name, ContainerAction.START, after_action="service ssh restart")}
 
 @router_pod.get("/info")
 @handle_exception
-def info_pod(ins: str, user: UserRecord = Depends(get_user)):
+def info_pod(ins: str, user: UserRecord = Depends(require_permission("all"))):
     container_name = f"{user.name}-{ins}"
     return {"info": inspect_container(g_client, container_name)}
 
@@ -108,6 +108,13 @@ def list_pod(user: UserRecord = Depends(require_permission("all"))):
 
 @router_pod.post("/exec")
 @handle_exception
-def exec_pod(ins: str, cmd: str, user: UserRecord = Depends(get_user)):
+def exec_pod(ins: str, cmd: str, user: UserRecord = Depends(require_permission("all"))):
     container_name = f"{user.name}-{ins}"
     return {"log": exec_docker_container(g_client, container_name, cmd)}
+
+
+# ====== admin only ======
+@router_pod.get("/listall")
+@handle_exception
+def listall_pod(user: UserRecord = Depends(require_permission("admin"))):
+    return {"list": list_docker_containers(g_client, "")}
