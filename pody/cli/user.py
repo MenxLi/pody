@@ -12,7 +12,7 @@ def add(
     max_pods: int = 1
     ):
     db = UserDatabase()
-    db.add_user(username, password, admin, max_pods)
+    db.add_user(username, password, admin)
 
 @app.command()
 def delete(username: str):
@@ -27,4 +27,14 @@ def update(
     max_pods: Optional[int] = None
     ):
     db = UserDatabase()
-    db.update_user(username, password=password, is_admin=admin, max_pods=max_pods)
+    db.update_user(username, password=password, is_admin=admin)
+
+@app.command()
+def update_quota(
+    username: str, 
+    max_pods: Optional[int] = None,
+    gpu_count: Optional[int] = None,
+    memory_limit: Optional[str] = None
+    ):
+    db = UserDatabase()
+    db.update_user_quota(username, max_pods=max_pods, gpu_count=gpu_count, memory_limit=memory_limit)
