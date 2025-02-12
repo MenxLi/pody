@@ -43,7 +43,7 @@ def gpu_status(id: str):
         _ids = [int(i.strip()) for i in id.split(",")]
     except ValueError:
         raise InvalidInputError("Invalid GPU ID")
-    return gpu_status_impl(g_client, _ids)
+    return {"status": 0, "gpu": gpu_status_impl(g_client, _ids)}
 
 @router_resource.get("/images")
 @handle_exception
@@ -51,4 +51,4 @@ def list_images(user: UserRecord = Depends(get_user)):
     server_config = config()
     raw_images = list_docker_images(g_client)
     allowed_images = [image.name for image in server_config.images]
-    return [image for image in raw_images if image in allowed_images]
+    return {"status": 0, "list": [image for image in raw_images if image in allowed_images]}

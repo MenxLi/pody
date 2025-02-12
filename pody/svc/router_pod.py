@@ -56,39 +56,39 @@ def create_pod(ins: str, image: str, user: UserRecord = Depends(get_user)):
         gpu_ids=None,
         memory_limit="96g", 
     )
-    return {"log": create_container(g_client, container_config)}
+    return {"status": 0, "log": create_container(g_client, container_config)}
 
 @router_pod.post("/delete")
 @handle_exception
 def delete_pod(ins: str, user: UserRecord = Depends(get_user)):
     container_name = f"{user.name}-{ins}"
-    return {"log": container_action(g_client, container_name, ContainerAction.DELETE)}
+    return {"status": 0, "log": container_action(g_client, container_name, ContainerAction.DELETE)}
 
 @router_pod.post("/restart")
 @handle_exception
 def restart_pod(ins: str, user: UserRecord = Depends(get_user)):
     container_name = f"{user.name}-{ins}"
-    return {"log": container_action(g_client, container_name, ContainerAction.RESTART, after_action="service ssh restart")}
+    return {"status": 0, "log": container_action(g_client, container_name, ContainerAction.RESTART, after_action="service ssh restart")}
 
 @router_pod.post("/stop")
 @handle_exception
 def stop_pod(ins: str, user: UserRecord = Depends(get_user)):
     container_name = f"{user.name}-{ins}"
-    return {"log": container_action(g_client, container_name, ContainerAction.STOP)}
+    return {"status": 0, "log": container_action(g_client, container_name, ContainerAction.STOP)}
 
 @router_pod.post("/start")
 @handle_exception
 def start_pod(ins: str, user: UserRecord = Depends(get_user)):
     container_name = f"{user.name}-{ins}"
-    return {"log": container_action(g_client, container_name, ContainerAction.START, after_action="service ssh restart")}
+    return {"status": 0, "log": container_action(g_client, container_name, ContainerAction.START, after_action="service ssh restart")}
 
 @router_pod.get("/info")
 @handle_exception
 def info_pod(ins: str, user: UserRecord = Depends(get_user)):
     container_name = f"{user.name}-{ins}"
-    return inspect_container(g_client, container_name)
+    return {"status": 0, "info": inspect_container(g_client, container_name)}
 
 @router_pod.get("/list")
 @handle_exception
 def list_pod(user: UserRecord = Depends(get_user)):
-    return list_docker_containers(g_client, user.name)
+    return {"status": 0, "list": list_docker_containers(g_client, user.name)}
