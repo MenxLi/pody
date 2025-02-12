@@ -20,7 +20,7 @@ app = typer.Typer(
 )
 console = Console()
 
-def parse_va_args(args: Optional[List[str]]):
+def parse_param_va_args(args: Optional[List[str]]):
     res = {}
     if not args: return res
     for arg in args:
@@ -28,7 +28,10 @@ def parse_va_args(args: Optional[List[str]]):
         res[sp[0]] = ':'.join(sp[1:])
     return res
 
-@app.command(no_args_is_help=True, help=f"GET request to Pody API, e.g. {cli_command()} get /host/gpu-ps id:0,1")
+@app.command(
+    no_args_is_help=True, help=f"Send HTTP GET request to Pody API, e.g. {cli_command()} get /host/gpu-ps id:0,1", 
+    rich_help_panel="Request"
+    )
 def get(
     path: str, 
     args: Optional[List[str]] = typer.Argument(None, help="Query parameters in the form of key:value, separated by space"), 
@@ -36,14 +39,17 @@ def get(
     ):
     api = PodyAPI()
     try:
-        res = api.get(path, parse_va_args(args))
+        res = api.get(path, parse_param_va_args(args))
         if plain: print(res)
         else: console.print(res)
     except ClientRequestError as e:
         console.print(error_dict(e))
         exit(1)
 
-@app.command(no_args_is_help=True, help=f"POST request to Pody API, e.g. {cli_command()} post /pod/restart ins:my_pod")
+@app.command(
+    no_args_is_help=True, help=f"Send HTTP POST request to Pody API, e.g. {cli_command()} post /pod/restart ins:my_pod", 
+    rich_help_panel="Request"
+    )
 def post(
     path: str, 
     args: Optional[List[str]] = typer.Argument(None, help="Query parameters in the form of key:value, separated by space"), 
@@ -51,32 +57,39 @@ def post(
     ):
     api = PodyAPI()
     try:
-        res = api.post(path, parse_va_args(args))
+        res = api.post(path, parse_param_va_args(args))
         if plain: print(res)
         else: console.print(res)
     except ClientRequestError as e:
         console.print(error_dict(e))
         exit(1)
 
-@app.command(no_args_is_help=True, help=
-            "Automatic infer method for the path "
-            "(an additional request will be made to fetch the path info), \n"
-            f"e.g. {cli_command()} auto /pod/restart ins:my_pod")
-def auto(
+@app.command(
+    no_args_is_help=True, help=
+        "Send HTTP request to Pody API. "
+        "Automatic infer method verb for the path "
+        "(an additional request will be made to fetch the path info), \n"
+        f"e.g. {cli_command()} auto /pod/restart ins:my_pod",
+    rich_help_panel="Request"
+    )
+def fetch(
     path: str, 
     args: Optional[List[str]] = typer.Argument(None, help="Query parameters in the form of key:value, separated by space"), 
     plain: bool = False
     ):
     api = PodyAPI()
     try:
-        res = api.fetch_auto(path, parse_va_args(args))
+        res = api.fetch_auto(path, parse_param_va_args(args))
         if plain: print(res)
         else: console.print(res)
     except ClientRequestError as e:
         console.print(error_dict(e))
         exit(1)
 
-@app.command(help=f"Display help for the path, e.g. {cli_command()} help /pod/restart")
+@app.command(
+    help=f"Display help for the path, e.g. {cli_command()} help /pod/restart", 
+    rich_help_panel="Help"
+    )
 def help(
     path: Optional[str] = typer.Argument('/', help="Path to get help for"),
     _: Optional[List[str]] = typer.Argument(None, help="Ignored"), 
