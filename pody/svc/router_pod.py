@@ -6,7 +6,8 @@ from fastapi import Depends
 from fastapi.routing import APIRouter
 
 from ..eng.user import UserRecord
-from ..eng.docker import ContainerAction, ContainerConfig, create_container, container_action, list_docker_containers, get_docker_used_ports, inspect_container
+from ..eng.docker import ContainerAction, ContainerConfig, \
+    create_container, container_action, list_docker_containers, get_docker_used_ports, inspect_container, exec_docker_container
 
 from ..config import config
 
@@ -92,3 +93,9 @@ def info_pod(ins: str, user: UserRecord = Depends(get_user)):
 @handle_exception
 def list_pod(user: UserRecord = Depends(get_user)):
     return {"status": 0, "list": list_docker_containers(g_client, user.name)}
+
+@router_pod.post("/exec")
+@handle_exception
+def exec_pod(ins: str, cmd: str, user: UserRecord = Depends(get_user)):
+    container_name = f"{user.name}-{ins}"
+    return {"status": 0, "log": exec_docker_container(g_client, container_name, cmd)}

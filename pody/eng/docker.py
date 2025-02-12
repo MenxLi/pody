@@ -165,6 +165,15 @@ def get_docker_used_ports(client: docker.client.DockerClient):
                     used_ports.append(int(port['HostPort']))
     return used_ports
 
+def exec_docker_container(
+    client: docker.client.DockerClient,
+    container_name: str,
+    command: str
+    ):
+    container = client.containers.get(container_name)
+    result = container.exec_run(command, tty=True)
+    return result.output.decode('utf-8')
+
 if __name__ == "__main__":
     client = docker.from_env()
     config = ContainerConfig(
