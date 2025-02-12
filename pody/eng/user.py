@@ -147,7 +147,7 @@ class UserDatabase:
     def check_user_quota(self, usrname: str):
         with self.cursor() as cur:
             cur.execute(
-                "SELECT id, max_pods, gpu_count, memory_limit FROM user_quota WHERE user_id = (SELECT id FROM users WHERE username = ?)",
+                "SELECT user_id, max_pods, gpu_count, memory_limit FROM user_quota WHERE user_id = (SELECT id FROM users WHERE username = ?)",
                 (usrname,),
             )
             res = cur.fetchone()

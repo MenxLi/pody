@@ -5,7 +5,7 @@ from .app_base import *
 from fastapi import Depends
 from fastapi.routing import APIRouter
 
-from ..eng.user import UserRecord
+from ..eng.user import UserRecord, UserDatabase
 from ..eng.docker import ContainerAction, ContainerConfig, \
     create_container, container_action, list_docker_containers, get_docker_used_ports, inspect_container, exec_docker_container
 
@@ -18,6 +18,18 @@ router_pod = APIRouter(prefix="/pod")
 def create_pod(ins: str, image: str, user: UserRecord = Depends(get_user)):
     server_config = config()
     container_name = f"{user.name}-{ins}"
+
+    # check user quota
+    user_quota = UserDatabase().check_user_quota(user.name)
+    user_containers = list_docker_containers(g_client, user.name)
+    if user_quota.max_pods != -1 and user_quota.max_pods <= len(user_containers):
+        raise PermissionError("Exceed max pod limit")
+    user_gpu_count = 0
+    for container in user_containers:
+        container_info = inspect_container(g_client, container)
+        user_gpu_count += len(container_info.gpu_ids)
+    if user_quota.gpu_count != -1 and user_quota.gpu_count <= user_gpu_count:
+        raise PermissionError("Exceed max gpu limit")
 
     # check image
     allowed_images = [i_image.name for i_image in server_config.images]
@@ -55,7 +67,7 @@ def create_pod(ins: str, image: str, user: UserRecord = Depends(get_user)):
         volumes=volume_mappings,
         port_mapping=port_mapping,
         gpu_ids=None,
-        memory_limit="96g", 
+        memory_limit=f'{user_quota.memory_limit}g' if user_quota.memory_limit != -1 else '65535g', 
     )
     return {"status": 0, "log": create_container(g_client, container_config)}
 
