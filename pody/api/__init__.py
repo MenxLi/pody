@@ -1,8 +1,14 @@
 from __future__ import annotations
 import os
+import sys
 import requests, urllib.parse
 from requests.auth import HTTPBasicAuth
-from typing import Optional, Self, Literal
+from typing import Any, Optional, Literal
+
+if sys.version_info >= (3, 11):
+    from typing import Self
+else:
+    Self = Any
 
 class ClientRequestError(Exception):
     error_code: int
