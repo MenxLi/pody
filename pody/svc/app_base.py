@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.exceptions import HTTPException
 from fastapi.security import HTTPBasicCredentials, HTTPBasic
 from contextlib import asynccontextmanager
+from typing import Literal
 import docker
 
 from ..eng.errors import *
@@ -53,15 +54,15 @@ async def get_user(credentials: HTTPBasicCredentials = Depends(HTTPBasic(auto_er
     key = hash_password(credentials.username, credentials.password)
     user = g_user_db.check_user(key)
     if user.userid == 0:
-        raise InsufficientPermissionsError("Invalid username or password")
+        raise HTTPException(403, "Invalid username or password")
     return user
 
-def require_permission(permission: str = "all"):
+def require_permission(permission: Literal['all', 'admin'] = "all"):
     def _require_permission(user = Depends(get_user)):
         if permission == 'all' or user.is_admin: 
             return user
         if permission == 'admin' and not user.is_admin:
-            raise PermissionError(f"User does not have permission: {permission}")
+            raise HTTPException(403, f"User does not have permission: {permission}")
         return user
     return _require_permission
 
