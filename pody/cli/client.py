@@ -1,5 +1,5 @@
 from typing import List, Optional
-import sys, os
+import sys, os, json
 
 from pody.api import PodyAPI, ClientRequestError
 from rich.console import Console
@@ -35,12 +35,12 @@ def parse_param_va_args(args: Optional[List[str]]):
 def get(
     path: str, 
     args: Optional[List[str]] = typer.Argument(None, help="Query parameters in the form of key:value, separated by space"), 
-    plain: bool = False
+    raw: bool = False
     ):
     api = PodyAPI()
     try:
         res = api.get(path, parse_param_va_args(args))
-        if plain: print(res)
+        if raw: print(json.dumps(res))
         else: console.print(res)
     except ClientRequestError as e:
         console.print(error_dict(e))
@@ -53,12 +53,12 @@ def get(
 def post(
     path: str, 
     args: Optional[List[str]] = typer.Argument(None, help="Query parameters in the form of key:value, separated by space"), 
-    plain: bool = False
+    raw: bool = False
     ):
     api = PodyAPI()
     try:
         res = api.post(path, parse_param_va_args(args))
-        if plain: print(res)
+        if raw: print(json.dumps(res))
         else: console.print(res)
     except ClientRequestError as e:
         console.print(error_dict(e))
@@ -75,12 +75,12 @@ def post(
 def fetch(
     path: str, 
     args: Optional[List[str]] = typer.Argument(None, help="Query parameters in the form of key:value, separated by space"), 
-    plain: bool = False
+    raw: bool = False
     ):
     api = PodyAPI()
     try:
         res = api.fetch_auto(path, parse_param_va_args(args))
-        if plain: print(res)
+        if raw: print(json.dumps(res))
         else: console.print(res)
     except ClientRequestError as e:
         console.print(error_dict(e))
