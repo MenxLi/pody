@@ -170,7 +170,7 @@ def get_docker_used_ports(client: docker.client.DockerClient):
                     used_ports.append(int(port['HostPort']))
     return used_ports
 
-def _exec_container_bash_proc(container_name, command, q: Queue):
+def _exec_container_bash_worker(container_name, command, q: Queue):
     client = docker.from_env()
     cmd = f'/bin/bash -c "{command}"'
     container = client.containers.get(container_name)
@@ -181,10 +181,10 @@ def exec_container_bash(
     container_name: str,
     command: str, 
     timeout: int = 10
-    ):
+    ) -> tuple[int | None, str]:
     start_time = time.time()
     q = Queue()
-    proc = Process(target=_exec_container_bash_proc, args=(container_name, command, q), daemon=True)
+    proc = Process(target=_exec_container_bash_worker, args=(container_name, command, q), daemon=True)
     proc.start()
     while proc.is_alive():
         if time.time() - start_time > timeout:

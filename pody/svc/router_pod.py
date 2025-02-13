@@ -121,7 +121,8 @@ def list_pod(user: UserRecord = Depends(require_permission("all"))):
 @handle_exception
 def exec_pod(ins: str, cmd: str, user: UserRecord = Depends(require_permission("all"))):
     container_name = f"{user.name}-{ins}"
-    return {"log": exec_container_bash(container_name, cmd)}
+    exit_code, log = exec_container_bash(container_name, cmd)
+    return { "exit_code": exit_code, "log": log }
 
 # ====== admin only ======
 @router_pod.get("/listall")
