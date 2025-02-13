@@ -16,7 +16,7 @@ g_client: docker.DockerClient
 g_user_db: UserDatabase
 
 @asynccontextmanager
-async def life_span():
+async def life_span(app: FastAPI):
     config()    # maybe init configuration file at the beginning
     g_client = docker.from_env()
     g_user_db = UserDatabase()
@@ -24,7 +24,7 @@ async def life_span():
     g_client.close()
     g_user_db.close()
 
-app = FastAPI(docs_url=None, redoc_url=None)
+app = FastAPI(docs_url=None, redoc_url=None, lifespan=life_span)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
