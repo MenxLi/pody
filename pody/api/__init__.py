@@ -91,6 +91,7 @@ class PodyAPI:
     
     def fetch_auto(self, path: str, search_params: dict = {}, extra_headers: dict = {}):
         """ Perform an automatic GET or POST request based on the path.  """
+        path = '/' + path if not path.startswith('/') else path
         help_list = self.get('/help', {"path": path})
         if len(help_list) == 0: raise ValueError(f"Path not found: {path}")
         if len(help_list) > 1: raise ValueError(f"Ambiguous path: {path}")

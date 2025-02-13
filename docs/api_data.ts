@@ -13,6 +13,7 @@ export function fmtCurlCmd(method: string, url: string, params: Record<string, s
 }
 
 export function fmtPodyCmd(method: string, url: string, params: Record<string, string>) {
+    url = url.slice(1);     // remove the leading slash
     let cmd = `pody ${method.toLowerCase()} ${url}`;
     for (let key in params) {
         const safeParam = params[key].match(/^[a-zA-Z0-9_\-\.,\:]+$/) ? params[key] : `"${params[key]}"`;
