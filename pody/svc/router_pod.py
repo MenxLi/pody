@@ -80,7 +80,10 @@ def create_pod(ins: str, image: str, user: UserRecord = Depends(require_permissi
         gpu_ids=None,
         memory_limit=f'{user_quota.memory_limit}g' if user_quota.memory_limit != -1 else '65535g', 
     )
-    return {"log": create_container(g_client, container_config)}
+    log = create_container(g_client, container_config) 
+    try: container_info = inspect_container(g_client, container_name)
+    except Exception as e: container_info = None
+    return {"log": log, "info": container_info}
 
 @router_pod.post("/delete")
 @handle_exception
