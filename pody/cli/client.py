@@ -21,11 +21,24 @@ app = typer.Typer(
 console = Console()
 
 def parse_param_va_args(args: Optional[List[str]]):
+    def infer_sep(s: str):
+        if not (':' in s or '=' in s): return None
+        if ':' in s and not '=' in s: return ':'
+        if '=' in s and not ':' in s: return '='
+        return ':' if s.index(':') < s.index('=') else '='
+
     res = {}
     if not args: return res
-    for arg in args:
-        sp = arg.split(':')
-        res[sp[0]] = ':'.join(sp[1:])
+    for i, arg in enumerate(args):
+        sep = infer_sep(arg)
+        if not sep: 
+            raise ValueError(f"Invalid argument: {arg}, the format should be key:value or key=value")
+        arg_sp = arg.split(sep)
+        key, val = arg_sp[0], sep.join(arg_sp[1:])
+        if val == '':
+            assert i == len(args) - 1, f"Invalid argument: {key}, only last argument can be read from stdin"
+            val = sys.stdin.read().strip()
+        res[key] = val
     return res
 
 @app.command(
