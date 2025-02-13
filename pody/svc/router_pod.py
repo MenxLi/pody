@@ -31,7 +31,7 @@ def create_pod(ins: str, image: str, user: UserRecord = Depends(require_permissi
 
     # check user quota
     user_quota = UserDatabase().check_user_quota(user.name)
-    user_containers = list_docker_containers(g_client, user.name)
+    user_containers = list_docker_containers(g_client, user.name + '-')
     if user_quota.max_pods != -1 and user_quota.max_pods <= len(user_containers):
         raise PermissionError("Exceed max pod limit")
 
@@ -115,7 +115,7 @@ def info_pod(ins: str, user: UserRecord = Depends(require_permission("all"))):
 @router_pod.get("/list")
 @handle_exception
 def list_pod(user: UserRecord = Depends(require_permission("all"))):
-    return list_docker_containers(g_client, user.name)
+    return list_docker_containers(g_client, user.name + '-')
 
 @router_pod.post("/exec")
 @handle_exception
