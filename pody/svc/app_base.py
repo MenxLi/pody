@@ -5,10 +5,24 @@ from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.exceptions import HTTPException
 from fastapi.security import HTTPBasicCredentials, HTTPBasic
+from contextlib import asynccontextmanager
 import docker
 
 from ..eng.errors import *
+from ..config import config
 from ..eng.user import UserDatabase, hash_password
+
+g_client: docker.DockerClient
+g_user_db: UserDatabase
+
+@asynccontextmanager
+async def life_span():
+    config()    # maybe init configuration file at the beginning
+    g_client = docker.from_env()
+    g_user_db = UserDatabase()
+    yield
+    g_client.close()
+    g_user_db.close()
 
 app = FastAPI(docs_url=None, redoc_url=None)
 app.add_middleware(
@@ -17,8 +31,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-g_client = docker.from_env()
-g_user_db = UserDatabase()
                     
 def handle_exception(fn):
     @wraps(fn)
