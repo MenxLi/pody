@@ -7,7 +7,7 @@ from fastapi.routing import APIRouter
 
 from ..eng.user import UserRecord, UserDatabase, validate_username
 from ..eng.docker import ContainerAction, ContainerConfig, \
-    create_container, container_action, list_docker_containers, get_docker_used_ports, inspect_container, exec_docker_container
+    create_container, container_action, list_docker_containers, get_docker_used_ports, inspect_container, exec_container_bash
 
 from ..config import config
 
@@ -116,12 +116,11 @@ def info_pod(ins: str, user: UserRecord = Depends(require_permission("all"))):
 def list_pod(user: UserRecord = Depends(require_permission("all"))):
     return list_docker_containers(g_client, user.name)
 
-# @router_pod.post("/exec")
-# @handle_exception
-# def exec_pod(ins: str, cmd: str, user: UserRecord = Depends(require_permission("all"))):
-#     container_name = f"{user.name}-{ins}"
-#     return {"log": exec_docker_container(g_client, container_name, cmd)}
-
+@router_pod.post("/exec")
+@handle_exception
+def exec_pod(ins: str, cmd: str, user: UserRecord = Depends(require_permission("all"))):
+    container_name = f"{user.name}-{ins}"
+    return {"log": exec_container_bash(container_name, cmd)}
 
 # ====== admin only ======
 @router_pod.get("/listall")

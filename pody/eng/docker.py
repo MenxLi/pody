@@ -8,6 +8,8 @@ from typing import TYPE_CHECKING, Optional
 if TYPE_CHECKING:
     from docker.models.containers import _RestartPolicy
 
+import time
+from multiprocessing import Process, Queue
 from .errors import ContainerNotFoundError
 
 @dataclass
@@ -168,26 +170,51 @@ def get_docker_used_ports(client: docker.client.DockerClient):
                     used_ports.append(int(port['HostPort']))
     return used_ports
 
-def exec_docker_container(
-    client: docker.client.DockerClient,
-    container_name: str,
-    command: str
-    ):
-    raise NotImplementedError("To be implemented")
+def _exec_container_bash_proc(container_name, command, q: Queue):
+    client = docker.from_env()
+    cmd = f'/bin/bash -c "{command}"'
     container = client.containers.get(container_name)
-    result = container.exec_run(command, tty=False)
-    return result.output.decode('utf-8')
+    result = container.exec_run(cmd, tty=True)
+    q.put(result.output.decode('utf-8'))
+
+def exec_container_bash(
+    container_name: str,
+    command: str, 
+    timeout: int = 10
+    ):
+    start_time = time.time()
+    q = Queue()
+    proc = Process(target=_exec_container_bash_proc, args=(container_name, command, q), daemon=True)
+    proc.start()
+    while proc.is_alive():
+        if time.time() - start_time > timeout:
+            proc.terminate()
+            return -1, "Timeout"
+    proc.join()
+    return proc.exitcode, q.get()
 
 if __name__ == "__main__":
     client = docker.from_env()
     config = ContainerConfig(
-        image_name="ubuntu2204-cu121-base",
-        container_name="utest",
-        volumes=["/data/test-user:/data/test-user"],
-        port_mapping=["15999:22", "15998:23"],
-        gpu_ids=[1,2],
+        image_name="exp:latest",
+        container_name="limengxun-test1",
+        volumes=[],
+        port_mapping=[],
+        gpu_ids=[0,1],
         memory_limit="8g", 
     )
-    config.auto_remove = True
     config.restart_policy = None
-    print(create_container(client, config))
+    create_container(client, config)
+
+    try:
+        out = exec_container_bash("limengxun-test", "echo 'hello' > /tmp/hello.txt && ls /tmp")
+        print(out)
+        out = exec_container_bash("limengxun-test", "cat /tmp/hello.txt")
+        print(out)
+        out = exec_container_bash("limengxun-test", "mkdir -p ~/.ssh && echo 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDZQ7' > ~/.ssh/authorized_keys")
+        print(out)
+        out = exec_container_bash("limengxun-test", "cat ~/.ssh/authorized_keys")
+        print(out)
+
+    finally:
+        container_action(client, "limengxun-test1", ContainerAction.DELETE)
