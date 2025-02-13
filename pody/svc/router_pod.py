@@ -5,6 +5,7 @@ from .app_base import *
 from fastapi import Depends
 from fastapi.routing import APIRouter
 
+from ..eng.errors import *
 from ..eng.user import UserRecord, UserDatabase, validate_username
 from ..eng.docker import ContainerAction, ContainerConfig, \
     create_container, container_action, list_docker_containers, get_docker_used_ports, inspect_container, exec_container_bash
@@ -16,8 +17,8 @@ router_pod = APIRouter(prefix="/pod")
 def interpret_image_name(ins: str, user: UserRecord):
     if '-' in ins:
         ins_sp = ins.split('-')
-        if not ins_sp[0] == user.name or not user.is_admin:
-            raise PermissionError("Invalid pod name")
+        if not ins_sp[0] == user.name and not user.is_admin:
+            raise InsufficientPermissionsError("Invalid pod name")
         return ins
     return f"{user.name}-{ins}"
 
