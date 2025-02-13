@@ -15,6 +15,12 @@ outline: deep
 
 # HTTP API
 
+The API exposes interface for managing your own pods and query server status.  
+- `GET` method is used for querying data without side effects;  
+- `POST` method is used for creating or updating data.
+- All parameters are passed via query string in URLs.
+
+## Details
 <div style="margin-block: 0.5rem; padding: 0.5rem; background-color: var(--vp-c-gray-soft); border-radius: 0.5rem;">
     <label class="api-type-span">
         <input type="radio" v-model="apiType" value="pody" class="mr-2">
@@ -25,12 +31,6 @@ outline: deep
         <span>Curl</span>
     </label>
 </div>
-
-The API exposes interface for managing your own pods and query server status.  
-- `GET` method is used for querying data without side effects;  
-- `POST` method is used for creating or updating data.
-- All parameters are passed via query string in URLs.
-
 <template v-if="apiType === 'curl'">
 
 ::: tip
@@ -42,6 +42,7 @@ curl -s ... | python -m json.tool
 :::
 </template>
 <template v-else-if="apiType === 'pody'">
+
 
 ::: tip
 Here examples of API calls are provided using `pody` utility. 

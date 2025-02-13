@@ -4,12 +4,12 @@ const ex_password = "password";
 
 export function fmtCurlCmd(method: string, url: string, params: Record<string, string>)  {
     let cmd = `curl -u ${ex_username}:${ex_password} -X ${method} "${ex_ip}${url}`;
-    if (Object.keys(params).length === 0) { return cmd; }
+    if (Object.keys(params).length === 0) { return cmd + '"'; }
     else { cmd += "?"; }
     for (let key in params) {
         cmd += `${new URLSearchParams({[key]: params[key]}).toString()}`;
     }
-    return cmd;
+    return cmd + '"';
 }
 
 export function fmtPodyCmd(method: string, url: string, params: Record<string, string>) {
@@ -40,6 +40,40 @@ export interface APIDescription {
 const apiData: { [key: string]: APIDescription } ={
 
     // pod endpoints ========================================
+    "/user/info": {
+        method: "GET",
+        description: "Get the information of the user",
+        parameters: {},
+        example: {
+            input: {},
+            output: `{
+    "user": {
+        "name": "limengxun",
+        "is_admin": 0
+    },
+    "quota": {
+        "max_pods": -1,
+        "gpu_count": -1,
+        "memory_limit": -1
+    }
+}`
+        }
+    }, 
+    "/user/list": {
+        method: "GET",
+        description: "List all usernames and their admin status in this node",
+        parameters: {},
+    }, 
+    "/user/ch-password": {
+        method: "GET",
+        description: "List all usernames and their admin status in this node",
+        parameters: {
+            passwd: {
+                type: "string",
+                description: "The new password"
+            }
+        },
+    }, 
     "/pod/create": {
         method: "POST",
         description: "Create a new pod",
@@ -54,7 +88,6 @@ const apiData: { [key: string]: APIDescription } ={
             }
         },
         example: {
-            // input: `${cmd} -X POST \\\n\t"${ex_ip}/pod/create?tag=mytag&image=ubuntu2204-cuda12.1:latest"`,
             input: {tag: "mytag", image: "ubuntu2204-cuda12.1:latest"},
             output: `(The output should be the pod info in json)`
         }
@@ -81,7 +114,6 @@ const apiData: { [key: string]: APIDescription } ={
             }
         },
         example: {
-            // input: `${cmd} \\\n\t${ex_ip}/pod/info?tag=mytag`,
             input: {tag: "mytag"},
             output: `(TO BE FILLED)`
         }
@@ -91,7 +123,6 @@ const apiData: { [key: string]: APIDescription } ={
         method: "GET",
         description: "List all pods for the user",
         example: {
-            // input: `${cmd} \\\n\t${ex_ip}/pod/list`,
             input: {},
             output: `(A list of all pods for the user)`
         }
@@ -108,7 +139,6 @@ const apiData: { [key: string]: APIDescription } ={
             }
         },
         example: {
-            // "input": `${cmd} -X POST \\\n\t${ex_ip}/pod/start?tag=mytag`,
             "input": {tag: "mytag"},
             "output": `(Text output of the pod start command)`
         }
@@ -139,7 +169,6 @@ const apiData: { [key: string]: APIDescription } ={
         method: "GET",
         description: "List all available images",
         example: {
-            // input: `${cmd} \\\n\t${ex_ip}/resource/images`,
             input: {},
             output: `(A list of all available images)`
         }
@@ -155,7 +184,6 @@ const apiData: { [key: string]: APIDescription } ={
             }
         },
         example: {
-            // input: `${cmd} \\\n\t${ex_ip}/resource/gpu-ps?id=0,1`,
             input: {'gpu-id': "0,1"},
             output: `\
 {
