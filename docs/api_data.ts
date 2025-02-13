@@ -78,9 +78,9 @@ const apiData: { [key: string]: APIDescription } ={
         method: "POST",
         description: "Create a new pod",
         parameters: {
-            tag: {
+            ins: {
                 type: "string",
-                description: "The tag of the pod to create, the actual pod name will be " + `<${ex_username}>-<tag>`
+                description: "The instance to create, the actual pod name will be " + `<${ex_username}>-<ins>`
             }, 
             image: {
                 type: "string",
@@ -88,7 +88,7 @@ const apiData: { [key: string]: APIDescription } ={
             }
         },
         example: {
-            input: {tag: "mytag", image: "ubuntu2204-cuda12.1:latest"},
+            input: {ins: "myins", image: "ubuntu2204-cuda12.1:latest"},
             output: `(The output should be the pod info in json)`
         }
     }, 
@@ -97,9 +97,9 @@ const apiData: { [key: string]: APIDescription } ={
         method: "POST",
         description: "Delete a pod. Please be careful, this operation is irreversible",
         parameters: {
-            tag: {
+            ins: {
                 type: "string",
-                description: "The tag of the pod to delete"
+                description: "The instance to delete"
             }
         }
     },
@@ -108,13 +108,13 @@ const apiData: { [key: string]: APIDescription } ={
         method: "GET",
         description: "Get the information of a pod",
         parameters: {
-            tag: {
+            ins: {
                 type: "string",
-                description: "The tag of the pod to get information"
+                description: "The instance to get information"
             }
         },
         example: {
-            input: {tag: "mytag"},
+            input: {ins: "myins"},
             output: `(TO BE FILLED)`
         }
     },
@@ -133,13 +133,13 @@ const apiData: { [key: string]: APIDescription } ={
         method: "POST",
         description: "Start a pod",
         parameters: {
-            tag: {
+            ins: {
                 type: "string",
-                description: "The tag of the pod to start"
+                description: "The instance to start"
             }
         },
         example: {
-            "input": {tag: "mytag"},
+            "input": {ins: "myins"},
             "output": `(Text output of the pod start command)`
         }
     },
@@ -147,9 +147,9 @@ const apiData: { [key: string]: APIDescription } ={
         method: "POST",
         description: "Stop a pod",
         parameters: {
-            tag: {
+            ins: {
                 type: "string",
-                description: "The tag of the pod to stop"
+                description: "The instance to stop"
             }
         },
     },
@@ -157,9 +157,23 @@ const apiData: { [key: string]: APIDescription } ={
         method: "POST",
         description: "Restart a pod",
         parameters: {
-            tag: {
+            ins: {
                 type: "string",
-                description: "The tag of the pod to restart"
+                description: "The instance to restart"
+            }
+        },
+    }, 
+    "/pod/exec": {
+        method: "POST",
+        description: "Execute a command in a pod",
+        parameters: {
+            ins: {
+                type: "string",
+                description: "The instance id of the pod to execute command"
+            }, 
+            cmd: {
+                type: "string",
+                description: "The command to execute"
             }
         },
     }, 
