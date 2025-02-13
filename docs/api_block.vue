@@ -18,14 +18,16 @@
         <p class="compact" style="margin-bottom: 0.2rem"><span :class="`api-method ${props.apiDesc.method}`"
             >{{ props.apiDesc.method }}</span>{{ props.apiDesc.description }}</p>
         <div class="detail-block">
-            <details class="compact" v-if="props.apiDesc.parameters && Object.keys(props.apiDesc.parameters).length > 0">
-                <summary class="compact">Parameters</summary>
+            <div class="compact" v-if="props.apiDesc.parameters && Object.keys(props.apiDesc.parameters).length > 0">
+                <i>Parameters</i>
                 <ul>
                     <li v-for="paramName in Object.keys(props.apiDesc.parameters)">
-                        <strong>{{ paramName }}</strong> [{{ props.apiDesc.parameters[paramName].type }}] - {{ props.apiDesc.parameters[paramName].description }}
+                        <span class="params">
+                            <strong>{{ paramName }}</strong> [{{ props.apiDesc.parameters[paramName].type }}] 
+                        </span>{{ props.apiDesc.parameters[paramName].description }}
                     </li>
                 </ul>
-            </details>
+            </div>
             <details class="compact" v-if="props.apiDesc.example">
                 <summary class="compact">Example</summary>
                 <div v-if="props.apiDesc.example.description">
@@ -49,7 +51,7 @@
     p{
         vertical-align: middle;
     }
-    span.api-method {
+    span.api-method, span.params {
         font-weight: bold;
         font-size: small;
         padding: 0.2em 0.5em;
@@ -59,6 +61,10 @@
     }
     .api-method.GET{ color: var(--vp-c-green-1); }
     .api-method.POST{ color: var(--vp-c-yellow-1); }
+    span.params {
+        font-weight: unset;
+        color: var(--vp-c-text-1);
+    }
 
     .detail-block {
         display: flex;

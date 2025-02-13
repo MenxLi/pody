@@ -17,7 +17,8 @@ export default defineConfig({
         text: 'Pody Documentations',
         items: [
           { text: 'Introduction', link: '/intro' },
-          { text: 'API', link: '/api' }
+          { text: 'API', link: '/api' }, 
+          { text: 'Pody CLI', link: '/pody-cli' }, 
         ]
       }
     ],
