@@ -173,8 +173,9 @@ def exec_docker_container(
     container_name: str,
     command: str
     ):
+    raise NotImplementedError("To be implemented")
     container = client.containers.get(container_name)
-    result = container.exec_run(command, tty=True)
+    result = container.exec_run(command, tty=False)
     return result.output.decode('utf-8')
 
 if __name__ == "__main__":

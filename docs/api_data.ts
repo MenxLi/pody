@@ -163,20 +163,20 @@ const apiData: { [key: string]: APIDescription } ={
             }
         },
     }, 
-    "/pod/exec": {
-        method: "POST",
-        description: "Execute a command in a pod",
-        parameters: {
-            ins: {
-                type: "string",
-                description: "The instance id of the pod to execute command"
-            }, 
-            cmd: {
-                type: "string",
-                description: "The command to execute"
-            }
-        },
-    }, 
+    // "/pod/exec": {
+    //     method: "POST",
+    //     description: "Execute a command in a pod",
+    //     parameters: {
+    //         ins: {
+    //             type: "string",
+    //             description: "The instance id of the pod to execute command"
+    //         }, 
+    //         cmd: {
+    //             type: "string",
+    //             description: "The command to execute"
+    //         }
+    //     },
+    // }, 
 
     // resource endpoints ========================================
     "/host/images": {
