@@ -13,7 +13,7 @@ from ..eng.cpu import query_process
 
 from ..config import config
 
-router_resource = APIRouter(prefix="/resource")
+router_host = APIRouter(prefix="/host")
 
 def gpu_status_impl(client: DockerClient, gpu_ids: list[int]):
     def container_id_from_cgroup(cgoup: str) -> Optional[str]:
@@ -36,7 +36,7 @@ def gpu_status_impl(client: DockerClient, gpu_ids: list[int]):
     gpu_procs = list_processes_on_gpus(gpu_ids)
     return {gpu_id: [fmt_gpu_proc(proc) for proc in gpu_procs[gpu_id]] for gpu_id in gpu_procs}
 
-@router_resource.get("/gpu-ps")
+@router_host.get("/gpu-ps")
 @handle_exception
 def gpu_status(id: str):
     try:
@@ -45,10 +45,10 @@ def gpu_status(id: str):
         raise InvalidInputError("Invalid GPU ID")
     return {"gpu": gpu_status_impl(g_client, _ids)}
 
-@router_resource.get("/images")
+@router_host.get("/images")
 @handle_exception
 def list_images(user: UserRecord = Depends(require_permission("all"))):
     server_config = config()
     raw_images = list_docker_images(g_client)
     allowed_images = [image.name for image in server_config.images]
-    return {"list": [image for image in raw_images if image in allowed_images]}
+    return [image for image in raw_images if image in allowed_images]

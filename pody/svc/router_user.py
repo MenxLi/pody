@@ -6,8 +6,6 @@ from fastapi.routing import APIRouter
 
 from ..eng.user import UserRecord, UserDatabase
 
-from ..config import config
-
 router_user = APIRouter(prefix="/user")
 
 @router_user.get("/info")
@@ -24,9 +22,9 @@ def info_user(user: UserRecord = Depends(require_permission("all"))):
 @handle_exception
 def list_user(user: UserRecord = Depends(require_permission("all"))):
     users = UserDatabase().list_users()
-    return {"users": [dataclasses.asdict(u).pop("name") for u in users]}
+    return [dataclasses.asdict(u).pop("name") for u in users]
 
-@router_user.post("/ch-password")
+@router_user.post("/ch-passwd")
 @handle_exception
 def change_passwd(passwd: str, user: UserRecord = Depends(require_permission("all"))):
     UserDatabase().update_user(user.name, password=passwd)
