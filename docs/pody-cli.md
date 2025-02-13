@@ -50,3 +50,9 @@ So the above command can be written as:
 ```sh
 pody fetch /pod/restart ins:myins
 ```
+
+You can also use `help` to get help on a specific route, or a subset of routes:
+```sh
+pody help /pod/restart
+pody help /pod/
+```
