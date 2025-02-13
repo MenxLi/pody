@@ -12,14 +12,12 @@ from ..eng.errors import *
 from ..config import config
 from ..eng.user import UserDatabase, hash_password
 
-g_client: docker.DockerClient
-g_user_db: UserDatabase
+g_client = docker.from_env()
+g_user_db = UserDatabase()
 
 @asynccontextmanager
 async def life_span(app: FastAPI):
     config()    # maybe init configuration file at the beginning
-    g_client = docker.from_env()
-    g_user_db = UserDatabase()
     yield
     g_client.close()
     g_user_db.close()
