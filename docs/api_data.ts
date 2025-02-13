@@ -192,7 +192,7 @@ const apiData: { [key: string]: APIDescription } ={
         method: "GET",
         description: "Get the process list running on the GPU(s)",
         parameters: {
-            "gpu-id": {
+            "id": {
                 type: "string",
                 description: "The id(s) of the GPU, multiple ids can be separated by comma"
             }

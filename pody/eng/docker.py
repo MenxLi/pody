@@ -32,8 +32,7 @@ class ContainerInfo:
     status: str
     image: str
     port_mapping: list[str]     # e.g. ["8000:8000", "8888:8888"]
-    gpu_ids: list[int]
-    pass
+    gpu_ids: Optional[list[int]]
 
 def _get_image_name(image: docker.models.images.Image):
     image_name = image.tags[0] if image and image.tags else image.short_id if image.short_id else ""
@@ -111,7 +110,11 @@ def container_action(
 def inspect_container(client: docker.client.DockerClient, container_id: str):
     container = client.containers.get(container_id)
     raw_gpu_ids = container.attrs.get('HostConfig', {}).get('DeviceRequests')
-    gpu_ids = [int(id) for id in raw_gpu_ids[0].get('DeviceIDs')] if raw_gpu_ids is not None and len(raw_gpu_ids) > 0 else []
+    dev_ids = raw_gpu_ids[0].get('DeviceIDs')
+    if dev_ids is None:
+        gpu_ids = None
+    else:
+        gpu_ids = [int(id) for id in raw_gpu_ids[0].get('DeviceIDs')] if raw_gpu_ids is not None and len(raw_gpu_ids) > 0 else []
     
     port_mappings_dict = {}
     port_dict = container.attrs['NetworkSettings']['Ports']

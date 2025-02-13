@@ -8,7 +8,7 @@ from docker import DockerClient
 from ..eng.errors import *
 from ..eng.user import UserRecord
 from ..eng.docker import query_container_by_id, list_docker_images
-from ..eng.gpu import list_processes_on_gpus, GPUProcess
+from ..eng.gpu import list_processes_on_gpus, GPUProcess, GPUHandler
 from ..eng.cpu import query_process
 
 from ..config import config
@@ -38,11 +38,14 @@ def gpu_status_impl(client: DockerClient, gpu_ids: list[int]):
 
 @router_host.get("/gpu-ps")
 @handle_exception
-def gpu_status(id: str):
-    try:
-        _ids = [int(i.strip()) for i in id.split(",")]
-    except ValueError:
-        raise InvalidInputError("Invalid GPU ID")
+def gpu_status(id: Optional[str] = None):
+    if id is None:
+        _ids = list(range(GPUHandler().device_count()))
+    else:
+        try:
+            _ids = [int(i.strip()) for i in id.split(",")]
+        except ValueError:
+            raise InvalidInputError("Invalid GPU ID")
     return {"gpu": gpu_status_impl(g_client, _ids)}
 
 @router_host.get("/images")
