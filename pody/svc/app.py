@@ -4,9 +4,11 @@ from typing import Optional
 from .app_base import *
 from .router_resource import router_resource
 from .router_pod import router_pod
+from .router_user import router_user
 
 app.include_router(router_resource)
 app.include_router(router_pod)
+app.include_router(router_user)
 
 import inspect
 from fastapi import Depends
