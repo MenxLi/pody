@@ -10,7 +10,7 @@ import docker
 from ..eng.errors import *
 from ..eng.user import UserDatabase, hash_password
 
-app = FastAPI()
+app = FastAPI(docs_url=None, redoc_url=None)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],

@@ -4,7 +4,7 @@ version = "0.1.1"
 description = "Pod manager for docker, give limited access to docker for clients."
 authors = ["Li, Mengxun <mengxunli@whu.edu.cn>",  "Li, Jiayu <jiayu.li@whu.edu.cn>"]
 readme = "readme.md"
-include = ["pody/config.template.toml"]
+include = ["pody/config.default.toml", "pody/doc/*"]
 
 [tool.poetry.dependencies]
 python = ">=3.10"   # PEP-622

@@ -104,3 +104,12 @@ def help(
     except ClientRequestError as e:
         console.print(error_dict(e))
         exit(1)
+
+@app.command(
+    help = "Open the API documentation in the browser",
+    rich_help_panel="Help"
+    )
+def manual():
+    import webbrowser
+    api = PodyAPI()
+    webbrowser.open_new_tab(f"{api.api_base}/docs/pody-cli.html")

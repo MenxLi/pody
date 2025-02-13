@@ -1,0 +1,1 @@
+npm run docs:build && cp -r docs/.vitepress/dist/* pody/doc/

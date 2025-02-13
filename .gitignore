@@ -13,3 +13,6 @@ docs/.vitepress/cache
 
 .vscode
 _tests
+
+pody/doc/*
+!pody/doc/.gitkeep

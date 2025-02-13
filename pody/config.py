@@ -10,6 +10,7 @@ DATA_HOME structure:
         |- config.toml
 """
 DATA_HOME = pathlib.Path(os.environ.get('PODY_HOME', os.path.expanduser('~/.pody')))
+SRC_HOME = pathlib.Path(__file__).parent
 
 @dataclass
 class _ImageConfig:
