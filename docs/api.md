@@ -6,6 +6,7 @@ outline: deep
     import apiData from './api_data.ts';
     import { fmtCurlCmd, fmtPodyCmd } from './api_data.ts';
     import APIBlock from './api_block.vue';
+    import APITable from './api_table.vue';
     import { ref } from 'vue';
 
     const apiType = ref('pody' as 'curl' | 'pody');
@@ -19,6 +20,10 @@ The API exposes interface for managing your own pods and query server status.
 - `GET` method is used for querying data without side effects;  
 - `POST` method is used for creating or updating data.
 - All parameters are passed via query string in URLs.
+- The response is always in json format.
+
+## Summary
+<APITable :api-data="apiData" />
 
 ## Details
 <div style="margin-block: 0.5rem; padding: 0.5rem; background-color: var(--vp-c-gray-soft); border-radius: 0.5rem;">
