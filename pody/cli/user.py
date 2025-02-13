@@ -1,4 +1,5 @@
 import typer
+import rich
 from typing import Optional
 from pody.eng.user import UserDatabase
 
@@ -9,7 +10,6 @@ def add(
     username: str,
     password: str,
     admin: bool = False,
-    max_pods: int = 1
     ):
     db = UserDatabase()
     db.add_user(username, password, admin)
@@ -24,10 +24,17 @@ def update(
     username: str, 
     password: Optional[str] = None,
     admin: Optional[bool] = None,
-    max_pods: Optional[int] = None
     ):
     db = UserDatabase()
     db.update_user(username, password=password, is_admin=admin)
+
+@app.command(help="List users, optionally filter by username")
+def info(usernames: Optional[list[str]] = typer.Argument(None)):
+    console = rich.console.Console()
+    db = UserDatabase()
+    users = db.list_users(usernames)
+    for idx, user in enumerate(users):
+        console.print(f"{idx+1}. {user} {db.check_user_quota(user.name)}")
 
 @app.command()
 def update_quota(

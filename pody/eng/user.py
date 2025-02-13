@@ -1,6 +1,7 @@
 import sqlite3
 import hashlib
 import dataclasses
+from typing import Optional
 from contextlib import contextmanager
 
 from .errors import InvalidUsernameError
@@ -137,10 +138,15 @@ class UserDatabase:
             if res is None: return UserRecord(0, '', False)
             else: return UserRecord(*res)
     
-    def list_users(self):
-        with self.cursor() as cur:
-            cur.execute("SELECT id, username, is_admin FROM users")
-            return [UserRecord(*u) for u in cur.fetchall()]
+    def list_users(self, usernames: Optional[list[str]] = None):
+        if usernames is None:
+            with self.cursor() as cur:
+                cur.execute("SELECT id, username, is_admin FROM users")
+                return [UserRecord(*u) for u in cur.fetchall()]
+        else:
+            with self.cursor() as cur:
+                cur.execute(f"SELECT id, username, is_admin FROM users WHERE username IN ({','.join(['?']*len(usernames))})", usernames)
+                return [UserRecord(*u) for u in cur.fetchall()]
 
     def delete_user(self, username: str):
         with self.transaction() as cursor:
