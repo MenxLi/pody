@@ -107,7 +107,7 @@ def container_action(
         container.exec_run(after_action, tty=True)
     return container.logs().decode()
 
-def inspect_container(client: docker.client.DockerClient, container_id: str):
+def inspect_container(client: docker.client.DockerClient, container_id: str) -> ContainerInfo:
     container = client.containers.get(container_id)
     raw_gpu_ids = container.attrs.get('HostConfig', {}).get('DeviceRequests')
     dev_ids = raw_gpu_ids[0].get('DeviceIDs')
