@@ -15,7 +15,7 @@ export function fmtCurlCmd(method: string, url: string, params: Record<string, s
 export function fmtPodyCmd(method: string, url: string, params: Record<string, string>) {
     let cmd = `pody ${method.toLowerCase()} ${url}`;
     for (let key in params) {
-        const safeParam = params[key].match(/^[a-zA-Z0-9_\-]+$/) ? params[key] : `"${params[key]}"`;
+        const safeParam = params[key].match(/^[a-zA-Z0-9_\-\.,\:]+$/) ? params[key] : `"${params[key]}"`;
         cmd += ` ${key}:${safeParam}`;
     }
     return cmd;
@@ -64,7 +64,7 @@ const apiData: { [key: string]: APIDescription } ={
         description: "List all usernames and their admin status in this node",
         parameters: {},
     }, 
-    "/user/ch-password": {
+    "/user/ch-passwd": {
         method: "GET",
         description: "List all usernames and their admin status in this node",
         parameters: {
@@ -179,7 +179,7 @@ const apiData: { [key: string]: APIDescription } ={
     }, 
 
     // resource endpoints ========================================
-    "/resource/images": {
+    "/host/images": {
         method: "GET",
         description: "List all available images",
         example: {
@@ -188,7 +188,7 @@ const apiData: { [key: string]: APIDescription } ={
         }
     },
 
-    "/resource/gpu-ps": {
+    "/host/gpu-ps": {
         method: "GET",
         description: "Get the process list running on the GPU(s)",
         parameters: {
