@@ -49,7 +49,7 @@ def config():
     config_path = DATA_HOME / "config.toml"
     def create_default_config():
         nonlocal config_path
-        template_config_file = pathlib.Path(__file__).parent / "config.template.toml"
+        template_config_file = pathlib.Path(__file__).parent / "config.default.toml"
         with template_config_file.open() as f:
             with config_path.open('w') as f2:
                 f2.write(f.read())

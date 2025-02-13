@@ -4,8 +4,8 @@
 available_ports = "20000-21000"
 
 volume_mappings = [
-	"/data/$username:/workspace/$username:rw", 
-	"/data/share:/workspace/share:ro"
+	"/data/pody-volume/$username:/workspace/$username:rw", 
+	"/data/pody-volume/share:/workspace/share:ro"
 ]
 
 # the ports will be mapped to the host machine 
