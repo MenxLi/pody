@@ -7,7 +7,7 @@ from docker import DockerClient
 
 from ..eng.errors import *
 from ..eng.user import UserRecord
-from ..eng.docker import query_container_by_id, list_docker_images
+from ..eng.docker import check_container, list_docker_images
 from ..eng.gpu import list_processes_on_gpus, GPUProcess, GPUHandler
 from ..eng.cpu import query_process
 
@@ -24,7 +24,7 @@ def gpu_status_impl(client: DockerClient, gpu_ids: list[int]):
     def fmt_gpu_proc(gpu_proc: GPUProcess):
         process_info = query_process(gpu_proc.pid)
         container_id = container_id_from_cgroup(process_info.cgroup)
-        container_name = query_container_by_id(client, container_id)["name"] if container_id else ""
+        container_name = check_container(client, container_id)["name"] if container_id else ""
         return {
             "pid": gpu_proc.pid,
             "pod": container_name,

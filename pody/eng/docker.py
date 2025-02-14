@@ -1,4 +1,5 @@
 import docker
+import docker.errors
 import docker.models
 import docker.models.images
 import docker.types
@@ -134,16 +135,16 @@ def inspect_container(client: docker.client.DockerClient, container_id: str) -> 
     )
     return container_info
 
-def query_container_by_id(
+def check_container(
     client: docker.client.DockerClient,
     container_id: str
     ):
+    """ Check if the container exists and return the very basic information """
     container = client.containers.get(container_id)
     if container is None: raise ContainerNotFoundError(f"Container {container_id} not found")
     return {
         "name": container.name,
         "status": container.status,
-        "ports": container.ports,
     }
 
 def list_docker_containers(
@@ -173,8 +174,12 @@ def get_docker_used_ports(client: docker.client.DockerClient):
 def _exec_container_bash_worker(container_name, command, q: Queue):
     client = docker.from_env()
     cmd = f'/bin/bash -c "{command}"'
-    container = client.containers.get(container_name)
-    result = container.exec_run(cmd, tty=True)
+    try:
+        container = client.containers.get(container_name)
+        result = container.exec_run(cmd, tty=True)
+    except docker.errors.APIError as e:
+        q.put(f"Docker API error: {e}")
+        return
     q.put(result.output.decode('utf-8'))
 
 def exec_container_bash(
@@ -182,6 +187,8 @@ def exec_container_bash(
     command: str, 
     timeout: int = 10
     ) -> tuple[int | None, str]:
+    client = docker.from_env()
+    check_container(client, container_name)
     start_time = time.time()
     q = Queue()
     proc = Process(target=_exec_container_bash_worker, args=(container_name, command, q), daemon=True)
