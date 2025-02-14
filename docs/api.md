@@ -49,7 +49,7 @@ curl -s ... | python -m json.tool
 <template v-else-if="apiType === 'pody'">
 
 
-::: tip
+::: info
 Here examples of API calls are provided using `pody` utility. 
 More information about `pody` can be found [here](/pody-cli.md).
 :::

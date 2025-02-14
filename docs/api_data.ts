@@ -34,7 +34,7 @@ export interface APIDescription {
     example?: {
         input: Record<string, string>,
         description?: string | null,
-        output?: string | null
+        output?: string | null | Object
     }
 }
 
@@ -47,23 +47,20 @@ const apiData: { [key: string]: APIDescription } ={
         parameters: {},
         example: {
             input: {},
-            output: `{
-    "user": {
-        "name": "limengxun",
-        "is_admin": 0
-    },
-    "quota": {
-        "max_pods": -1,
-        "gpu_count": -1,
-        "memory_limit": -1
-    }
-}`
+            output: {
+                "user": { "name": "limengxun", "is_admin": 0 },
+                "quota": { "max_pods": -1, "gpu_count": -1, "memory_limit": -1 }
+            }
         }
     }, 
     "/user/list": {
         method: "GET",
-        description: "List all usernames and their admin status in this node",
+        description: "List all usernames in this node",
         parameters: {},
+        example: {
+            input: {},
+            output: ['limengxun', 'lijiayu', 'wuji']
+        }
     }, 
     "/user/ch-passwd": {
         method: "GET",
@@ -115,8 +112,8 @@ const apiData: { [key: string]: APIDescription } ={
             }
         },
         example: {
-            input: {ins: "myins"},
-            output: `(TO BE FILLED)`
+            input: {ins: "test"},
+            output: {'name': 'limengxun-test', 'status': 'running', 'image': 'exp:latest', 'port_mapping': ['20806:22', '20299:8000'], 'gpu_ids': []}
         }
     },
 
@@ -125,7 +122,7 @@ const apiData: { [key: string]: APIDescription } ={
         description: "List all pods for the user",
         example: {
             input: {},
-            output: `(A list of all pods for the user)`
+            output: `(A list of all pod names for the user)`
         }
     },
 
@@ -167,8 +164,8 @@ const apiData: { [key: string]: APIDescription } ={
     "/pod/exec": {
         method: "POST",
         description: 
-            "Execute a command in a pod, the command will be executed as root user using /bin/bash" +
-            "There is a timeout of 10 seconds for the command to execute, long running will be terminated. ",
+            "Execute a command in a pod, the command will be executed as root user using bash. " +
+            "There is a timeout of 10 seconds for the command to execute, long running task will be terminated. ",
         parameters: {
             ins: {
                 type: "string",
@@ -179,6 +176,10 @@ const apiData: { [key: string]: APIDescription } ={
                 description: "The command to execute"
             }
         },
+        example: {
+            input: {ins: "myins", cmd: "pwd"},
+            output: {'exit_code': 0, 'log': '/workspace\r\n'}
+        }
     }, 
 
     // resource endpoints ========================================
@@ -187,7 +188,7 @@ const apiData: { [key: string]: APIDescription } ={
         description: "List all available images",
         example: {
             input: {},
-            output: `(A list of all available images)`
+            output: `(A list of all available image names)`
         }
     },
 
@@ -201,31 +202,21 @@ const apiData: { [key: string]: APIDescription } ={
             }
         },
         example: {
-            input: {'gpu-id': "0,1"},
-            output: `\
-{
-    "0": [
-        {
-            "pid": 3936,
-            "pod": "limengxun-main",
-            "cmd": "python -m ...",
-            "uptime": 2309249.4564814568,
-            "memory_used": 709079040,
-            "gpu_memory_used": 721420288
-        }
-    ],
-    "1": [
-        {
-            "pid": 28963,
-            "pod": "lijiayu-exp",
-            "cmd": "/home/user/miniconda3/envs/vllm/bin/python -c from multiprocessing.spawn ...",
-            "uptime": 1446117.9469604492,
-            "memory_used": 8506048512,
-            "gpu_memory_used": 22248685568
-        }
-    ]
-}
-`
+            input: {'id': "0,1"},
+            output: {
+                "0": [
+                    {
+                        "pid": 3936, "pod": "limengxun-main", "cmd": "python -m ...", 
+                        "uptime": 2309249.4564814568, "memory_used": 709079040, "gpu_memory_used": 721420288
+                    }
+                ],
+                "1": [
+                    {
+                        "pid": 28963, "pod": "lijiayu-exp", "cmd": "/home/user/miniconda3/envs/vllm/bin/python -c from multiprocessing.spawn ...",
+                        "uptime": 1446117.9469604492, "memory_used": 8506048512, "gpu_memory_used": 22248685568
+                    }
+                ]
+            }
         }
     },
 }
