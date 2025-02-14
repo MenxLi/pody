@@ -10,7 +10,7 @@ export default defineConfig({
     nav: [
       { text: 'Home', link: '/' },
       { text: 'Introduction', link: '/intro' }, 
-      { text: 'API', link: '/api' }
+      { text: 'API', link: '/api' }, 
     ],
 
     sidebar: [
@@ -20,6 +20,7 @@ export default defineConfig({
           { text: 'Introduction', link: '/intro' },
           { text: 'API', link: '/api' }, 
           { text: 'Pody CLI', link: '/pody-cli' }, 
+          { text: 'Deploy', link: '/deploy' }
         ]
       }
     ],

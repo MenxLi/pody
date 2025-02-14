@@ -14,3 +14,7 @@ Specifically:
 - Easy resource management and monitoring. 
 
 <!-- This is an experimental setup for our lab* 😊 -->
+
+# Next
+- If you want to deploy Pody, you can follow the [Deployment guide](./deploy.md).
+- If you are using the API, you can check the [API documentation](./api.md).
