@@ -26,7 +26,7 @@ mkdir -p ~/.pody-credentials
 vi ~/.pody-credentials/node1.sh     # set the variables as above
 ```
 
-Then you can source the file in your shell profile to login to the server 😊:
+Then you can source the file in your shell profile to login to the server 😊🚀:
 ```sh
 source ~/.pody-credentials/node1.sh
 ```
