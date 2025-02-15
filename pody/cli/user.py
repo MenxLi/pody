@@ -2,8 +2,13 @@ import typer
 import rich
 from typing import Optional
 from pody.eng.user import UserDatabase
+import docker
+from ..eng.docker import list_docker_containers, container_action, ContainerAction
 
-app = typer.Typer()
+app = typer.Typer(
+    help = "Manage users in the system",
+    no_args_is_help=True
+    )
 
 @app.command()
 def add(
@@ -15,11 +20,6 @@ def add(
     db.add_user(username, password, admin)
 
 @app.command()
-def delete(username: str):
-    db = UserDatabase()
-    db.delete_user(username)
-
-@app.command()
 def update(
     username: str, 
     password: Optional[str] = None,
@@ -29,7 +29,7 @@ def update(
     db.update_user(username, password=password, is_admin=admin)
 
 @app.command(help="List users, optionally filter by username")
-def info(usernames: Optional[list[str]] = typer.Argument(None)):
+def list(usernames: Optional[list[str]] = typer.Argument(None)):
     console = rich.console.Console()
     db = UserDatabase()
     users = db.list_users(usernames)
@@ -45,3 +45,23 @@ def update_quota(
     ):
     db = UserDatabase()
     db.update_user_quota(username, max_pods=max_pods, gpu_count=gpu_count, memory_limit=memory_limit)
+
+@app.command(help="Delete user")
+def delete(username: str):
+    db = UserDatabase()
+    db.delete_user(username)
+
+@app.command(help="Delete user and all related containers")
+def purge(
+    username: str, 
+    yes: bool= typer.Option(False, "--yes", "-y", help="Skip confirmation")
+    ):
+    if not yes:
+        typer.confirm(f"Are you sure to purge user {username}?", abort=True)
+    db = UserDatabase()
+    db.delete_user(username)
+    client = docker.from_env()
+    containers = list_docker_containers(client, filter_name=username + "-")
+    for container in containers:
+        container_action(client, container, ContainerAction.STOP)
+        print(f"Container [{container}] removed")
