@@ -171,22 +171,30 @@ def get_docker_used_ports(client: docker.client.DockerClient):
                     used_ports.append(int(port['HostPort']))
     return used_ports
 
-def _exec_container_bash_worker(container_name, command, q: Queue):
+def _exec_container_bash_worker(container_name, command: str, q: Queue):
     client = docker.from_env()
-    cmd = f'/bin/bash -c "{command}"'
+    def escape_command(command: str):
+        return command.replace('\\', '\\\\').replace('"', '\\"')
+    cmd = f'/bin/bash -c "{escape_command(command)}"'
     try:
         container = client.containers.get(container_name)
         result = container.exec_run(cmd, tty=True)
     except docker.errors.APIError as e:
-        q.put(f"Docker API error: {e}")
+        q.put((-1, f"Docker API error: {e}"))
         return
-    q.put(result.output.decode('utf-8'))
+    except Exception as e:
+        q.put((-1, f"Error: {e}"))
+        return
+    q.put((
+            result.exit_code,
+            result.output.decode('utf-8') if result.output else ""
+        ))
 
 def exec_container_bash(
     container_name: str,
     command: str, 
     timeout: int = 10
-    ) -> tuple[int | None, str]:
+    ) -> tuple[int, str]:
     client = docker.from_env()
     check_container(client, container_name)
     start_time = time.time()
@@ -194,11 +202,12 @@ def exec_container_bash(
     proc = Process(target=_exec_container_bash_worker, args=(container_name, command, q), daemon=True)
     proc.start()
     while proc.is_alive():
+        time.sleep(0.01)
         if time.time() - start_time > timeout:
             proc.terminate()
             return -1, "Timeout"
     proc.join()
-    return proc.exitcode, q.get()
+    return q.get()
 
 if __name__ == "__main__":
     client = docker.from_env()
