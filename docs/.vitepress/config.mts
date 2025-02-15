@@ -3,7 +3,7 @@ import { defineConfig } from 'vitepress'
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
   title: "Pody-doc",
-  base: "/docs/",
+  base: "/pody/",     // set this for github pages
   description: "Documentation for pody manager.",
   themeConfig: {
     // https://vitepress.dev/reference/default-theme-config

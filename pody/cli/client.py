@@ -119,4 +119,4 @@ def help(
 def manual():
     import webbrowser
     api = PodyAPI()
-    webbrowser.open_new_tab(f"{api.api_base}/docs/pody-cli.html")
+    webbrowser.open_new_tab(f"{api.api_base}/pody/pody-cli.html")

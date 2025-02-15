@@ -8,7 +8,7 @@ from .router_pod import router_pod
 from .router_user import router_user
 from ..config import SRC_HOME
 
-app.mount("/docs", StaticFiles(directory=SRC_HOME / "doc", html=True), name="pody-doc")
+app.mount("/pody", StaticFiles(directory=SRC_HOME / "doc", html=True), name="pody-doc")
 app.include_router(router_host)
 app.include_router(router_pod)
 app.include_router(router_user)
