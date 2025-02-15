@@ -21,7 +21,7 @@ export default defineConfig({
           { text: 'Introduction', link: '/intro' },
           { text: 'API', link: '/api' }, 
           { text: 'Pody CLI', link: '/pody-cli' }, 
-          { text: 'Deploy', link: '/deploy' }
+          { text: 'Deployment', link: '/deploy' }
         ]
       }
     ],

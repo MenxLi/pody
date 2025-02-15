@@ -10,9 +10,9 @@ pip install pody
 首先，从管理员处获得一个节点IP、账号和密码，例如三者分别为`10.254.29.178:8000`，`limengxun`和`123`，
 然后设置好相应环境变量：
 ```sh
-export PODY_API_BASE=http://10.254.29.178:8000;
-export PODY_API_USERNAME=limengxun;
-export PODY_API_PASSWORD=123;
+export PODY_API_BASE="http://10.254.29.178:8000";
+export PODY_API_USERNAME="limengxun";
+export PODY_API_PASSWORD="123";
 ```
 
 ::: tip

@@ -19,16 +19,16 @@ export PODY_USERNAME="username"
 export PODY_PASSWORD="password"
 ```
 
-Another way is to use a configuration files, e.g. you can create a directory to store your credentials:
+Another way is to use a configuration file, e.g. you can create a directory to store your credentials:
 
 ```sh
-mkdir -p ~/.pody-credentials
-vi ~/.pody-credentials/node1.sh     # set the variables as above
+mkdir -p ~/pody-credentials
+vi ~/pody-credentials/node1.sh     # set the variables as above
 ```
 
 Then you can source the file in your shell profile to login to the server 😊🚀:
 ```sh
-source ~/.pody-credentials/node1.sh
+source ~/pody-credentials/node1.sh
 ```
 
 The latter method is more flexible and allows you to switch between different servers easily.
@@ -41,18 +41,18 @@ pody [METHOD] [ROUTE] [OPTIONS...]
 
 For example, to [restart a pod](./api.md#pod-restart) you can run:
 ```sh
-pody post /pod/restart ins:myins
+pody post pod/restart ins:myins
 ```
 
 The method is not strictly a HTTP method, it can be one of `get`, `post`, `fetch`, `help`. 
 Notebly, `fetch` is used to automatically select appropriate method based on the route. 
 So the above command can be written as:
 ```sh
-pody fetch /pod/restart ins:myins
+pody fetch pod/restart ins:myins
 ```
 
 You can also use `help` to get help on a specific route, or a subset of routes:
 ```sh
-pody help /pod/restart
-pody help /pod/
+pody help pod/restart
+pody help pod/
 ```
