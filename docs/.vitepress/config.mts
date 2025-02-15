@@ -5,6 +5,7 @@ export default defineConfig({
   title: "Pody-doc",
   base: "/pody/",     // set this for github pages
   description: "Documentation for pody manager.",
+  lastUpdated: true,
   themeConfig: {
     // https://vitepress.dev/reference/default-theme-config
     nav: [
