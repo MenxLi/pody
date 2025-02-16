@@ -88,7 +88,7 @@ pody fetch pod/exec ins:main cmd:'mkdir -p ~/.ssh && echo $(cat ~/.ssh/id_rsa.pu
 :::
 
 :::tip
-如果要执行多条命令，可以直接写成脚本，然后以管道传递。
+如果要执行多条命令，或者需要避免使用`"`进行空格转义，可以直接写成脚本，然后以管道传递。
 ```sh
 # 构建脚本
 echo "service ssh start && \\" > init.sh
