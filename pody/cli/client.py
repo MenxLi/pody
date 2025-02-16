@@ -1,6 +1,7 @@
 from typing import List, Optional
 import sys, os, json
 
+from pody.eng.utils import format_storage_size, format_time
 from pody.api import PodyAPI, ClientRequestError
 from rich.console import Console
 import typer
@@ -42,6 +43,22 @@ def parse_param_va_args(args: Optional[List[str]]):
     return res
 
 def fetch_impl(method: str, path: str, args: Optional[list[str]], raw: bool):
+    def fmt_unit(res):
+        """ Format some numeric values in the response to human-readable format """
+        storage_size_kw = ["memory_limit", "gpu_memory_used", "memory_used"]
+        time_size_kw = ["uptime"]
+        if isinstance(res, list):
+            return [fmt_unit(r) for r in res]
+        if isinstance(res, dict):
+            for k,v in res.items():
+                if isinstance(v, int) and k in storage_size_kw: 
+                    res[k] = f"{format_storage_size(v, 1)} ({v})"
+                elif isinstance(v, (int, float)) and k in time_size_kw:
+                    res[k] = f"{format_time(v)} ({v})"
+                else:
+                    res[k] = fmt_unit(v)
+        return res
+
     api = PodyAPI()
     try:
         match method:
@@ -50,7 +67,7 @@ def fetch_impl(method: str, path: str, args: Optional[list[str]], raw: bool):
             case "auto": res = api.fetch_auto(path, parse_param_va_args(args))
             case _: raise ValueError(f"Invalid method {method}")
         if raw: print(json.dumps(res))
-        else: console.print(res)
+        else: console.print(fmt_unit(res))
     except ClientRequestError as e:
         if raw: print(json.dumps(error_dict(e)))
         else: console.print(error_dict(e))

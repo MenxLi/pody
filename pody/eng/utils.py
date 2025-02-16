@@ -28,3 +28,16 @@ def format_storage_size(size: int, precision: int = 2) -> str:
     if size < 1024**4:
         return f"{size/1024**3:.{precision}f}G" if precision > 0 else f"{size//1024**3}G"
     return f"{size/1024**4:.{precision}f}T" if precision > 0 else f"{size//1024**4}T"
+
+def format_time(seconds: int | float) -> str:
+    """ Format the time in seconds to human-readable format """
+    assert isinstance(seconds, (int, float)), "seconds should be an integer or float"
+    if isinstance(seconds, float):
+        seconds = int(seconds)
+    if seconds < 60:
+        return f"{seconds}s"
+    if seconds < 3600:
+        return f"{seconds//60}m {seconds%60}s"
+    if seconds < 86400:
+        return f"{seconds//3600}h {seconds%3600//60}m {seconds%60}s"
+    return f"{seconds//86400}d {seconds%86400//3600}h {seconds%3600//60}m {seconds%60}s"
