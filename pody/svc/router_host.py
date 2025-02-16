@@ -46,7 +46,7 @@ def gpu_status(id: Optional[str] = None):
             _ids = [int(i.strip()) for i in id.split(",")]
         except ValueError:
             raise InvalidInputError("Invalid GPU ID")
-    return {"gpu": gpu_status_impl(g_client, _ids)}
+    return gpu_status_impl(g_client, _ids)
 
 @router_host.get("/images")
 @handle_exception
