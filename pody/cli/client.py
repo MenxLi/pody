@@ -5,6 +5,11 @@ from pody.api import PodyAPI, ClientRequestError
 from rich.console import Console
 import typer
 
+app = typer.Typer(
+    help = """Pody CLI client, please refer to [docs]/api for more information. """, 
+    no_args_is_help=True
+)
+
 def cli_command():
     return sys.argv[0].split(os.sep)[-1]
 def error_dict(e: ClientRequestError):
@@ -13,11 +18,6 @@ def error_dict(e: ClientRequestError):
         "message": e.error_message,
         "context": e.error_context,
     }
-
-app = typer.Typer(
-    help = """Pody CLI client, please refer to [docs]/api for more information. """, 
-    no_args_is_help=True
-)
 console = Console()
 
 def parse_param_va_args(args: Optional[List[str]]):
@@ -104,6 +104,8 @@ def help(
     def fmt_path_info(r):
         return f"{r['path']} [{', '.join(r['methods'])}]: {r['params']}"
     api = PodyAPI()
+    if not path is None and not path.startswith("/"):
+        path = f"/{path}"
     try:
         res = api.get("/help", {"path": path})
         for r in res:
