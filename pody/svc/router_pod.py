@@ -14,7 +14,7 @@ from ..config import config
 
 router_pod = APIRouter(prefix="/pod")
 
-def interpret_image_name(ins: str, user: UserRecord):
+def eval_ins_name(ins: str, user: UserRecord):
     if '-' in ins:
         ins_sp = ins.split('-')
         if not ins_sp[0] == user.name and not user.is_admin:
@@ -89,31 +89,31 @@ def create_pod(ins: str, image: str, user: UserRecord = Depends(require_permissi
 @router_pod.post("/delete")
 @handle_exception
 def delete_pod(ins: str, user: UserRecord = Depends(require_permission("all"))):
-    container_name = interpret_image_name(ins, user)
+    container_name = eval_ins_name(ins, user)
     return {"log": container_action(g_client, container_name, ContainerAction.DELETE)}
 
 @router_pod.post("/restart")
 @handle_exception
 def restart_pod(ins: str, user: UserRecord = Depends(require_permission("all"))):
-    container_name = interpret_image_name(ins, user)
+    container_name = eval_ins_name(ins, user)
     return {"log": container_action(g_client, container_name, ContainerAction.RESTART, after_action="service ssh restart")}
 
 @router_pod.post("/stop")
 @handle_exception
 def stop_pod(ins: str, user: UserRecord = Depends(require_permission("all"))):
-    container_name = interpret_image_name(ins, user)
+    container_name = eval_ins_name(ins, user)
     return {"log": container_action(g_client, container_name, ContainerAction.STOP)}
 
 @router_pod.post("/start")
 @handle_exception
 def start_pod(ins: str, user: UserRecord = Depends(require_permission("all"))):
-    container_name = interpret_image_name(ins, user)
+    container_name = eval_ins_name(ins, user)
     return {"log": container_action(g_client, container_name, ContainerAction.START, after_action="service ssh restart")}
 
 @router_pod.get("/info")
 @handle_exception
 def info_pod(ins: str, user: UserRecord = Depends(require_permission("all"))):
-    container_name = interpret_image_name(ins, user)
+    container_name = eval_ins_name(ins, user)
     return inspect_container(g_client, container_name)
 
 @router_pod.get("/list")
@@ -124,7 +124,7 @@ def list_pod(user: UserRecord = Depends(require_permission("all"))):
 @router_pod.post("/exec")
 @handle_exception
 def exec_pod(ins: str, cmd: str, user: UserRecord = Depends(require_permission("all"))):
-    container_name = f"{user.name}-{ins}"
+    container_name = eval_ins_name(ins, user)
     exit_code, log = exec_container_bash(container_name, cmd)
     return {"exit_code": exit_code, "log": log}
 

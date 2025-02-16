@@ -43,6 +43,7 @@ class ContainerConfig:
 
 @dataclass
 class ContainerInfo:
+    container_id: Optional[str]
     name: str
     status: str
     image: str
@@ -141,6 +142,7 @@ def inspect_container(client: docker.client.DockerClient, container_id: str) -> 
                 port_mappings_dict[port['HostPort']] = host_port.split('/')[0]
 
     container_info = ContainerInfo(
+        container_id=container.id[:12] if container.id else None,
         name=container.name if container.name else container.id if container.id else "unknown",
         status=container.status,
         image=_get_image_name(container.image) if container.image else "unknown",
@@ -238,14 +240,7 @@ if __name__ == "__main__":
     create_container(client, config)
 
     try:
-        out = exec_container_bash("limengxun-test", "echo 'hello' > /tmp/hello.txt && ls /tmp")
-        print(out)
-        out = exec_container_bash("limengxun-test", "cat /tmp/hello.txt")
-        print(out)
-        out = exec_container_bash("limengxun-test", "mkdir -p ~/.ssh && echo 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDZQ7' > ~/.ssh/authorized_keys")
-        print(out)
-        out = exec_container_bash("limengxun-test", "cat ~/.ssh/authorized_keys")
-        print(out)
+        ...
 
     finally:
         container_action(client, "limengxun-test1", ContainerAction.DELETE)

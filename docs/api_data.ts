@@ -113,7 +113,7 @@ const apiData: { [key: string]: APIDescription } ={
         },
         example: {
             input: {ins: "test"},
-            output: {'name': 'limengxun-test', 'status': 'running', 'image': 'exp:latest', 'port_mapping': ['20806:22', '20299:8000'], 'gpu_ids': [], "memory_limit": 5242880000}
+            output: {'container_id': '014031e97c87', 'name': 'limengxun-test', 'status': 'running', 'image': 'exp:latest', 'port_mapping': ['20806:22', '20299:8000'], 'gpu_ids': [], "memory_limit": -1}
         }
     },
 
