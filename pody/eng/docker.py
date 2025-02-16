@@ -36,6 +36,7 @@ class ContainerInfo:
     image: str
     port_mapping: list[str]     # e.g. ["8000:8000", "8888:8888"]
     gpu_ids: Optional[list[int]]
+    memory_limit: int
 
 def _get_image_name(image: docker.models.images.Image):
     image_name = image.tags[0] if image and image.tags else image.short_id if image.short_id else ""
@@ -131,7 +132,8 @@ def inspect_container(client: docker.client.DockerClient, container_id: str) -> 
         status=container.status,
         image=_get_image_name(container.image) if container.image else "unknown",
         port_mapping=[f"{host_port}:{container_port}" for host_port, container_port in port_mappings_dict.items()],
-        gpu_ids=gpu_ids
+        gpu_ids=gpu_ids, 
+        memory_limit=container.attrs['HostConfig']['Memory'] if container.attrs['HostConfig']['Memory'] else -1
     )
     return container_info
 
