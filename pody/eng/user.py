@@ -5,6 +5,7 @@ from typing import Optional
 from contextlib import contextmanager
 
 from .errors import InvalidUsernameError
+from .utils import format_storage_size
 from ..config import DATA_HOME
 
 def hash_password(username: str, password: str):
@@ -37,7 +38,11 @@ class UserQuota:
     userid: int
     max_pods: int
     gpu_count: int
-    memory_limit: int # in GB
+    memory_limit: int # in bytes
+
+    def __str__(self):
+        return  f"Quota(max_pods={self.max_pods}, gpu_count={self.gpu_count}, "\
+                f"memory_limit={format_storage_size(self.memory_limit) if self.memory_limit >= 0 else self.memory_limit})"
 
 class UserDatabase:
     def __init__(self):

@@ -78,7 +78,7 @@ def create_pod(ins: str, image: str, user: UserRecord = Depends(require_permissi
         volumes=volume_mappings,
         port_mapping=port_mapping,
         gpu_ids=None,
-        memory_limit=f'{user_quota.memory_limit}g' if user_quota.memory_limit != -1 else '65535g', 
+        memory_limit=f'{user_quota.memory_limit}b' if user_quota.memory_limit > 0 else '65535g', 
     )
     log = create_container(g_client, container_config) 
     try: container_info = inspect_container(g_client, container_name)

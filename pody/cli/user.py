@@ -3,6 +3,7 @@ import rich
 from typing import Optional
 from pody.eng.user import UserDatabase
 import docker
+from ..eng.utils import parse_storage_size
 from ..eng.docker import list_docker_containers, container_action, ContainerAction
 
 app = typer.Typer(
@@ -44,7 +45,10 @@ def update_quota(
     memory_limit: Optional[str] = None
     ):
     db = UserDatabase()
-    db.update_user_quota(username, max_pods=max_pods, gpu_count=gpu_count, memory_limit=memory_limit)
+    db.update_user_quota(
+        username, max_pods=max_pods, gpu_count=gpu_count, 
+        memory_limit=parse_storage_size(memory_limit) if not memory_limit is None else None
+        )
 
 @app.command(help="Delete user")
 def delete(username: str):
