@@ -152,6 +152,22 @@ def inspect_container(client: docker.client.DockerClient, container_id: str) -> 
     )
     return container_info
 
+@dataclass
+class ContainerSize:
+    total: str
+    virtual: str
+def inspect_container_size(client: docker.client.DockerClient, container_id: str):
+    import subprocess
+    container = client.containers.get(container_id)
+    cname = container.name
+    cmd = r'docker ps -a --format="{{.Size}}" --size --filter=' + f'"name={cname}"'
+    res = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE)
+    res = res.stdout.decode().split()
+    assert '(virtual' in res[1], "Error: cannot parse the size query result"
+    total = res[0]
+    virtual = res[2].replace('(virtual ', '').replace(')', '')
+    return ContainerSize(total, virtual)
+
 def check_container(
     client: docker.client.DockerClient,
     container_id: str
@@ -240,7 +256,13 @@ if __name__ == "__main__":
     create_container(client, config)
 
     try:
-        ...
+        r = inspect_container_size(client, "limengxun-test1")
+        print(r)
+        r = inspect_container_size(client, "limengxun-test")
+        print(r)
+        r = inspect_container_size(client, "limengxun-test0")
+        print(r)
+        
 
     finally:
         container_action(client, "limengxun-test1", ContainerAction.DELETE)
