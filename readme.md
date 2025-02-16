@@ -6,4 +6,4 @@
 A simple pod manager.   
 It allows client user to manage pod with limited access to the host system.
 
-More information can be found in the [documentation](https://menxli.github.io/pody).
+More information can be found in the [documentation](https://menxli.github.io/pody/intro.html).
