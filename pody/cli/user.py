@@ -42,12 +42,14 @@ def update_quota(
     username: str, 
     max_pods: Optional[int] = None,
     gpu_count: Optional[int] = None,
-    memory_limit: Optional[str] = None
+    memory_limit: Optional[str] = None, 
+    storage_limit: Optional[str] = None
     ):
     db = UserDatabase()
     db.update_user_quota(
         username, max_pods=max_pods, gpu_count=gpu_count, 
-        memory_limit=parse_storage_size(memory_limit) if not memory_limit is None else None
+        memory_limit=parse_storage_size(memory_limit) if not memory_limit is None else None, 
+        storage_limit=parse_storage_size(storage_limit) if not storage_limit is None else None
         )
 
 @app.command(help="Delete user")

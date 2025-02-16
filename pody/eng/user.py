@@ -38,11 +38,13 @@ class UserQuota:
     userid: int
     max_pods: int
     gpu_count: int
-    memory_limit: int # in bytes
+    memory_limit: int # in bytes (per container)
+    storage_limit: int # in bytes (per container, exclude external volumes)
 
     def __str__(self):
         return  f"Quota(max_pods={self.max_pods}, gpu_count={self.gpu_count}, "\
-                f"memory_limit={format_storage_size(self.memory_limit) if self.memory_limit >= 0 else self.memory_limit})"
+                f"memory_limit={format_storage_size(self.memory_limit) if self.memory_limit >= 0 else self.memory_limit}, "\
+                f"storage_limit={format_storage_size(self.storage_limit) if self.storage_limit >= 0 else self.storage_limit})"
 
 class UserDatabase:
     def __init__(self):
@@ -70,10 +72,19 @@ class UserDatabase:
                     max_pods INTEGER NOT NULL DEFAULT -1,
                     gpu_count INTEGER NOT NULL DEFAULT -1,
                     memory_limit INTEGER NOT NULL DEFAULT -1,
+                    storage_limit INTEGER NOT NULL DEFAULT -1,
                     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
                 );
                 """
             )
+        self.auto_upgrade()
+
+    def auto_upgrade(self):
+        # if no storage_limit column, add it
+        with self.transaction() as cursor:
+            cursor.execute("PRAGMA table_info(user_quota)")
+            if not any([col[1] == 'storage_limit' for col in cursor.fetchall()]):
+                cursor.execute("ALTER TABLE user_quota ADD COLUMN storage_limit INTEGER NOT NULL DEFAULT -1")
     
     def cursor(self):
         @contextmanager
@@ -163,11 +174,11 @@ class UserDatabase:
     def check_user_quota(self, usrname: str):
         with self.cursor() as cur:
             cur.execute(
-                "SELECT user_id, max_pods, gpu_count, memory_limit FROM user_quota WHERE user_id = (SELECT id FROM users WHERE username = ?)",
+                "SELECT user_id, max_pods, gpu_count, memory_limit, storage_limit FROM user_quota WHERE user_id = (SELECT id FROM users WHERE username = ?)",
                 (usrname,),
             )
             res = cur.fetchone()
-            if res is None: return UserQuota(0, -1, -1, -1)
+            if res is None: return UserQuota(0, -1, -1, -1, -1)
             else: return UserQuota(*res)
 
     def update_user_quota(self, usrname: str, **kwargs):
@@ -186,6 +197,11 @@ class UserDatabase:
                 cursor.execute(
                     "UPDATE user_quota SET memory_limit = ? WHERE user_id = (SELECT id FROM users WHERE username = ?)",
                     (kwargs.pop('memory_limit'), usrname),
+                )
+            if 'storage_limit' in kwargs and kwargs['storage_limit'] is not None:
+                cursor.execute(
+                    "UPDATE user_quota SET storage_limit = ? WHERE user_id = (SELECT id FROM users WHERE username = ?)",
+                    (kwargs.pop('storage_limit'), usrname),
                 )
 
     def close(self):

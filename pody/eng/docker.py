@@ -1,3 +1,9 @@
+"""
+References:
+- https://docker-py.readthedocs.io/en/stable/containers.html
+- https://docs.docker.com/engine/containers/resource_constraints/
+"""
+
 import docker
 import docker.errors
 import docker.models
@@ -17,12 +23,18 @@ from .errors import ContainerNotFoundError
 class ContainerConfig:
     image_name: str
     container_name: str
-    volumes: list[str]          # e.g. ["/host/path:/container/path"]
-    port_mapping: list[str]     # e.g. ["8000:8000", "8888:8888"]
-    gpu_ids: Optional[list[int]]
-    memory_limit: str           # e.g. "8g"
+    volumes: list[str]                      # e.g. ["/host/path:/container/path", "/host/path2:/container/path2:ro"]
+    port_mapping: list[str]                 # e.g. ["8000:8000", "8888:8888"]
 
-    # default values
+    # resource constraints
+    # NOTE: `storage_limit` only works for certain storage driver:
+    # - https://docs.docker.com/reference/cli/docker/container/run/#storage-opt
+    # - https://docs.docker.com/reference/cli/dockerd/#daemon-storage-driver
+    gpu_ids: Optional[list[int]] = None
+    memory_limit: Optional[str] = None      # e.g. "8g"
+    storage_limit: Optional[str] = None     # e.g. "8g"
+
+    # other default settings
     restart_policy: Optional["_RestartPolicy"] = field(default_factory=lambda: {"Name": "always", "MaximumRetryCount": 0})
     tty = True
     auto_remove = False
@@ -67,17 +79,18 @@ def create_container(
     container = client.containers.run(
         image=config.image_name,
         name=config.container_name,
-        volumes={vol.split(":")[0]: {"bind": vol.split(":")[1], "mode": vol.split(":")[2] if len(vol) > 2 else 'ro'} for vol in config.volumes},
+        volumes={vol.split(":")[0]: {"bind": vol.split(":")[1], "mode": vol.split(":")[2] if len(vol) > 2 else 'rw'} for vol in config.volumes},
         ports={port.split(":")[1]: port.split(":")[0] for port in config.port_mapping},     # type: ignore
         device_requests=gpus,
         mem_limit=config.memory_limit,
+        mem_swappiness=0,                       # disable swap
         memswap_limit=config.memory_limit,      # disable swap
         tty=config.tty, 
         detach=config.detach,                   # type: ignore
         restart_policy=config.restart_policy, 
         auto_remove=config.auto_remove, 
-        entrypoint=config.entrypoint
-
+        entrypoint=config.entrypoint, 
+        storage_opt={"size": config.storage_limit} if config.storage_limit else None
     )   # type: ignore
     return container.logs().decode()
 
@@ -133,7 +146,7 @@ def inspect_container(client: docker.client.DockerClient, container_id: str) -> 
         image=_get_image_name(container.image) if container.image else "unknown",
         port_mapping=[f"{host_port}:{container_port}" for host_port, container_port in port_mappings_dict.items()],
         gpu_ids=gpu_ids, 
-        memory_limit=container.attrs['HostConfig']['Memory'] if container.attrs['HostConfig']['Memory'] else -1
+        memory_limit=container.attrs['HostConfig']['Memory'] if container.attrs['HostConfig']['Memory'] else -1, 
     )
     return container_info
 
