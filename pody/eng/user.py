@@ -146,6 +146,20 @@ class UserDatabase:
         with self.cursor() as cur:
             cur.execute("SELECT id FROM users WHERE username = ?", (username,))
             return cur.fetchone() is not None
+    
+    def get_user(self, user_id: str | int):
+        if isinstance(user_id, str):
+            with self.cursor() as cur:
+                cur.execute("SELECT id, username, is_admin FROM users WHERE username = ?", (user_id,))
+                res = cur.fetchone()
+                if res is None: return UserRecord(0, '', False)
+                else: return UserRecord(*res)
+        else:
+            with self.cursor() as cur:
+                cur.execute("SELECT id, username, is_admin FROM users WHERE id = ?", (user_id,))
+                res = cur.fetchone()
+                if res is None: return UserRecord(0, '', False)
+                else: return UserRecord(*res)
 
     def check_user(self, credential: str):
         with self.cursor() as cur:

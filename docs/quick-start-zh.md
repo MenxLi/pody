@@ -11,8 +11,8 @@ pip install pody
 然后设置好相应环境变量：
 ```sh
 export PODY_API_BASE="http://10.254.29.178:8000";
-export PODY_API_USERNAME="limengxun";
-export PODY_API_PASSWORD="123";
+export PODY_USERNAME="limengxun";
+export PODY_PASSWORD="123";
 ```
 
 ::: tip
@@ -104,6 +104,13 @@ cat init.sh | pody fetch pod/exec ins:main cmd:
 ssh -p 20806 root@10.254.29.178
 ```
 
+:::warning
+用户通常会被赋予资源使用限制，可以通过`user/info`查看。  
+如果超过使用数量限制，Pody守护进程可能会杀掉你的容器！  
+此时，可以重启容器，并在`/log/pody/...`目录下查看日志文件，以排查问题。
+:::
+
 ## 更多操作
-更多操作请参考[API文档](/api.md)。  
-关于Pody-CLI的更多信息请参考[这里](/pody-cli.md)。
+更多操作请参考[API文档](./api.md)。  
+关于Pody-CLI的更多信息请参考[这里](./pody-cli.md)。  
+Pody的源码可以在[这里](https://github.com/MenxLi/pody)查看。  

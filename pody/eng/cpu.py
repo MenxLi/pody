@@ -14,7 +14,7 @@ class ProcessInfo:
 def query_process(pid: int) -> ProcessInfo:
     def _cgroup_from_pid(pid: int) -> str:
         with open(f"/proc/{pid}/cgroup") as f:
-            return f.read().split("\n")[0]
+            return f.read()
     
     try:
         proc = psutil.Process(pid)
