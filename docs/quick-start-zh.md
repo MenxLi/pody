@@ -79,7 +79,7 @@ pody fetch pod/exec ins:main cmd:"service ssh start"
 
 添加公钥到容器可以通过以下方式来执行：
 ```sh
-pody fetch pod/exec ins:main cmd:'mkdir -p ~/.ssh && echo $(cat ~/.ssh/id_rsa.pub) >> ~/.ssh/authorized_keys'
+pody fetch pod/exec ins:main cmd:"mkdir -p ~/.ssh && echo $(cat ~/.ssh/id_rsa.pub) >> ~/.ssh/authorized_keys"
 ```
 ::: details 结果示例
 ```json
