@@ -69,5 +69,5 @@ def purge(
     client = docker.from_env()
     containers = list_docker_containers(client, filter_name=username + "-")
     for container in containers:
-        container_action(client, container, ContainerAction.STOP)
+        container_action(client, container, ContainerAction.DELETE)
         print(f"Container [{container}] removed")
