@@ -10,6 +10,7 @@ from typing import Literal
 import docker
 
 from ..eng.errors import *
+from ..eng.log import get_logger
 from ..config import config
 from ..eng.user import UserDatabase, hash_password
 
@@ -68,9 +69,8 @@ def require_permission(permission: Literal['all', 'admin'] = "all"):
 
 @app.middleware("http")
 async def log_requests(request, call_next):
-    print(f"Request: {request.url}")
-    print(f"Headers: {request.headers}")
-    print(f"From: {request.client.host}")
+    logger = get_logger('requests')
+    logger.debug(f"Request: {request.url} | From: {request.client.host} | Headers: {request.headers}")
     response = await call_next(request)
     return response
 

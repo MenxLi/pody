@@ -4,6 +4,7 @@ import multiprocessing as mp
 from ..eng.user import UserDatabase
 from ..eng.gpu import GPUHandler
 from ..eng.docker import exec_container_bash
+from ..eng.log import get_logger
 from .router_host import gpu_status_impl
 
 def leave_info(container_name, info: str, level: str = "info"):
@@ -14,6 +15,7 @@ def leave_info(container_name, info: str, level: str = "info"):
     exec_container_bash(container_name, f"mkdir -p {logdir} && echo '{info}' > {logdir}/{fname}")
 
 def task_check_gpu_usage():
+    logger = get_logger('daemon')
     client = docker.from_env()
     user_db = UserDatabase()
 
@@ -32,8 +34,6 @@ def task_check_gpu_usage():
         for user in this_gpu_users:
             user_proc_count[user] = user_proc_count.get(user, 0) + 1
     
-    print("[Daemon] GPU usage: {}".format(user_proc_count))
-    
     for username, proc_count in user_proc_count.items():
         user = user_db.get_user(username)
         if user.userid == 0:    # skip task not related to this database
@@ -49,15 +49,16 @@ def task_check_gpu_usage():
             cmd = p['cmd']
             leave_info(pod_name, f"Killed container with pid-{pid} ({cmd}) due to GPU quota exceeded.", "critical")
             client.containers.get(pod_name).stop()
-            print(f"[Daemon] Killed container {pod_name} with pid-{pid} ({cmd}) due to GPU quota exceeded.")
+            logger.info(f"Killed container {pod_name} with pid-{pid} ({cmd}) due to GPU quota exceeded.")
 
 def daemon_worker():
+    logger = get_logger('daemon')
     while True:
         try:
             task_check_gpu_usage()
         except Exception as e:
             if isinstance(e, KeyboardInterrupt): raise
-            print(f"[Daemon] Error: {e}")
+            logger.exception("Daemon task failed: " + str(e))
         time.sleep(60)  # check every minute
 
 def start_daemon() -> mp.Process:
