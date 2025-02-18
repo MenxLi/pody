@@ -224,7 +224,7 @@ const apiData: { [key: string]: APIDescription } ={
         example: {
             input: {},
             output: {
-                'pody_version': '0.1.9',
+                'pody_version': '0.1.10',
                 'docker_version': '26.1.5-ce',
                 'nvidia_driver_version': '550.78',
                 'nvidia_ctk_version': 'NVIDIA Container Toolkit CLI version unknown'
@@ -258,7 +258,7 @@ const apiData: { [key: string]: APIDescription } ={
         description: "Get the version of the API",
         example: {
             input: {},
-            output: [0, 1, 9]
+            output: [0, 1, 10]
         }
     }
 }
