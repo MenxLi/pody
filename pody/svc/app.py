@@ -8,6 +8,7 @@ from .router_host import router_host
 from .router_pod import router_pod
 from .router_user import router_user
 from ..config import SRC_HOME
+from ..version import VERSION
 
 app.mount("/pody", StaticFiles(directory=SRC_HOME / "doc", html=True), name="pody-doc")
 app.include_router(router_host)
@@ -61,6 +62,10 @@ async def help(path: Optional[str] = None, _: UserRecord = Depends(get_user)):
         if (path.endswith("/") and route.path.startswith(path)) or route.path == path:
             ret.append(get_path_info(route))
     return ret
+
+@app.get("/status")
+def version():
+    return {"version": VERSION}
                 
 def start_server(
     host: str = "0.0.0.0",
