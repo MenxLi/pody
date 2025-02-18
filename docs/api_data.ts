@@ -44,7 +44,6 @@ const apiData: { [key: string]: APIDescription } ={
     "/user/info": {
         method: "GET",
         description: "Get the information of the user",
-        parameters: {},
         example: {
             input: {},
             output: {
@@ -56,7 +55,6 @@ const apiData: { [key: string]: APIDescription } ={
     "/user/list": {
         method: "GET",
         description: "List all usernames in this node",
-        parameters: {},
         example: {
             input: {},
             output: ['limengxun', 'lijiayu', 'wuji']
@@ -219,6 +217,50 @@ const apiData: { [key: string]: APIDescription } ={
             }
         }
     },
+
+    "/host/spec": {
+        method: "GET",
+        description: "Get the specification of the node",
+        example: {
+            input: {},
+            output: {
+                'pody_version': '0.1.9',
+                'docker_version': '26.1.5-ce',
+                'nvidia_driver_version': '550.78',
+                'nvidia_ctk_version': 'NVIDIA Container Toolkit CLI version unknown'
+            }
+        }
+    }, 
+
+    "/help": {
+        method: "GET",
+        description: "Get the help for a endpoint",
+        parameters: {
+            "path": {
+                type: "string",
+                description: "The path to get help for"
+            }
+        },
+        example: {
+            input: {path: "/pod/create"},
+            output:[
+                {
+                    'path': '/pod/create',
+                    'methods': ['POST'],
+                    'params': [{'name': 'ins', 'optional': false}, {'name': 'image', 'optional': false}]
+                }
+            ] 
+        } 
+    },
+
+    "/version": {
+        method: "GET",
+        description: "Get the version of the API",
+        example: {
+            input: {},
+            output: [0, 1, 9]
+        }
+    }
 }
 
 export default apiData;

@@ -12,6 +12,7 @@ from ..eng.gpu import list_processes_on_gpus, GPUProcess, GPUHandler
 from ..eng.cpu import query_process
 
 from ..config import config
+from ..version import VERSION
 
 router_host = APIRouter(prefix="/host")
 
@@ -50,3 +51,34 @@ def list_images(user: UserRecord = Depends(require_permission("all"))):
     raw_images = list_docker_images(g_client)
     allowed_images = [image.name for image in server_config.images]
     return [image for image in raw_images if image in allowed_images]
+
+@router_host.get("/spec")
+def spec(_: UserRecord = Depends(require_permission("all"))):
+    def get_docerk_version():
+        return g_client.version()["Version"]
+    
+    def get_nv_driver_version():
+        try:
+            import pynvml
+            pynvml.nvmlInit()
+            try:
+                return pynvml.nvmlSystemGetDriverVersion()
+            finally:
+                pynvml.nvmlShutdown()
+        except Exception:
+            return "N/A"
+    
+    def get_nv_ctk_version():
+        import subprocess
+        try:
+            r = subprocess.run(["nvidia-ctk", "--version"], capture_output=True)
+            return r.stdout.decode().strip() if r.returncode == 0 else "N/A"
+        except Exception:
+            return "N/A"
+    
+    return {
+        "pody_version": '.'.join(map(str, VERSION)),
+        "docker_version": get_docerk_version(),
+        "nvidia_driver_version": get_nv_driver_version(),
+        "nvidia_ctk_version": get_nv_ctk_version(),
+    }

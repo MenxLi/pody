@@ -63,9 +63,9 @@ async def help(path: Optional[str] = None, _: UserRecord = Depends(get_user)):
             ret.append(get_path_info(route))
     return ret
 
-@app.get("/status")
+@app.get("/version")
 def version():
-    return {"version": VERSION}
+    return VERSION
                 
 def start_server(
     host: str = "0.0.0.0",
