@@ -1,10 +1,12 @@
 from typing import List, Optional
 import sys, os, json
 
+from rich.console import Console
+from rich.table import Table
+import typer
+
 from pody.eng.utils import format_storage_size, format_time
 from pody.api import PodyAPI, ClientRequestError
-from rich.console import Console
-import typer
 
 app = typer.Typer(
     help = """Pody CLI client, please refer to [docs]/api for more information. """, 
@@ -118,15 +120,21 @@ def help(
     path: Optional[str] = typer.Argument('/', help="Path to get help for"),
     _: Optional[List[str]] = typer.Argument(None, help="Ignored"), 
     ):
-    def fmt_path_info(r):
-        return f"{r['path']} [{', '.join(r['methods'])}]: {r['params']}"
+    table = Table(title=None, show_header=True)
+    table.add_column("Path", style="cyan")
+    table.add_column("Methods", style="magenta")
+    table.add_column("Params", style="green")
+
     api = PodyAPI()
     if not path is None and not path.startswith("/"):
         path = f"/{path}"
     try:
         res = api.get("/help", {"path": path})
         for r in res:
-            console.print(fmt_path_info(r))
+            table.add_row(r['path'], ', '.join(r['methods']), ', '.join([
+                f"{p['name']}{'?' if p['optional'] else ''}" for p in r['params']
+            ]))
+        console.print(table)
     except ClientRequestError as e:
         console.print(error_dict(e))
         exit(1)

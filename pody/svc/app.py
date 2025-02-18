@@ -26,10 +26,21 @@ async def help(path: Optional[str] = None, _: UserRecord = Depends(get_user)):
     """
     def get_path_info(route: Route):
         params = inspect.signature(route.endpoint).parameters
+        def fmt_param(p: inspect.Parameter) -> Optional[dict]:
+            try:
+                if p.annotation == UserRecord:  # skip user dependency
+                    return None
+                return {
+                    "name": p.name,
+                    "optional": p.default != inspect.Parameter.empty, 
+                    # "type": str(p.annotation),    # or p.annotation.__name__
+                }
+            except Exception:
+                return None
         return {
             "path": route.path,
             "methods": route.methods,
-            "params": [str(p) for p in params if 'Depends(' not in str(params[p])]
+            "params": [x for p in params if (x:=fmt_param(params[p])) is not None]
         }
     def filter_routes(routes: list[BaseRoute]) -> list[Route]:
         def criteria(route: BaseRoute):
