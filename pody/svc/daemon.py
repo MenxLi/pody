@@ -1,6 +1,8 @@
 import time
 import docker
 import multiprocessing as mp
+from contextlib import contextmanager
+import typing 
 from ..eng.user import UserDatabase
 from ..eng.gpu import GPUHandler
 from ..eng.docker import exec_container_bash
@@ -51,17 +53,30 @@ def task_check_gpu_usage():
             client.containers.get(pod_name).stop()
             logger.info(f"Killed container {pod_name} with pid-{pid} ({cmd}) due to GPU quota exceeded.")
 
-def daemon_worker():
-    logger = get_logger('daemon')
-    while True:
-        try:
-            task_check_gpu_usage()
-        except Exception as e:
-            if isinstance(e, KeyboardInterrupt): raise
-            logger.exception("Daemon task failed: " + str(e))
-        time.sleep(60)  # check every minute
+def create_daemon_worker(fn: typing.Callable, interval, delay=0, args = (), kwargs = {}):
+    def daemon_worker():
+        time.sleep(delay)
+        while True:
+            try:
+                fn(*args, **kwargs)
+                get_logger('daemon.exec').debug(f"Daemon worker [{fn.__name__}] executed")
+            except Exception as e:
+                if isinstance(e, KeyboardInterrupt): raise
+                get_logger('daemon.err').exception(f"Error in daemon worker [{fn.__name__}]: {e}")
+            try:
+                time.sleep(interval)
+            except KeyboardInterrupt:
+                break
+    return mp.Process(target=daemon_worker)
 
-def start_daemon() -> mp.Process:
-    p = mp.Process(target=daemon_worker)
-    p.start()
-    return p
+@contextmanager
+def daemon_context():
+    ps = [
+        create_daemon_worker(task_check_gpu_usage, 60),
+    ]
+    for p in ps: p.start()
+    try:
+        yield
+    finally:
+        for p in ps: p.terminate()
+        for p in ps: p.join()

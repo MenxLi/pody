@@ -2,7 +2,7 @@ import uvicorn
 from typing import Optional
 
 from fastapi.staticfiles import StaticFiles
-from .daemon import start_daemon
+from .daemon import daemon_context
 from .app_base import *
 from .router_host import router_host
 from .router_pod import router_pod
@@ -72,9 +72,5 @@ def start_server(
     port: int = 8000,
     workers: Optional[int] = None,
 ):
-    daemon_p = start_daemon()
-    try:
+    with daemon_context():
         uvicorn.run(f"pody.svc.app:app", host=host, port=port, workers=workers)
-    finally:
-        daemon_p.terminate()
-        daemon_p.join()
