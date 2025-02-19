@@ -4,11 +4,12 @@ from string import Template
 from .app_base import *
 from fastapi import Depends
 from fastapi.routing import APIRouter
+from contextlib import suppress
 
 from ..eng.errors import *
 from ..eng.user import UserRecord, UserDatabase, validate_username
 from ..eng.docker import ContainerAction, ContainerConfig, \
-    create_container, container_action, list_docker_containers, get_docker_used_ports, inspect_container, exec_container_bash
+    create_container, container_action, list_docker_containers, get_docker_used_ports, inspect_container, exec_container_bash, check_container
 
 from ..config import config
 
@@ -29,18 +30,16 @@ def create_pod(ins: str, image: str, user: UserRecord = Depends(require_permissi
     server_config = config()
     container_name = f"{user.name}-{ins}"
 
+    # first check if the container exists
+    with suppress(ContainerNotFoundError):
+        check_container(g_client, container_name)
+        raise DuplicateError(f"Container {container_name} already exists")
+
     # check user quota
     user_quota = UserDatabase().check_user_quota(user.name)
     user_containers = list_docker_containers(g_client, user.name + '-')
     if user_quota.max_pods != -1 and user_quota.max_pods <= len(user_containers):
         raise PermissionError("Exceed max pod limit")
-
-    # user_gpu_count = 0
-    # for container in user_containers:
-    #     container_info = inspect_container(g_client, container)
-    #     user_gpu_count += len(container_info.gpu_ids)
-    # if user_quota.gpu_count != -1 and user_quota.gpu_count <= user_gpu_count:
-    #     raise PermissionError("Exceed max gpu limit")
 
     # check image
     allowed_images = [i_image.name for i_image in server_config.images]
