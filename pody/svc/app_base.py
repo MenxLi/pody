@@ -1,7 +1,7 @@
-import inspect
+import inspect, json
 from functools import wraps
 import docker.errors
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.exceptions import HTTPException
 from fastapi.security import HTTPBasicCredentials, HTTPBasic
@@ -68,10 +68,16 @@ def require_permission(permission: Literal['all', 'admin'] = "all"):
     return _require_permission
 
 @app.middleware("http")
-async def log_requests(request, call_next):
+async def log_requests(request: Request, call_next):
     logger = get_logger('requests')
-    logger.debug(f"Request: {request.url} | From: {request.client.host} | Headers: {request.headers}")
-    response = await call_next(request)
+    response: Response = await call_next(request)
+    logger.debug(json.dumps({
+        "url": str(request.url),
+        "method": str(request.method),
+        "client": str(request.client.host if request.client else 'unknown'),
+        "headers": dict(request.headers),
+        "status": response.status_code,
+    }))
     return response
 
 __all__ = ["app", "g_client", "g_user_db", "get_user", "require_permission", "handle_exception"]
