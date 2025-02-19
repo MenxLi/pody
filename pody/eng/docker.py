@@ -18,6 +18,7 @@ if TYPE_CHECKING:
 import time
 from multiprocessing import Process, Queue
 from .errors import ContainerNotFoundError
+from .log import get_logger
 
 @dataclass
 class ContainerConfig:
@@ -93,6 +94,7 @@ def create_container(
         entrypoint=config.entrypoint, 
         storage_opt={"size": config.storage_limit} if config.storage_limit else None
     )   # type: ignore
+    get_logger('engine').info(f"Container {container.name} created")
     return container.logs().decode()
 
 class ContainerAction(Enum):
@@ -119,10 +121,12 @@ def container_action(
         case ContainerAction.KILL: container.kill()
         case ContainerAction.DELETE: 
             container.remove(force=True)
+            get_logger('engine').info(f"Container {container.name} deleted")
             return f"Container {container_name} deleted"
         case _: raise ValueError(f"Invalid action {action}")
     if not after_action is None:
         container.exec_run(after_action, tty=True)
+    get_logger('engine').info(f"Container {container.name} {action.value}")
     return container.logs().decode()
 
 def inspect_container(client: docker.client.DockerClient, container_id: str) -> ContainerInfo:
@@ -173,7 +177,10 @@ def check_container(
     container_id: str
     ):
     """ Check if the container exists and return the very basic information """
-    container = client.containers.get(container_id)
+    try:
+        container = client.containers.get(container_id)
+    except docker.errors.NotFound:
+        raise ContainerNotFoundError(f"Container {container_id} not found")
     if container is None: raise ContainerNotFoundError(f"Container {container_id} not found")
     return {
         "name": container.name,

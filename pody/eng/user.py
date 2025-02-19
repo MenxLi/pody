@@ -4,6 +4,7 @@ import dataclasses
 from typing import Optional
 from contextlib import contextmanager
 
+from .log import get_logger
 from .errors import InvalidUsernameError
 from .utils import format_storage_size
 from ..config import DATA_HOME
@@ -48,6 +49,7 @@ class UserQuota:
 
 class UserDatabase:
     def __init__(self):
+        self.logger = get_logger('engine')
 
         DATA_HOME.mkdir(exist_ok=True)
         self.conn = sqlite3.connect(DATA_HOME / "users.db", check_same_thread=False)
@@ -124,23 +126,18 @@ class UserDatabase:
                 "INSERT INTO user_quota (user_id) VALUES (?)",
                 (res,),
             )
-            print(f"User {username} added with id {res}")
+            self.logger.info(f"User {username} added with id {res}")
     
     def update_user(self, username: str, **kwargs):
-        print(f"Updating user {username} with {kwargs}")
         check_username(username)
         if 'password' in kwargs and kwargs['password'] is not None:
             with self.transaction() as c:
                 c.execute("UPDATE users SET credential = ? WHERE username = ?", (hash_password(username, kwargs.pop('password')), username))
-                print("Password updated")
-        # if 'max_pods' in kwargs and kwargs['max_pods'] is not None:
-        #     with self.transaction() as c:
-        #         c.execute("UPDATE users SET max_pods = ? WHERE username = ?", (kwargs.pop('max_pods'), username))
-        #         print("Max pods updated")
+                self.logger.info(f"User {username} password updated")
         if 'is_admin' in kwargs and kwargs['is_admin'] is not None:
             with self.transaction() as c:
                 c.execute("UPDATE users SET is_admin = ? WHERE username = ?", (kwargs.pop('is_admin'), username))
-                print("Admin status updated")
+                self.logger.info(f"User {username} is_admin updated to {kwargs['is_admin']}")
     
     def has_user(self, username: str)->bool:
         with self.cursor() as cur:
@@ -184,6 +181,7 @@ class UserDatabase:
                 "DELETE FROM users WHERE username = ?",
                 (username,),
             )
+            self.logger.info(f"User {username} deleted")
 
     def check_user_quota(self, usrname: str):
         with self.cursor() as cur:
@@ -202,21 +200,25 @@ class UserDatabase:
                     "UPDATE user_quota SET max_pods = ? WHERE user_id = (SELECT id FROM users WHERE username = ?)",
                     (kwargs.pop('max_pods'), usrname),
                 )
+                self.logger.info(f"User {usrname} max_pods updated")
             if 'gpu_count' in kwargs and kwargs['gpu_count'] is not None:
                 cursor.execute(
                     "UPDATE user_quota SET gpu_count = ? WHERE user_id = (SELECT id FROM users WHERE username = ?)",
                     (kwargs.pop('gpu_count'), usrname),
                 )
+                self.logger.info(f"User {usrname} gpu_count updated")
             if 'memory_limit' in kwargs and kwargs['memory_limit'] is not None:
                 cursor.execute(
                     "UPDATE user_quota SET memory_limit = ? WHERE user_id = (SELECT id FROM users WHERE username = ?)",
                     (kwargs.pop('memory_limit'), usrname),
                 )
+                self.logger.info(f"User {usrname} memory_limit updated")
             if 'storage_limit' in kwargs and kwargs['storage_limit'] is not None:
                 cursor.execute(
                     "UPDATE user_quota SET storage_limit = ? WHERE user_id = (SELECT id FROM users WHERE username = ?)",
                     (kwargs.pop('storage_limit'), usrname),
                 )
+                self.logger.info(f"User {usrname} storage_limit updated")
 
     def close(self):
         self.conn.close()
