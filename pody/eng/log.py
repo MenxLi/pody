@@ -4,6 +4,7 @@ from concurrent.futures import ThreadPoolExecutor
 import time
 import sqlite3
 from functools import wraps
+import dataclasses
 import logging, pathlib, asyncio
 from logging import handlers
 
@@ -115,6 +116,18 @@ class SQLiteFileHandler(logging.FileHandler):
     def close(self):
         self.flush()
         return super().close()
+
+def eval_logline(row: sqlite3.Row):
+    @dataclasses.dataclass
+    class DBLogRecord:
+        id: int
+        created: str
+        created_epoch: float
+        name: str
+        levelname: str
+        level: int
+        message: str
+    return DBLogRecord(*row)
 
 
 _fh_T = Literal['rotate', 'simple', 'daily', 'sqlite']

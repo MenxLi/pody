@@ -28,6 +28,7 @@ pytest = "*"
 [tool.poetry.scripts]
 pody-serve = "pody.cli.serve:main"
 pody-user = "pody.cli.user:app"
+pody-log = "pody.cli.log:app"
 pody = "pody.cli.client:app"
 
 [build-system]
