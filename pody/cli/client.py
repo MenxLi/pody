@@ -7,6 +7,7 @@ import typer
 
 from pody.eng.utils import format_storage_size, format_time
 from pody.api import PodyAPI, ClientRequestError
+from pody import __version__
 
 app = typer.Typer(
     help = """Pody CLI client, please refer to [docs]/api for more information. """, 
@@ -147,3 +148,23 @@ def manual():
     import webbrowser
     api = PodyAPI()
     webbrowser.open_new_tab(f"{api.api_base}/pody/pody-cli.html")
+
+@app.command(
+    help = "Display the version of the Pody client and server",
+    rich_help_panel="Help"
+    )
+def version():
+    def fmt_version(v: tuple[int, ...]):
+        return '.'.join(map(str, v))
+    client_version = __version__
+    console.print(f"Client version: [bold]{fmt_version(client_version)}")
+    try:
+        # in case the server is not available, or credentials not set
+        api = PodyAPI()
+        server_version = tuple(api.get("/version"))
+        console.print(f"Server version: [bold]{fmt_version(server_version)}")
+
+        if client_version != server_version:
+            console.print(f"[bold yellow]Warning: Version mismatch, you may consider re-install the client with `pip install pody=={fmt_version(server_version)}`")
+    except Exception as e:
+        console.print(f"[bold red]Failed to fetch server version: {e}")
