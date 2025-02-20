@@ -256,10 +256,6 @@ const apiData: { [key: string]: APIDescription } ={
     "/version": {
         method: "GET",
         description: "Get the version of the API",
-        example: {
-            input: {},
-            output: [0, 1, 10]
-        }
     }
 }
 
