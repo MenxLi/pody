@@ -6,6 +6,13 @@ import logging
 import sqlite3
 from pody.eng.log import eval_logline
 
+def levelstr2int(levelstr: str) -> int:
+    import sys
+    if sys.version_info < (3, 11):
+        return logging.getLevelName(levelstr.upper())
+    else:
+        return logging.getLevelNamesMapping()[levelstr.upper()]
+
 app = Typer(no_args_is_help=True)
 console = rich.console.Console()
 
@@ -24,7 +31,7 @@ def show(
     if level is None:
         cursor.execute("SELECT * FROM log ORDER BY created DESC LIMIT ? OFFSET ?", (limit, offset))
     else:
-        level_int = logging.getLevelNamesMapping()[level.upper()]
+        level_int = levelstr2int(level)
         cursor.execute("SELECT * FROM log WHERE level >= ? ORDER BY created DESC LIMIT ? OFFSET ?", (level_int, limit, offset))
     levelname_color = {
         'DEBUG': 'blue',
