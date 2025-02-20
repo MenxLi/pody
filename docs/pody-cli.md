@@ -44,15 +44,22 @@ For example, to [restart a pod](./api.md#pod-restart) you can run:
 pody post pod/restart ins:myins
 ```
 
-The method is not strictly a HTTP method, it can be one of `get`, `post`, `fetch`, `help`. 
+The method is not strictly a HTTP method, it can be one of `get`, `post`, `fetch`, `help`, `version`. 
 Notebly, `fetch` is used to automatically select appropriate method based on the route. 
 So the above command can be written as:
 ```sh
 pody fetch pod/restart ins:myins
 ```
 
+## Help
 You can also use `help` to get help on a specific route, or a subset of routes:
 ```sh
 pody help pod/restart
 pody help pod/
 ```
+
+To get the version of the utility:
+```sh
+pody version
+```
+You should use this command to check if the utility version is in sync with the server version.
