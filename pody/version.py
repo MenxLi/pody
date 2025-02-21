@@ -11,6 +11,12 @@ VERSION_HISTORY = {
         "Add version client command",
         "Improve response for duplicate pod creation",
     ],
+    "0.1.12": [
+        "Allow image config without tag", 
+        "Refactor docker controller using oop", 
+        "Fix log keyerror for admin status change", 
+        "Fix log level query for below py311", 
+    ]
 }
 
 VERSION = tuple([int(x) for x in list(VERSION_HISTORY.keys())[-1].split('.')])
