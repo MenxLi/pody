@@ -2,12 +2,12 @@ from .app_base import *
 
 from fastapi import Depends
 from fastapi.routing import APIRouter
-from typing import Optional
+from typing import Any, Optional
 from docker import DockerClient
 
 from ..eng.errors import *
 from ..eng.user import UserRecord
-from ..eng.docker import check_container, list_docker_images, container_from_pid
+from ..eng.docker import check_container, container_from_pid, ImageFilter
 from ..eng.gpu import list_processes_on_gpus, GPUProcess, GPUHandler
 from ..eng.cpu import query_process
 
@@ -46,11 +46,8 @@ def gpu_status(id: Optional[str] = None):
 
 @router_host.get("/images")
 @handle_exception
-def list_images(user: UserRecord = Depends(require_permission("all"))):
-    server_config = config()
-    raw_images = list_docker_images(g_client)
-    allowed_images = [image.name for image in server_config.images]
-    return [image for image in raw_images if image in allowed_images]
+def list_images(_: UserRecord = Depends(require_permission("all"))):
+    return list(ImageFilter(config = config(), client = g_client))
 
 @router_host.get("/spec")
 def spec(_: UserRecord = Depends(require_permission("all"))):

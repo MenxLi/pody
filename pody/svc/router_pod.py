@@ -9,7 +9,7 @@ from contextlib import suppress
 from ..eng.errors import *
 from ..eng.user import UserRecord, UserDatabase, validate_username
 from ..eng.docker import ContainerAction, ContainerConfig, \
-    create_container, container_action, list_docker_containers, get_docker_used_ports, inspect_container, exec_container_bash, check_container
+    create_container, container_action, list_docker_containers, get_docker_used_ports, inspect_container, exec_container_bash, check_container, ImageFilter
 
 from ..config import config
 
@@ -42,9 +42,10 @@ def create_pod(ins: str, image: str, user: UserRecord = Depends(require_permissi
         raise PermissionError("Exceed max pod limit")
 
     # check image
-    allowed_images = [i_image.name for i_image in server_config.images]
-    if image not in allowed_images:
-        raise PermissionError(f"Image {image} is not allowed")
+    im_filter = ImageFilter(config = server_config, client = g_client)
+    target_im_config = im_filter.query_config(image)
+    if not target_im_config:
+        raise InvalidInputError("Invalid image name, please check the available images")
 
     # hanlding port
     def to_individual_port(ports: list[int | tuple[int, int]]) -> list[int]:
@@ -59,8 +60,7 @@ def create_pod(ins: str, image: str, user: UserRecord = Depends(require_permissi
     used_port_list = get_docker_used_ports(g_client)
     available_port_list = list(set(to_individual_port(server_config.available_ports)) - set(used_port_list))
 
-    target_image = [i_image for i_image in server_config.images if i_image.name == image][0]
-    target_ports = target_image.ports
+    target_ports = target_im_config.ports
     if len(target_ports) > len(available_port_list):
         raise PermissionError("No available port")
     

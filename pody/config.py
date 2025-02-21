@@ -13,15 +13,15 @@ DATA_HOME = pathlib.Path(os.environ.get('PODY_HOME', os.path.expanduser('~/.pody
 SRC_HOME = pathlib.Path(__file__).parent
 
 @dataclass
-class _ImageConfig:
-    name: str           # e.g. "ubuntu2204-cuda121:latest"
-    ports: list[int]    # e.g. [22, 80, 443]
-    description: str = ""
-
-@dataclass
 class Config:
+    @dataclass
+    class ImageConfig:
+        name: str           # e.g. "ubuntu2204-cuda121:latest"
+        ports: list[int]    # e.g. [22, 80, 443]
+        description: str = ""
+
     available_ports: list[int | tuple[int, int]]
-    images: list[_ImageConfig]
+    images: list[ImageConfig]
     volume_mappings: list[str]
 
 def config():
@@ -62,6 +62,6 @@ def config():
     loaded = toml.load(config_path)
     return Config(
         available_ports=parse_ports(loaded['available_ports']), 
-        images=[_ImageConfig(name=i['name'], ports=i['ports']) for i in loaded['images']], 
+        images=[Config.ImageConfig(name=i['name'], ports=i['ports']) for i in loaded['images']], 
         volume_mappings=loaded['volume_mappings'],
         )

@@ -19,6 +19,7 @@ import time
 from multiprocessing import Process, Queue
 from .errors import ContainerNotFoundError
 from .log import get_logger
+from ..config import Config
 
 @dataclass
 class ContainerConfig:
@@ -271,6 +272,24 @@ def container_from_pid(client: docker.client.DockerClient, host_pid: int) -> Opt
         return None  # Not running inside Docker
     container = client.containers.get(container_id)
     return container.name
+
+class ImageFilter():
+    def __init__(self, client: docker.client.DockerClient, config: Config):
+        self.raw_images = list_docker_images(client)
+        self.image_configs = config.images
+    def query_config(self, q_image: str) -> Optional[Config.ImageConfig]:
+        """ Return the image config if the config name matches the query and the image is available """
+        if not q_image in self.raw_images:
+            return None
+        for im_c in self.image_configs:
+            if im_c.name == q_image or (not ':' in im_c.name and q_image.startswith(im_c.name + ':')):
+                return im_c
+        return None
+    def __contains__(self, q_image: str):
+        a = self.query_config(q_image)
+        return True if a else False
+    def __iter__(self):
+        return (image for image in self.raw_images if image in self)
 
 if __name__ == "__main__":
     client = docker.from_env()
