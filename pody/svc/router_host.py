@@ -2,12 +2,11 @@ from .app_base import *
 
 from fastapi import Depends
 from fastapi.routing import APIRouter
-from typing import Any, Optional
-from docker import DockerClient
+from typing import Optional
 
 from ..eng.errors import *
 from ..eng.user import UserRecord
-from ..eng.docker import check_container, container_from_pid, ImageFilter
+from ..eng.docker import ImageFilter, DockerController
 from ..eng.gpu import list_processes_on_gpus, GPUProcess, GPUHandler
 from ..eng.cpu import query_process
 
@@ -16,11 +15,12 @@ from ..version import VERSION
 
 router_host = APIRouter(prefix="/host")
 
-def gpu_status_impl(client: DockerClient, gpu_ids: list[int]):
+def gpu_status_impl(gpu_ids: list[int]):
     def fmt_gpu_proc(gpu_proc: GPUProcess):
+        c = DockerController()
         process_info = query_process(gpu_proc.pid)
-        container_id = container_from_pid(g_client, gpu_proc.pid)
-        container_name = check_container(client, container_id)["name"] if container_id else ""
+        container_id = c.container_from_pid(gpu_proc.pid)
+        container_name = c.check_container(container_id)["name"] if container_id else ""
         return {
             "pid": gpu_proc.pid,
             "pod": container_name,
@@ -42,17 +42,17 @@ def gpu_status(id: Optional[str] = None):
             _ids = [int(i.strip()) for i in id.split(",")]
         except ValueError:
             raise InvalidInputError("Invalid GPU ID")
-    return gpu_status_impl(g_client, _ids)
+    return gpu_status_impl(_ids)
 
 @router_host.get("/images")
 @handle_exception
 def list_images(_: UserRecord = Depends(require_permission("all"))):
-    return list(ImageFilter(config = config(), client = g_client))
+    return list(ImageFilter(config = config()))
 
 @router_host.get("/spec")
 def spec(_: UserRecord = Depends(require_permission("all"))):
     def get_docerk_version():
-        return g_client.version()["Version"]
+        return DockerController().client.version()["Version"]
     
     def get_nv_driver_version():
         try:

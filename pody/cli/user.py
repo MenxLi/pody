@@ -4,7 +4,7 @@ from typing import Optional
 from pody.eng.user import UserDatabase
 import docker
 from ..eng.utils import parse_storage_size
-from ..eng.docker import list_docker_containers, container_action, ContainerAction
+from ..eng.docker import ContainerAction, DockerController
 
 app = typer.Typer(
     help = "Manage users in the system",
@@ -64,10 +64,10 @@ def purge(
     ):
     if not yes:
         typer.confirm(f"Are you sure to purge user {username}?", abort=True)
+    c = DockerController()
     db = UserDatabase()
     db.delete_user(username)
-    client = docker.from_env()
-    containers = list_docker_containers(client, filter_name=username + "-")
+    containers = c.list_docker_containers(filter_name=username + "-")
     for container in containers:
-        container_action(client, container, ContainerAction.DELETE)
+        c.container_action(container, ContainerAction.DELETE)
         print(f"Container [{container}] removed")

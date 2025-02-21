@@ -8,8 +8,7 @@ from contextlib import suppress
 
 from ..eng.errors import *
 from ..eng.user import UserRecord, UserDatabase, validate_username
-from ..eng.docker import ContainerAction, ContainerConfig, \
-    create_container, container_action, list_docker_containers, get_docker_used_ports, inspect_container, exec_container_bash, check_container, ImageFilter
+from ..eng.docker import ContainerAction, ContainerConfig, DockerController, ImageFilter
 
 from ..config import config
 
@@ -30,19 +29,20 @@ def create_pod(ins: str, image: str, user: UserRecord = Depends(require_permissi
     server_config = config()
     container_name = f"{user.name}-{ins}"
 
+    c = DockerController()
     # first check if the container exists
     with suppress(ContainerNotFoundError):
-        check_container(g_client, container_name)
+        c.check_container(container_name)
         raise DuplicateError(f"Container {container_name} already exists")
 
     # check user quota
     user_quota = UserDatabase().check_user_quota(user.name)
-    user_containers = list_docker_containers(g_client, user.name + '-')
+    user_containers = c.list_docker_containers(user.name + '-')
     if user_quota.max_pods != -1 and user_quota.max_pods <= len(user_containers):
         raise PermissionError("Exceed max pod limit")
 
     # check image
-    im_filter = ImageFilter(config = server_config, client = g_client)
+    im_filter = ImageFilter(config = server_config)
     target_im_config = im_filter.query_config(image)
     if not target_im_config:
         raise InvalidInputError("Invalid image name, please check the available images")
@@ -57,7 +57,7 @@ def create_pod(ins: str, image: str, user: UserRecord = Depends(require_permissi
                 res.append(port)
         return res
 
-    used_port_list = get_docker_used_ports(g_client)
+    used_port_list = c.get_docker_used_ports()
     available_port_list = list(set(to_individual_port(server_config.available_ports)) - set(used_port_list))
 
     target_ports = target_im_config.ports
@@ -80,8 +80,8 @@ def create_pod(ins: str, image: str, user: UserRecord = Depends(require_permissi
         memory_limit=f'{user_quota.memory_limit}b' if user_quota.memory_limit > 0 else None,
         storage_limit=f'{user_quota.storage_limit}b' if user_quota.storage_limit > 0 else None, 
     )
-    log = create_container(g_client, container_config) 
-    try: container_info = inspect_container(g_client, container_name)
+    log = c.create_container(container_config) 
+    try: container_info = c.inspect_container(container_name)
     except Exception as e: container_info = None
     return {"log": log, "info": container_info}
 
@@ -89,46 +89,54 @@ def create_pod(ins: str, image: str, user: UserRecord = Depends(require_permissi
 @handle_exception
 def delete_pod(ins: str, user: UserRecord = Depends(require_permission("all"))):
     container_name = eval_ins_name(ins, user)
-    return {"log": container_action(g_client, container_name, ContainerAction.DELETE)}
+    c = DockerController()
+    return {"log": c.container_action(container_name, ContainerAction.DELETE)}
 
 @router_pod.post("/restart")
 @handle_exception
 def restart_pod(ins: str, user: UserRecord = Depends(require_permission("all"))):
     container_name = eval_ins_name(ins, user)
-    return {"log": container_action(g_client, container_name, ContainerAction.RESTART, after_action="service ssh restart")}
+    c = DockerController()
+    return {"log": c.container_action(container_name, ContainerAction.RESTART)}
 
 @router_pod.post("/stop")
 @handle_exception
 def stop_pod(ins: str, user: UserRecord = Depends(require_permission("all"))):
     container_name = eval_ins_name(ins, user)
-    return {"log": container_action(g_client, container_name, ContainerAction.STOP)}
+    c = DockerController()
+    return {"log": c.container_action(container_name, ContainerAction.STOP)}
 
 @router_pod.post("/start")
 @handle_exception
 def start_pod(ins: str, user: UserRecord = Depends(require_permission("all"))):
     container_name = eval_ins_name(ins, user)
-    return {"log": container_action(g_client, container_name, ContainerAction.START, after_action="service ssh restart")}
+    c = DockerController()
+    return {"log": c.container_action(container_name, ContainerAction.START)}
 
 @router_pod.get("/info")
 @handle_exception
 def info_pod(ins: str, user: UserRecord = Depends(require_permission("all"))):
     container_name = eval_ins_name(ins, user)
-    return inspect_container(g_client, container_name)
+    c = DockerController()
+    return c.inspect_container(container_name)
 
 @router_pod.get("/list")
 @handle_exception
 def list_pod(user: UserRecord = Depends(require_permission("all"))):
-    return list_docker_containers(g_client, user.name + '-')
+    c = DockerController()
+    return c.list_docker_containers(user.name + '-')
 
 @router_pod.post("/exec")
 @handle_exception
 def exec_pod(ins: str, cmd: str, user: UserRecord = Depends(require_permission("all"))):
     container_name = eval_ins_name(ins, user)
-    exit_code, log = exec_container_bash(container_name, cmd)
+    c = DockerController()
+    exit_code, log = c.exec_container_bash(container_name, cmd)
     return {"exit_code": exit_code, "log": log}
 
 # ====== admin only ======
 @router_pod.get("/listall")
 @handle_exception
 def listall_pod(user: UserRecord = Depends(require_permission("admin"))):
-    return list_docker_containers(g_client, "")
+    c = DockerController()
+    return c.list_docker_containers("")

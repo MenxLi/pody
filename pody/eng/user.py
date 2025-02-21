@@ -137,7 +137,7 @@ class UserDatabase:
         if 'is_admin' in kwargs and kwargs['is_admin'] is not None:
             with self.transaction() as c:
                 c.execute("UPDATE users SET is_admin = ? WHERE username = ?", (kwargs.pop('is_admin'), username))
-                self.logger.info(f"User {username} is_admin updated to {kwargs['is_admin']}")
+                self.logger.info(f"User {username} is_admin updated to {kwargs['is_admin']}") # to fix
     
     def has_user(self, username: str)->bool:
         with self.cursor() as cur:

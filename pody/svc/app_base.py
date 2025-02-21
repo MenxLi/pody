@@ -14,14 +14,12 @@ from ..eng.log import get_logger
 from ..config import config
 from ..eng.user import UserDatabase, hash_password
 
-g_client = docker.from_env()
 g_user_db = UserDatabase()
 
 @asynccontextmanager
 async def life_span(app: FastAPI):
     config()    # maybe init configuration file at the beginning
     yield
-    g_client.close()
     g_user_db.close()
 
 app = FastAPI(docs_url=None, redoc_url=None, lifespan=life_span)
@@ -81,5 +79,5 @@ async def log_requests(request: Request, call_next):
     }))
     return response
 
-__all__ = ["app", "g_client", "g_user_db", "get_user", "require_permission", "handle_exception"]
+__all__ = ["app", "g_user_db", "get_user", "require_permission", "handle_exception"]
                 

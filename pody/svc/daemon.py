@@ -5,7 +5,7 @@ from contextlib import contextmanager
 import typing 
 from ..eng.user import UserDatabase
 from ..eng.gpu import GPUHandler
-from ..eng.docker import exec_container_bash
+from ..eng.docker import DockerController
 from ..eng.log import get_logger
 from .router_host import gpu_status_impl
 
@@ -14,14 +14,14 @@ def leave_info(container_name, info: str, level: str = "info"):
     curr_time_str = time.strftime("%Y-%m-%d_%H-%M-%S", time.localtime())
     logdir = "/log/pody"
     fname = f"{curr_time_str}.{level}.log"
-    exec_container_bash(container_name, f"mkdir -p {logdir} && echo '{info}' > {logdir}/{fname}")
+    DockerController().exec_container_bash(container_name, f"mkdir -p {logdir} && echo '{info}' > {logdir}/{fname}")
 
 def task_check_gpu_usage():
     logger = get_logger('daemon')
     client = docker.from_env()
     user_db = UserDatabase()
 
-    gpu_processes = gpu_status_impl(client, list(range(GPUHandler().device_count())))
+    gpu_processes = gpu_status_impl(list(range(GPUHandler().device_count())))
     user_proc_count: dict[str, int] = {}
     user_procs: dict[str, list[dict[str, str]]] = {}
     for i, ps in gpu_processes.items():
