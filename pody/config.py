@@ -74,11 +74,13 @@ def config():
         create_default_config()
     
     loaded = toml.load(config_path)
-    prefix_valid, reason = validate_name_part(loaded['name_prefix'])
-    if not prefix_valid:
-        raise ValueError(f"Invalid name prefix: {reason}")
+    name_prefix = loaded.get('name_prefix', "")
+    if name_prefix:
+        prefix_valid, reason = validate_name_part(loaded['name_prefix'])
+        if not prefix_valid:
+            raise ValueError(f"Invalid name prefix: {reason}")
     return Config(
-        name_prefix=loaded['name_prefix'],
+        name_prefix=name_prefix,
         available_ports=parse_ports(loaded['available_ports']), 
         images=[Config.ImageConfig(name=i['name'], ports=i['ports']) for i in loaded['images']], 
         volume_mappings=loaded['volume_mappings'],

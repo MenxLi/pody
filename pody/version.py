@@ -20,6 +20,9 @@ VERSION_HISTORY = {
     "0.1.13": [
         "Add optional instance name prefix", 
         "Improve pod name validation", 
+    ], 
+    "0.1.14": [
+        "Fix for empty name prefix",
     ]
 }
 
