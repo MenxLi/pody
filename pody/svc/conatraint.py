@@ -55,8 +55,11 @@ def split_name_component(ins_name: str, check:bool = True) -> Optional[InsNameCo
     return None
     
 
-def eval_ins_name(ins: str, user: UserRecord):
-    """ takes a instance name and return the full container name """
+def eval_name_raise(ins: str, user: UserRecord):
+    """ 
+    takes a instance name and return the full container name, 
+    raise error if the name is invalid or the user does not have permission 
+    """
     conf = config()
     res = split_name_component(ins, check=False)
 
@@ -64,7 +67,7 @@ def eval_ins_name(ins: str, user: UserRecord):
         return f"{username}-{instance}" if not conf.name_prefix else f"{conf.name_prefix}-{username}-{instance}"
 
     if res is None:
-        raise InvalidInputError("Invalid pod name")
+        raise InvalidInputError(f"Invalid pod name: {ins}")
     if res["prefix"] is not None and not res["prefix"] == conf.name_prefix:
         raise InsufficientPermissionsError("Invalid pod name, please check prefix")
     if not user.is_admin:

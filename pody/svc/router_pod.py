@@ -7,11 +7,11 @@ from fastapi import Depends
 from fastapi.routing import APIRouter
 from contextlib import suppress
 
-from .conatraint import eval_ins_name, get_user_pod_prefix
+from .conatraint import eval_name_raise, get_user_pod_prefix
 
-from ..config import config
+from ..config import config, validate_name_part
 from ..eng.errors import *
-from ..eng.user import UserRecord, UserDatabase, validate_name_part
+from ..eng.user import UserRecord, UserDatabase
 from ..eng.docker import ContainerAction, ContainerConfig, DockerController, ImageFilter
 
 router_pod = APIRouter(prefix="/pod")
@@ -21,7 +21,7 @@ router_pod = APIRouter(prefix="/pod")
 def create_pod(ins: str, image: str, user: UserRecord = Depends(require_permission("all"))):
     validate_name_part(ins)
     server_config = config()
-    container_name = eval_ins_name(ins, user)
+    container_name = eval_name_raise(ins, user)
 
     c = DockerController()
     # first check if the container exists
@@ -82,35 +82,35 @@ def create_pod(ins: str, image: str, user: UserRecord = Depends(require_permissi
 @router_pod.post("/delete")
 @handle_exception
 def delete_pod(ins: str, user: UserRecord = Depends(require_permission("all"))):
-    container_name = eval_ins_name(ins, user)
+    container_name = eval_name_raise(ins, user)
     c = DockerController()
     return {"log": c.container_action(container_name, ContainerAction.DELETE)}
 
 @router_pod.post("/restart")
 @handle_exception
 def restart_pod(ins: str, user: UserRecord = Depends(require_permission("all"))):
-    container_name = eval_ins_name(ins, user)
+    container_name = eval_name_raise(ins, user)
     c = DockerController()
     return {"log": c.container_action(container_name, ContainerAction.RESTART)}
 
 @router_pod.post("/stop")
 @handle_exception
 def stop_pod(ins: str, user: UserRecord = Depends(require_permission("all"))):
-    container_name = eval_ins_name(ins, user)
+    container_name = eval_name_raise(ins, user)
     c = DockerController()
     return {"log": c.container_action(container_name, ContainerAction.STOP)}
 
 @router_pod.post("/start")
 @handle_exception
 def start_pod(ins: str, user: UserRecord = Depends(require_permission("all"))):
-    container_name = eval_ins_name(ins, user)
+    container_name = eval_name_raise(ins, user)
     c = DockerController()
     return {"log": c.container_action(container_name, ContainerAction.START)}
 
 @router_pod.get("/info")
 @handle_exception
 def info_pod(ins: str, user: UserRecord = Depends(require_permission("all"))):
-    container_name = eval_ins_name(ins, user)
+    container_name = eval_name_raise(ins, user)
     c = DockerController()
     ins_name = container_name.split('-')[-1]
     return {
@@ -127,7 +127,7 @@ def list_pod(user: UserRecord = Depends(require_permission("all"))):
 @router_pod.post("/exec")
 @handle_exception
 def exec_pod(ins: str, cmd: str, user: UserRecord = Depends(require_permission("all"))):
-    container_name = eval_ins_name(ins, user)
+    container_name = eval_name_raise(ins, user)
     c = DockerController()
     exit_code, log = c.exec_container_bash(container_name, cmd)
     return {"exit_code": exit_code, "log": log}
@@ -135,6 +135,6 @@ def exec_pod(ins: str, cmd: str, user: UserRecord = Depends(require_permission("
 # ====== admin only ======
 @router_pod.get("/listall")
 @handle_exception
-def listall_pod(user: UserRecord = Depends(require_permission("admin"))):
+def listall_pod(_: UserRecord = Depends(require_permission("admin"))):
     c = DockerController()
     return c.list_docker_containers("")

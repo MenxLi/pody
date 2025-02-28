@@ -12,6 +12,19 @@ DATA_HOME structure:
 DATA_HOME = pathlib.Path(os.environ.get('PODY_HOME', os.path.expanduser('~/.pody')))
 SRC_HOME = pathlib.Path(__file__).parent
 
+def validate_name_part(part: str, reserved_kw: list[str] = []) -> tuple[bool, str]:
+    if not 3 <= len(part) <= 20:
+        return False, "Name part must be between 3 and 20 characters"
+    if part in reserved_kw:
+        return False, f"Name part '{part}' is reserved"
+    if not part.isidentifier():
+        return False, "Name part must be an identifier"
+    if '-' in part or ':' in part:
+        return False, "Name part cannot contain '-' or ':'"
+    if part.startswith('_') or part.endswith('_'):
+        return False, "Name part cannot start or end with '_'"
+    return True, ""
+
 @dataclass
 class Config:
     @dataclass
@@ -61,6 +74,9 @@ def config():
         create_default_config()
     
     loaded = toml.load(config_path)
+    prefix_valid, reason = validate_name_part(loaded['name_prefix'])
+    if not prefix_valid:
+        raise ValueError(f"Invalid name prefix: {reason}")
     return Config(
         name_prefix=loaded['name_prefix'],
         available_ports=parse_ports(loaded['available_ports']), 

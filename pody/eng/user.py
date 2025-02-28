@@ -7,26 +7,13 @@ from contextlib import contextmanager
 from .log import get_logger
 from .errors import InvalidUsernameError
 from .utils import format_storage_size
-from ..config import DATA_HOME
+from ..config import DATA_HOME, validate_name_part
 
 def hash_password(username: str, password: str):
     return hashlib.sha256(f"{username}:{password}".encode()).hexdigest()
 
-def validate_name_part(part: str) -> tuple[bool, str]:
-    if not 3 <= len(part) <= 20:
-        return False, "Name part must be between 3 and 20 characters"
-    if part == 'shared':
-        return False, "Name part 'shared' is reserved"
-    if not part.isidentifier():
-        return False, "Name part must be an identifier"
-    if '-' in part or ':' in part:
-        return False, "Name part cannot contain '-' or ':'"
-    if part.startswith('_') or part.endswith('_'):
-        return False, "Name part cannot start or end with '_'"
-    return True, ""
-
 def check_username(username: str):
-    if not (res := validate_name_part(username))[0]: raise InvalidUsernameError(res[1])
+    if not (res := validate_name_part(username, ['share']))[0]: raise InvalidUsernameError(res[1])
 
 @dataclasses.dataclass
 class UserRecord:
