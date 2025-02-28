@@ -16,6 +16,10 @@ VERSION_HISTORY = {
         "Refactor docker controller using oop", 
         "Fix log keyerror for admin status change", 
         "Fix log level query for below py311", 
+    ], 
+    "0.1.13": [
+        "Add optional instance name prefix", 
+        "Improve pod name validation", 
     ]
 }
 
