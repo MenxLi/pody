@@ -20,6 +20,7 @@ class Config:
         ports: list[int]    # e.g. [22, 80, 443]
         description: str = ""
 
+    name_prefix: str
     available_ports: list[int | tuple[int, int]]
     images: list[ImageConfig]
     volume_mappings: list[str]
@@ -61,6 +62,7 @@ def config():
     
     loaded = toml.load(config_path)
     return Config(
+        name_prefix=loaded['name_prefix'],
         available_ports=parse_ports(loaded['available_ports']), 
         images=[Config.ImageConfig(name=i['name'], ports=i['ports']) for i in loaded['images']], 
         volume_mappings=loaded['volume_mappings'],

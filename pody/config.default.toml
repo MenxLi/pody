@@ -1,3 +1,7 @@
+# prefix for the container names
+# if empty, the container name will be [username]-[instance], 
+# otherwise, [prefix]-[username]-[instance]. e.g. "pd" -> pd-[username]-[instance]
+name_prefix = ""
 
 # should be comma-separated list of ports or ranges
 # e.g. "20000,20002-20010"

@@ -2,32 +2,26 @@ import random
 from string import Template
 
 from .app_base import *
+import dataclasses
 from fastapi import Depends
 from fastapi.routing import APIRouter
 from contextlib import suppress
 
-from ..eng.errors import *
-from ..eng.user import UserRecord, UserDatabase, validate_username
-from ..eng.docker import ContainerAction, ContainerConfig, DockerController, ImageFilter
+from .conatraint import eval_ins_name, get_user_pod_prefix
 
 from ..config import config
+from ..eng.errors import *
+from ..eng.user import UserRecord, UserDatabase, validate_name_part
+from ..eng.docker import ContainerAction, ContainerConfig, DockerController, ImageFilter
 
 router_pod = APIRouter(prefix="/pod")
-
-def eval_ins_name(ins: str, user: UserRecord):
-    if '-' in ins:
-        ins_sp = ins.split('-')
-        if not ins_sp[0] == user.name and not user.is_admin:
-            raise InsufficientPermissionsError("Invalid pod name")
-        return ins
-    return f"{user.name}-{ins}"
 
 @router_pod.post("/create")
 @handle_exception
 def create_pod(ins: str, image: str, user: UserRecord = Depends(require_permission("all"))):
-    validate_username(ins)
+    validate_name_part(ins)
     server_config = config()
-    container_name = f"{user.name}-{ins}"
+    container_name = eval_ins_name(ins, user)
 
     c = DockerController()
     # first check if the container exists
@@ -37,7 +31,7 @@ def create_pod(ins: str, image: str, user: UserRecord = Depends(require_permissi
 
     # check user quota
     user_quota = UserDatabase().check_user_quota(user.name)
-    user_containers = c.list_docker_containers(user.name + '-')
+    user_containers = c.list_docker_containers(get_user_pod_prefix(user.name))
     if user_quota.max_pods != -1 and user_quota.max_pods <= len(user_containers):
         raise PermissionError("Exceed max pod limit")
 
@@ -118,13 +112,17 @@ def start_pod(ins: str, user: UserRecord = Depends(require_permission("all"))):
 def info_pod(ins: str, user: UserRecord = Depends(require_permission("all"))):
     container_name = eval_ins_name(ins, user)
     c = DockerController()
-    return c.inspect_container(container_name)
+    ins_name = container_name.split('-')[-1]
+    return {
+        "instance": ins_name,
+        **dataclasses.asdict(c.inspect_container(container_name))
+    }
 
 @router_pod.get("/list")
 @handle_exception
 def list_pod(user: UserRecord = Depends(require_permission("all"))):
     c = DockerController()
-    return c.list_docker_containers(user.name + '-')
+    return [x.split('-')[-1] for x in c.list_docker_containers(get_user_pod_prefix(user.name))]
 
 @router_pod.post("/exec")
 @handle_exception
