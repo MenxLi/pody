@@ -48,13 +48,13 @@ def parse_param_va_args(args: Optional[List[str]]):
 def fetch_impl(method: str, path: str, args: Optional[list[str]], raw: bool):
     def fmt_unit(res):
         """ Format some numeric values in the response to human-readable format """
-        storage_size_kw = ["memory_limit", "gpu_memory_used", "memory_used"]
+        storage_size_kw = set(("memory_limit", "gpu_memory_used", "memory_used", "shm_size"))
         time_size_kw = ["uptime"]
         if isinstance(res, list):
             return [fmt_unit(r) for r in res]
         if isinstance(res, dict):
             for k,v in res.items():
-                if isinstance(v, int) and k in storage_size_kw: 
+                if isinstance(v, int) and k in storage_size_kw and v != -1: 
                     res[k] = f"{format_storage_size(v, 1)} ({v})"
                 elif isinstance(v, (int, float)) and k in time_size_kw:
                     res[k] = f"{format_time(v)} ({v})"
