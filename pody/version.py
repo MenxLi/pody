@@ -23,6 +23,9 @@ VERSION_HISTORY = {
     ], 
     "0.1.14": [
         "Fix for empty name prefix",
+    ], 
+    "0.1.15": [
+        "Add shm_size quota", 
     ]
 }
 
