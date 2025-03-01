@@ -35,6 +35,7 @@ class ContainerConfig:
     gpu_ids: Optional[list[int]] = None
     memory_limit: Optional[str] = None      # e.g. "8g"
     storage_limit: Optional[str] = None     # e.g. "8g"
+    shm_size: Optional[str] = None          # e.g. "8g"
 
     # other default settings
     restart_policy: Optional["_RestartPolicy"] = field(default_factory=lambda: {"Name": "always", "MaximumRetryCount": 0})
@@ -128,6 +129,7 @@ class DockerController():
             mem_limit=config.memory_limit,
             mem_swappiness=0,                       # disable swap
             memswap_limit=config.memory_limit,      # disable swap
+            shm_size=config.shm_size,
             tty=config.tty, 
             detach=config.detach,                   # type: ignore
             restart_policy=config.restart_policy, 

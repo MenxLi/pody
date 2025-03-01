@@ -13,8 +13,8 @@ DATA_HOME = pathlib.Path(os.environ.get('PODY_HOME', os.path.expanduser('~/.pody
 SRC_HOME = pathlib.Path(__file__).parent
 
 def validate_name_part(part: str, reserved_kw: list[str] = []) -> tuple[bool, str]:
-    if not 3 <= len(part) <= 20:
-        return False, "Name part must be between 3 and 20 characters"
+    if not 1 <= len(part) <= 20:
+        return False, "Name part must be between 1 and 20 characters"
     if part in reserved_kw:
         return False, f"Name part '{part}' is reserved"
     if not part.isidentifier():
