@@ -33,6 +33,11 @@ VERSION_HISTORY = {
         "Remove previous database auto upgrade script",
         "Quota name change: storage limit -> storage size",
     ], 
+    "0.2.1": [
+        "Add `podx` command line tool",
+        "Improve error handling for client",
+        "Show help when fetching for path ending with /",
+    ]
 }
 
 VERSION = tuple([int(x) for x in list(VERSION_HISTORY.keys())[-1].split('.')])
