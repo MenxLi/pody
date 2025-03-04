@@ -3,6 +3,7 @@ import hashlib
 import dataclasses
 from typing import Optional
 from contextlib import contextmanager
+from abc import ABC, abstractmethod
 
 from .log import get_logger
 from .errors import InvalidUsernameError
@@ -36,12 +37,48 @@ class UserQuota:
                 f"storage_limit={format_storage_size(self.storage_limit) if self.storage_limit >= 0 else self.storage_limit})"\
                 f"shm_size={format_storage_size(self.shm_size) if self.shm_size >= 0 else self.shm_size})"
 
-class UserDatabase:
+class DatabaseAbstract(ABC):
+
+    @property
+    @abstractmethod
+    def conn(self) -> sqlite3.Connection:
+        ...
+
+    def cursor(self):
+        @contextmanager
+        def _cursor():
+            cursor = self.conn.cursor()
+            try:
+                yield cursor
+            finally:
+                cursor.close()
+        return _cursor()
+    
+    def transaction(self):
+        @contextmanager
+        def _transaction():
+            cursor = self.conn.cursor()
+            try:
+                cursor.execute("BEGIN")
+                yield cursor
+            except Exception as e:
+                cursor.execute("ROLLBACK")
+                raise e
+            else:
+                self.conn.commit()
+            finally:
+                cursor.close()
+        return _transaction()
+
+class UserDatabase(DatabaseAbstract):
+    @property
+    def conn(self): return self._conn
+
     def __init__(self):
         self.logger = get_logger('engine')
 
         DATA_HOME.mkdir(exist_ok=True)
-        self.conn = sqlite3.connect(DATA_HOME / "users.db", check_same_thread=False)
+        self._conn = sqlite3.connect(DATA_HOME / "users.db", check_same_thread=False)
         # enable foreign key constraint
         self.conn.execute("PRAGMA foreign_keys = ON;")
 
@@ -81,32 +118,6 @@ class UserDatabase:
             if not any([col[1] == 'shm_size' for col in cols]):
                 cursor.execute("ALTER TABLE user_quota ADD COLUMN shm_size INTEGER NOT NULL DEFAULT -1")
     
-    def cursor(self):
-        @contextmanager
-        def _cursor():
-            cursor = self.conn.cursor()
-            try:
-                yield cursor
-            finally:
-                cursor.close()
-        return _cursor()
-    
-    def transaction(self):
-        @contextmanager
-        def _transaction():
-            cursor = self.conn.cursor()
-            try:
-                cursor.execute("BEGIN")
-                yield cursor
-            except Exception as e:
-                cursor.execute("ROLLBACK")
-                raise e
-            else:
-                self.conn.commit()
-            finally:
-                cursor.close()
-        return _transaction()
-
     def add_user(self, username: str, password: str, is_admin: bool = False):
         check_username(username)
         with self.transaction() as cursor:
