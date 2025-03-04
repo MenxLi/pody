@@ -1,4 +1,5 @@
 from typing import List, Optional
+from functools import wraps
 import sys, os, json
 
 from rich.console import Console
@@ -22,6 +23,29 @@ def error_dict(e: ClientRequestError):
         "message": e.error_message,
         "context": e.error_context,
     }
+def handle_request_error():
+    def wrapper(f):
+        @wraps(f)
+        def wrapped(*args, **kwargs):
+            if 'raw' in kwargs:
+                print_raw = kwargs['raw']
+                assert isinstance(print_raw, bool)
+            else:
+                print_raw = False
+
+            try:
+                return f(*args, **kwargs)
+            except ClientRequestError as e:
+                if print_raw: print(json.dumps(error_dict(e)))
+                else: console.print(f"[bold red]Error - {e.error_message}")
+                exit(1)
+            except ValueError as e:
+                if print_raw: print(json.dumps(error_dict(ClientRequestError(-1, str(e)))))
+                else: console.print(f"[bold red]Error - {e}")
+                exit(1)
+        return wrapped
+    return wrapper
+
 console = Console()
 
 def parse_param_va_args(args: Optional[List[str]]):
@@ -45,6 +69,7 @@ def parse_param_va_args(args: Optional[List[str]]):
         res[key] = val
     return res
 
+@handle_request_error()
 def fetch_impl(method: str, path: str, args: Optional[list[str]], raw: bool):
     def fmt_unit(res):
         """ Format some numeric values in the response to human-readable format """
@@ -63,18 +88,13 @@ def fetch_impl(method: str, path: str, args: Optional[list[str]], raw: bool):
         return res
 
     api = PodyAPI()
-    try:
-        match method:
-            case "get": res = api.get(path, parse_param_va_args(args))
-            case "post": res = api.post(path, parse_param_va_args(args))
-            case "auto": res = api.fetch_auto(path, parse_param_va_args(args))
-            case _: raise ValueError(f"Invalid method {method}")
-        if raw: print(json.dumps(res))
-        else: console.print(fmt_unit(res))
-    except ClientRequestError as e:
-        if raw: print(json.dumps(error_dict(e)))
-        else: console.print(error_dict(e))
-        exit(1)
+    match method:
+        case "get": res = api.get(path, parse_param_va_args(args))
+        case "post": res = api.post(path, parse_param_va_args(args))
+        case "auto": res = api.fetch_auto(path, parse_param_va_args(args))
+        case _: raise ValueError(f"Invalid method {method}")
+    if raw: print(json.dumps(res))
+    else: console.print(fmt_unit(res))
 
 @app.command(
     no_args_is_help=True, help=f"Send HTTP GET request to Pody API, e.g. {cli_command()} get /host/gpu-ps id:0,1", 
@@ -85,7 +105,7 @@ def get(
     args: Optional[List[str]] = typer.Argument(None, help="Query parameters in the form of key:value, separated by space"), 
     raw: bool = False
     ):
-    return fetch_impl("get", path, args, raw)
+    return fetch_impl("get", path, args, raw = raw)
 
 @app.command(
     no_args_is_help=True, help=f"Send HTTP POST request to Pody API, e.g. {cli_command()} post /pod/restart ins:my_pod", 
@@ -96,14 +116,14 @@ def post(
     args: Optional[List[str]] = typer.Argument(None, help="Query parameters in the form of key:value, separated by space"), 
     raw: bool = False
     ):
-    return fetch_impl("post", path, args, raw)
+    return fetch_impl("post", path, args, raw = raw)
 
 def fetch(
     path: str, 
     args: Optional[List[str]] = typer.Argument(None, help="Query parameters in the form of key:value, separated by space"), 
     raw: bool = False
     ):
-    return fetch_impl("auto", path, args, raw)
+    return fetch_impl("auto", path, args, raw = raw)
 app.command(
     no_args_is_help=True, help=
         "Send HTTP request to Pody API. "
@@ -117,6 +137,7 @@ app.command(
     help=f"Display help for the path, e.g. {cli_command()} help /pod/restart", 
     rich_help_panel="Help"
     )
+@handle_request_error()
 def help(
     path: Optional[str] = typer.Argument('/', help="Path to get help for"),
     _: Optional[List[str]] = typer.Argument(None, help="Ignored"), 
@@ -129,16 +150,12 @@ def help(
     api = PodyAPI()
     if not path is None and not path.startswith("/"):
         path = f"/{path}"
-    try:
-        res = api.get("/help", {"path": path})
-        for r in res:
-            table.add_row(r['path'], ', '.join(r['methods']), ', '.join([
-                f"{p['name']}{'?' if p['optional'] else ''}" for p in r['params']
-            ]))
-        console.print(table)
-    except ClientRequestError as e:
-        console.print(error_dict(e))
-        exit(1)
+    res = api.get("/help", {"path": path})
+    for r in res:
+        table.add_row(r['path'], ', '.join(r['methods']), ', '.join([
+            f"{p['name']}{'?' if p['optional'] else ''}" for p in r['params']
+        ]))
+    console.print(table)
 
 @app.command(
     help = "Open the API documentation in the browser",

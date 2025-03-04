@@ -68,6 +68,21 @@ pody help pod/restart
 pody help pod/
 ```
 
+:::details Example
+```sh
+pody help user/
+```
+```txt
+┏━━━━━━━━━━━━━━━━━┳━━━━━━━━━┳━━━━━━━━┓
+┃ Path            ┃ Methods ┃ Params ┃
+┡━━━━━━━━━━━━━━━━━╇━━━━━━━━━╇━━━━━━━━┩
+│ /user/info      │ GET     │        │
+│ /user/list      │ GET     │        │
+│ /user/ch-passwd │ POST    │ passwd │
+└─────────────────┴─────────┴────────┘
+```
+:::
+
 To get the version of the utility:
 ```sh
 pody version

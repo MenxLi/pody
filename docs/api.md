@@ -29,11 +29,11 @@ The API exposes interface for managing your own pods and query server status.
 <div style="margin-block: 0.5rem; padding: 0.5rem; background-color: var(--vp-c-gray-soft); border-radius: 0.5rem;">
     <label class="api-type-span">
         <input type="radio" v-model="apiType" value="pody" class="mr-2">
-        <span>Pody</span>
+        <span>pody</span>
     </label>
     <label class="api-type-span">
         <input type="radio" v-model="apiType" value="curl" class="mr-2">
-        <span>Curl</span>
+        <span>curl</span>
     </label>
 </div>
 <template v-if="apiType === 'curl'">

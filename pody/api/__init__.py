@@ -12,16 +12,28 @@ else:
 
 class ClientRequestError(Exception):
     error_code: int
-    error_message: str
-    def __init__(self, error_code: int, error_message: str, error_context: Optional[dict] = None):
+    error_message: Any
+    def __init__(self, error_code: int, error_message: Any, error_context: Optional[dict] = None):
         self.error_code = error_code
         self.error_message = error_message
         self.error_context = error_context
         super().__init__(f"Error code: {error_code}, message: {error_message}")
 
 def handle_request_error(response: requests.Response, ctx: Optional[dict] = None):
+    def handle_422_missing_field(detail: list[dict]):
+        if not isinstance(detail, list): return detail
+        missing_fields = []
+        for d in detail:
+            if d.get('type') == 'missing' and d.get('loc') and d.get('msg') == 'Field required' and d.get('loc', [''])[0] == 'query':
+                missing_fields.append(d['loc'][-1])
+            else:
+                return detail
+        return f"Missing query parameters: {', '.join(missing_fields)}"
+
     try:
         detail = response.json()['detail']
+        if response.status_code == 422:
+            detail = handle_422_missing_field(detail)
     except:
         detail = response.text
     raise ClientRequestError(
