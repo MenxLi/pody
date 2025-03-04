@@ -26,7 +26,13 @@ VERSION_HISTORY = {
     ], 
     "0.1.15": [
         "Add shm_size quota", 
-    ]
+    ], 
+    "0.2.0": [
+        "Split user and quota database",
+        "Add default fallback quota to config",
+        "Remove previous database auto upgrade script",
+        "Quota name change: storage limit -> storage size",
+    ], 
 }
 
 VERSION = tuple([int(x) for x in list(VERSION_HISTORY.keys())[-1].split('.')])
