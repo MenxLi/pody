@@ -22,6 +22,16 @@ export function fmtPodyCmd(method: string, url: string, params: Record<string, s
     return cmd;
 }
 
+export function fmtPodxCmd(_: string, url: string, params: Record<string, string>) {
+    url = url.slice(1);     // remove the leading slash
+    let cmd = `podx ${url}`;
+    for (let key in params) {
+        const safeParam = params[key].match(/^[a-zA-Z0-9_\-\.,\:]+$/) ? params[key] : `"${params[key]}"`;
+        cmd += ` ${key}:${safeParam}`;
+    }
+    return cmd;
+}
+
 export interface APIDescription {
     method: "GET" | "POST",
     description: string,

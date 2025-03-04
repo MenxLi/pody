@@ -4,12 +4,12 @@ outline: deep
 
 <script setup lang="ts">
     import apiData from './api_data.ts';
-    import { fmtCurlCmd, fmtPodyCmd } from './api_data.ts';
+    import { fmtCurlCmd, fmtPodyCmd, fmtPodxCmd } from './api_data.ts';
     import APIBlock from './api_block.vue';
     import APITable from './api_table.vue';
     import { ref } from 'vue';
 
-    const apiType = ref('pody' as 'curl' | 'pody');
+    const apiType = ref('podx' as 'curl' | 'podx' | 'pody');
 
 
 </script>
@@ -27,6 +27,10 @@ The API exposes interface for managing your own pods and query server status.
 
 ## Details
 <div style="margin-block: 0.5rem; padding: 0.5rem; background-color: var(--vp-c-gray-soft); border-radius: 0.5rem;">
+    <label class="api-type-span">
+        <input type="radio" v-model="apiType" value="podx" class="mr-2">
+        <span>podx</span>
+    </label>
     <label class="api-type-span">
         <input type="radio" v-model="apiType" value="pody" class="mr-2">
         <span>pody</span>
@@ -46,12 +50,12 @@ curl -s ... | python -m json.tool
 ```
 :::
 </template>
-<template v-else-if="apiType === 'pody'">
+<template v-else-if="apiType !== 'curl'">
 
 
 ::: tip
-Here examples of API calls are provided using `pody` utility. 
-More information about `pody` can be found [here](/pody-cli.md).
+Here examples of API calls are provided using `podx/pody` utility.   
+More information about the client-side CLI utilities can be found at [here](/pody-cli).
 :::
 </template>
 
@@ -69,6 +73,13 @@ More information about `pody` can be found [here](/pody-cli.md).
 
 ```sh-vue
 {{`${fmtPodyCmd( apiData[apiName].method, apiName, apiData[apiName].example.input)} `}}
+```
+</template>
+
+<template v-else-if="apiData[apiName].example && apiType === 'podx'">
+
+```sh-vue
+{{`${fmtPodxCmd( apiData[apiName].method, apiName, apiData[apiName].example.input)} `}}
 ```
 </template>
 
