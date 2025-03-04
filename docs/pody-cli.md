@@ -51,7 +51,7 @@ So the above command can be written as:
 pody fetch pod/restart ins:myins
 ```
 
-:::tip Use shorthand!
+:::tip Use shorthand! 🚀
 `pody fetch` is the most used command, 
 I provide a simple shorthand `podx` for it. 
 Which means `podx ...` is equivalent to `pody fetch ...`. 
@@ -81,6 +81,11 @@ pody help user/
 │ /user/ch-passwd │ POST    │ passwd │
 └─────────────────┴─────────┴────────┘
 ```
+:::
+
+:::tip Another shorthand 😊
+The `get/post/fetch` methods, when applied to a route, will invoke the `help` method instead,  
+*i.e.* `pody get user/` or `podx user/` will invoke `pody help user/` and show the parameters.
 :::
 
 To get the version of the utility:

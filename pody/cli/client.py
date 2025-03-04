@@ -86,6 +86,10 @@ def fetch_impl(method: str, path: str, args: Optional[list[str]], raw: bool):
                 else:
                     res[k] = fmt_unit(v)
         return res
+    
+    # if the path ends with /, fetch the help info
+    if path.endswith('/'):
+        return help(path, None)
 
     api = PodyAPI()
     match method:
@@ -133,10 +137,6 @@ app.command(
     rich_help_panel="Request"
     )(fetch)
 
-@app.command(
-    help=f"Display help for the path, e.g. {cli_command()} help /pod/restart", 
-    rich_help_panel="Help"
-    )
 @handle_request_error()
 def help(
     path: Optional[str] = typer.Argument('/', help="Path to get help for"),
@@ -156,6 +156,10 @@ def help(
             f"{p['name']}{'?' if p['optional'] else ''}" for p in r['params']
         ]))
     console.print(table)
+app.command(
+    help=f"Display help for the path, e.g. {cli_command()} help /pod/restart", 
+    rich_help_panel="Help"
+    )(help)
 
 @app.command(
     help = "Open the API documentation in the browser",
