@@ -48,7 +48,7 @@ const apiData: { [key: string]: APIDescription } ={
             input: {},
             output: {
                 "user": { "name": "limengxun", "is_admin": 0 },
-                "quota": { "max_pods": -1, "gpu_count": -1, "memory_limit": -1 }
+                "quota": { "max_pods": 3, "gpu_count": 2, "memory_limit": -1, "storage_size": -1, "shm_size": -1 }
             }
         }
     }, 

@@ -87,7 +87,7 @@ class UserDatabase(DatabaseAbstract):
                     max_pods INTEGER NOT NULL DEFAULT -1,
                     gpu_count INTEGER NOT NULL DEFAULT -1,
                     memory_limit INTEGER NOT NULL DEFAULT -1,
-                    storage_limit INTEGER NOT NULL DEFAULT -1,
+                    storage_size INTEGER NOT NULL DEFAULT -1,
                     shm_size INTEGER NOT NULL DEFAULT -1,
                     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
                 );
@@ -100,8 +100,8 @@ class UserDatabase(DatabaseAbstract):
         with self.transaction() as cursor:
             cursor.execute("PRAGMA table_info(user_quota)")
             cols = cursor.fetchall()
-            if not any([col[1] == 'storage_limit' for col in cols]):
-                cursor.execute("ALTER TABLE user_quota ADD COLUMN storage_limit INTEGER NOT NULL DEFAULT -1")
+            if not any([col[1] == 'storage_size' for col in cols]):
+                cursor.execute("ALTER TABLE user_quota ADD COLUMN storage_size INTEGER NOT NULL DEFAULT -1")
             if not any([col[1] == 'shm_size' for col in cols]):
                 cursor.execute("ALTER TABLE user_quota ADD COLUMN shm_size INTEGER NOT NULL DEFAULT -1")
     
@@ -179,15 +179,14 @@ class UserQuota:
     max_pods: int
     gpu_count: int
     memory_limit: int # in bytes (per container)
-    storage_limit: int # in bytes (per container, exclude external volumes)
+    storage_size: int # in bytes (per container, exclude external volumes)
     shm_size: int # in bytes (per container)
 
     def __str__(self):
         return  f"Quota(max_pods={self.max_pods}, gpu_count={self.gpu_count}, "\
                 f"memory_limit={format_storage_size(self.memory_limit) if self.memory_limit >= 0 else self.memory_limit}, "\
-                f"storage_limit={format_storage_size(self.storage_limit) if self.storage_limit >= 0 else self.storage_limit})"\
+                f"storage_size={format_storage_size(self.storage_size) if self.storage_size >= 0 else self.storage_size})"\
                 f"shm_size={format_storage_size(self.shm_size) if self.shm_size >= 0 else self.shm_size})"
-
 
 class QuotaDatabase(DatabaseAbstract):
     @property
@@ -206,7 +205,7 @@ class QuotaDatabase(DatabaseAbstract):
                     max_pods INTEGER NOT NULL DEFAULT -1,
                     gpu_count INTEGER NOT NULL DEFAULT -1,
                     memory_limit INTEGER NOT NULL DEFAULT -1,
-                    storage_limit INTEGER NOT NULL DEFAULT -1,
+                    storage_size INTEGER NOT NULL DEFAULT -1,
                     shm_size INTEGER NOT NULL DEFAULT -1
                 );
                 """
@@ -226,7 +225,7 @@ class QuotaDatabase(DatabaseAbstract):
     def check_quota(self, usrname: str):
         with self.cursor() as cur:
             cur.execute(
-                "SELECT max_pods, gpu_count, memory_limit, storage_limit, shm_size FROM quota WHERE username = ?",
+                "SELECT max_pods, gpu_count, memory_limit, storage_size, shm_size FROM quota WHERE username = ?",
                 (usrname,),
             )
             res = cur.fetchone()
@@ -238,7 +237,7 @@ class QuotaDatabase(DatabaseAbstract):
         max_pods: Optional[int] = None,
         gpu_count: Optional[int] = None,
         memory_limit: Optional[int] = None,
-        storage_limit: Optional[int] = None,
+        storage_size: Optional[int] = None,
         shm_size: Optional[int] = None,
         ):
         """
@@ -272,12 +271,12 @@ class QuotaDatabase(DatabaseAbstract):
                     (memory_limit, usrname),
                 )
                 self.logger.info(f"User {usrname} memory_limit updated")
-            if storage_limit is not None:
+            if storage_size is not None:
                 cursor.execute(
-                    "UPDATE quota SET storage_limit = ? WHERE username = ?",
-                    (storage_limit, usrname),
+                    "UPDATE quota SET storage_size = ? WHERE username = ?",
+                    (storage_size, usrname),
                 )
-                self.logger.info(f"User {usrname} storage_limit updated")
+                self.logger.info(f"User {usrname} storage_size updated")
             if shm_size is not None:
                 cursor.execute(
                     "UPDATE quota SET shm_size = ? WHERE username = ?",

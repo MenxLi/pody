@@ -34,7 +34,7 @@ class ContainerConfig:
     # - https://docs.docker.com/reference/cli/dockerd/#daemon-storage-driver
     gpu_ids: Optional[list[int]] = None
     memory_limit: Optional[str] = None      # e.g. "8g"
-    storage_limit: Optional[str] = None     # e.g. "8g"
+    storage_size: Optional[str] = None      # e.g. "8g"
     shm_size: Optional[str] = None          # e.g. "8g"
 
     # other default settings
@@ -135,7 +135,7 @@ class DockerController():
             restart_policy=config.restart_policy, 
             auto_remove=config.auto_remove, 
             entrypoint=config.entrypoint, 
-            storage_opt={"size": config.storage_limit} if config.storage_limit else None
+            storage_opt={"size": config.storage_size} if config.storage_size else None
         )   # type: ignore
         self.logger.info(f"Container {container.name} created")
         return container.logs().decode()

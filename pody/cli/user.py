@@ -41,13 +41,13 @@ def update_quota(
     max_pods: Optional[int] = None,
     gpu_count: Optional[int] = None,
     memory_limit: Optional[str] = None, 
-    storage_limit: Optional[str] = None, 
+    storage_size: Optional[str] = None, 
     shm_size: Optional[str] = None
     ):
     QuotaDatabase().update_quota(
         username, max_pods=max_pods, gpu_count=gpu_count, 
         memory_limit=parse_storage_size(memory_limit) if not memory_limit is None else None, 
-        storage_limit=parse_storage_size(storage_limit) if not storage_limit is None else None, 
+        storage_size=parse_storage_size(storage_size) if not storage_size is None else None, 
         shm_size=parse_storage_size(shm_size) if not shm_size is None else None
         )
 

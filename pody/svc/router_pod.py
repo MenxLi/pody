@@ -72,7 +72,7 @@ def create_pod(ins: str, image: str, user: UserRecord = Depends(require_permissi
         port_mapping=port_mapping,
         gpu_ids=None,
         memory_limit=f'{user_quota.memory_limit}b' if user_quota.memory_limit > 0 else None,
-        storage_limit=f'{user_quota.storage_limit}b' if user_quota.storage_limit > 0 else None, 
+        storage_size=f'{user_quota.storage_size}b' if user_quota.storage_size > 0 else None, 
         shm_size=f'{user_quota.shm_size}b' if user_quota.shm_size > 0 else None, 
     )
     log = c.create_container(container_config) 
