@@ -1,1 +1,4 @@
-npm run docs:build && cp -r docs/.vitepress/dist/* pody/doc/
+npm run docs:build && 
+rm -r pody/doc/* &&
+touch pody/doc/.gitkeep &&
+cp -r docs/.vitepress/dist/* pody/doc/
