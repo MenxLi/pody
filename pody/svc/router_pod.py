@@ -30,7 +30,7 @@ def create_pod(ins: str, image: str, user: UserRecord = Depends(require_permissi
         raise DuplicateError(f"Container {container_name} already exists")
 
     # check user quota
-    user_quota = QuotaDatabase().check_quota(user.name)
+    user_quota = QuotaDatabase().check_quota(user.name, use_fallback=True)
     user_containers = c.list_docker_containers(get_user_pod_prefix(user.name))
     if user_quota.max_pods != -1 and user_quota.max_pods <= len(user_containers):
         raise PermissionError("Exceed max pod limit")

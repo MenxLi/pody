@@ -44,7 +44,7 @@ def task_check_gpu_usage():
         user = user_db.get_user(username)
         if user.userid == 0:    # skip task not related to this database
             continue
-        max_gpu_count = quota_db.check_quota(username).gpu_count
+        max_gpu_count = quota_db.check_quota(username, use_fallback=True).gpu_count
         if max_gpu_count >= 0 and proc_count > max_gpu_count:
             # kill container from this user (the one with the shortest uptime)
             # not process because we may not have permission to kill process...

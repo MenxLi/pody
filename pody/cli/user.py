@@ -33,7 +33,7 @@ def list(usernames: Optional[list[str]] = typer.Argument(None)):
     users = UserDatabase().list_users(usernames)
     qdb = QuotaDatabase()
     for idx, user in enumerate(users):
-        console.print(f"{idx+1}. {user} {qdb.check_quota(user.name)}")
+        console.print(f"{idx+1}. {user} {qdb.check_quota(user.name, use_fallback=False)}")
 
 @app.command()
 def update_quota(

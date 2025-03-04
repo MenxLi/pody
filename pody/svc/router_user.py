@@ -11,7 +11,7 @@ router_user = APIRouter(prefix="/user")
 @router_user.get("/info")
 @handle_exception
 def info_user(user: UserRecord = Depends(require_permission("all"))):
-    user_quota = QuotaDatabase().check_quota(user.name)
+    user_quota = QuotaDatabase().check_quota(user.name, use_fallback=True)
     user_dict = dataclasses.asdict(user)
     quota_dict = dataclasses.asdict(user_quota)
     user_dict.pop("userid")

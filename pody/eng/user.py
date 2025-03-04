@@ -7,8 +7,8 @@ from abc import ABC, abstractmethod
 
 from .log import get_logger
 from .errors import InvalidUsernameError
-from .utils import format_storage_size
-from ..config import DATA_HOME, validate_name_part
+from .utils import format_storage_size, parse_storage_size
+from ..config import DATA_HOME, validate_name_part, Config, config
 
 def hash_password(username: str, password: str):
     return hashlib.sha256(f"{username}:{password}".encode()).hexdigest()
@@ -157,8 +157,27 @@ class UserQuota:
     def __str__(self):
         return  f"Quota(max_pods={self.max_pods}, gpu_count={self.gpu_count}, "\
                 f"memory_limit={format_storage_size(self.memory_limit) if self.memory_limit >= 0 else self.memory_limit}, "\
-                f"storage_size={format_storage_size(self.storage_size) if self.storage_size >= 0 else self.storage_size})"\
+                f"storage_size={format_storage_size(self.storage_size) if self.storage_size >= 0 else self.storage_size}, "\
                 f"shm_size={format_storage_size(self.shm_size) if self.shm_size >= 0 else self.shm_size})"
+
+def get_fallback_quota(q: UserQuota, cq: Optional[Config.DefaultQuota] = None) -> UserQuota:
+    """
+    Takes a UserQuota object, returns a new UserQuota object with fallback values from Config.DefaultQuota, 
+    Replace any -1 values in q with the corresponding value in cq. 
+    If cq is None, use the default quota in config.
+    """
+    if cq is None:
+        cq = config().default_quota
+    def storage_size_from_str(s: str) -> int:
+        if not s: return -1
+        return parse_storage_size(s)
+    return UserQuota(
+        max_pods = q.max_pods if q.max_pods >= 0 else cq.max_pods,
+        gpu_count = q.gpu_count if q.gpu_count >= 0 else cq.gpu_count,
+        memory_limit = q.memory_limit if q.memory_limit >= 0 else storage_size_from_str(cq.memory_limit),
+        storage_size = q.storage_size if q.storage_size >= 0 else storage_size_from_str(cq.storage_size),
+        shm_size = q.shm_size if q.shm_size >= 0 else storage_size_from_str(cq.shm_size),
+        )
 
 class QuotaDatabase(DatabaseAbstract):
     @property
@@ -194,15 +213,23 @@ class QuotaDatabase(DatabaseAbstract):
             else:
                 self.logger.debug(f"Skip deleting quota for user {usrname}, not found")
 
-    def check_quota(self, usrname: str):
+    def check_quota(self, usrname: str, use_fallback: bool = True) -> UserQuota:
+        """
+        Get user quota, if not exists, returns a default quota. 
+        If use_fallback is True, the default quota in config will be used as fallback.
+        """
         with self.cursor() as cur:
             cur.execute(
                 "SELECT max_pods, gpu_count, memory_limit, storage_size, shm_size FROM quota WHERE username = ?",
                 (usrname,),
             )
             res = cur.fetchone()
-            if res is None: return UserQuota(-1, -1, -1, -1, -1)
-            else: return UserQuota(*res)
+            if res is None: q = UserQuota(-1, -1, -1, -1, -1)
+            else: q = UserQuota(*res)
+        if use_fallback:
+            return get_fallback_quota(q)
+        else:
+            return q
 
     def update_quota(
         self, usrname: str, 

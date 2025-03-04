@@ -32,11 +32,20 @@ class Config:
         name: str           # e.g. "ubuntu2204-cuda121:latest"
         ports: list[int]    # e.g. [22, 80, 443]
         description: str = ""
+    
+    @dataclass
+    class DefaultQuota:
+        max_pods: int
+        gpu_count: int
+        memory_limit: str
+        storage_size: str
+        shm_size: str
 
     name_prefix: str
     available_ports: list[int | tuple[int, int]]
-    images: list[ImageConfig]
     volume_mappings: list[str]
+    default_quota: DefaultQuota
+    images: list[ImageConfig]
 
 def config():
     def parse_ports(ports_str: str) -> list[int | tuple[int, int]]:
@@ -82,6 +91,7 @@ def config():
     return Config(
         name_prefix=name_prefix,
         available_ports=parse_ports(loaded['available_ports']), 
-        images=[Config.ImageConfig(name=i['name'], ports=i['ports']) for i in loaded['images']], 
         volume_mappings=loaded['volume_mappings'],
+        default_quota=Config.DefaultQuota(**loaded['default_quota']),
+        images=[Config.ImageConfig(name=i['name'], ports=i['ports']) for i in loaded['images']], 
         )

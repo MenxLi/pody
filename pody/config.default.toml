@@ -12,15 +12,24 @@ volume_mappings = [
 	"/data/pody-volume/share:/workspace/share:ro"
 ]
 
-# the ports will be mapped to the host machine 
-# under random available port
+# fallback quota for unspecified user-quota
+# ["" for string] and [-1 for integer] means no limit
+[default_quota]
+max_pods = 5
+gpu_count = -1
+memory_limit = '64g'
+storage_size = ''
+shm_size = '2g'
+
+# Below are the images that will be exposed to the user, 
+# please configure them according to available images in the system
+# the ports will be mapped to the host machine under random available port
+# if tag is not specified, all tags of the image will be available
 [[images]]
 name = "ubuntu2204-cu121-base:latest"
 ports = [22, 8000]
 description = "Ubuntu 22.04 with CUDA 12.1 base image"
 
-# if tag is not specified, 
-# all tags of the image will be available
 [[images]]
 name = "lab-cuda"
 ports = [22]
