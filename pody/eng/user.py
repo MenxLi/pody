@@ -80,31 +80,7 @@ class UserDatabase(DatabaseAbstract):
                 );
                 """
             )
-            cursor.execute(
-                """
-                CREATE TABLE IF NOT EXISTS user_quota (
-                    user_id INTEGER PRIMARY KEY,
-                    max_pods INTEGER NOT NULL DEFAULT -1,
-                    gpu_count INTEGER NOT NULL DEFAULT -1,
-                    memory_limit INTEGER NOT NULL DEFAULT -1,
-                    storage_size INTEGER NOT NULL DEFAULT -1,
-                    shm_size INTEGER NOT NULL DEFAULT -1,
-                    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-                );
-                """
-            )
-        self.auto_upgrade()
 
-    def auto_upgrade(self):
-        # add missing columns
-        with self.transaction() as cursor:
-            cursor.execute("PRAGMA table_info(user_quota)")
-            cols = cursor.fetchall()
-            if not any([col[1] == 'storage_size' for col in cols]):
-                cursor.execute("ALTER TABLE user_quota ADD COLUMN storage_size INTEGER NOT NULL DEFAULT -1")
-            if not any([col[1] == 'shm_size' for col in cols]):
-                cursor.execute("ALTER TABLE user_quota ADD COLUMN shm_size INTEGER NOT NULL DEFAULT -1")
-    
     def add_user(self, username: str, password: str, is_admin: bool = False):
         check_username(username)
         with self.transaction() as cursor:
@@ -113,10 +89,6 @@ class UserDatabase(DatabaseAbstract):
                 (username, hash_password(username, password), is_admin),
             )
             res = cursor.lastrowid
-            cursor.execute(
-                "INSERT INTO user_quota (user_id) VALUES (?)",
-                (res,),
-            )
             self.logger.info(f"User {username} added with id {res}")
     
     def update_user(self, username: str, **kwargs):
