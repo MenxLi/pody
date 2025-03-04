@@ -98,20 +98,20 @@ def post(
     ):
     return fetch_impl("post", path, args, raw)
 
-@app.command(
-    no_args_is_help=True, help=
-        "Send HTTP request to Pody API. "
-        "Automatic infer method verb for the path "
-        "(an additional request will be made to fetch the path info), \n"
-        f"e.g. {cli_command()} fetch /pod/restart ins:my_pod",
-    rich_help_panel="Request"
-    )
 def fetch(
     path: str, 
     args: Optional[List[str]] = typer.Argument(None, help="Query parameters in the form of key:value, separated by space"), 
     raw: bool = False
     ):
     return fetch_impl("auto", path, args, raw)
+app.command(
+    no_args_is_help=True, help=
+        "Send HTTP request to Pody API. "
+        "Automatic infer method verb for the path "
+        "(an additional request will be made to fetch the path info), \n"
+        f"e.g. {cli_command()} fetch /pod/restart ins:my_pod",
+    rich_help_panel="Request"
+    )(fetch)
 
 @app.command(
     help=f"Display help for the path, e.g. {cli_command()} help /pod/restart", 

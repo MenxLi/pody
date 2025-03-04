@@ -51,6 +51,16 @@ So the above command can be written as:
 pody fetch pod/restart ins:myins
 ```
 
+:::tip Use shorthand!
+`pody fetch` is the most used command, 
+I provide a simple shorthand `podx` for it. 
+Which means `podx ...` is equivalent to `pody fetch ...`. 
+The above command can be written as : 
+```sh
+podx pod/restart ins:myins
+```
+:::
+
 ## Help
 You can also use `help` to get help on a specific route, or a subset of routes:
 ```sh

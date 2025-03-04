@@ -30,6 +30,7 @@ pody-serve = "pody.cli.serve:main"
 pody-user = "pody.cli.user:app"
 pody-log = "pody.cli.log:app"
 pody = "pody.cli.client:app"
+podx = "pody.cli.client_x:app"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
