@@ -3,7 +3,7 @@ import docker
 import multiprocessing as mp
 from contextlib import contextmanager
 import typing 
-from ..eng.user import UserDatabase
+from ..eng.user import UserDatabase, QuotaDatabase
 from ..eng.gpu import GPUHandler
 from ..eng.docker import DockerController
 from ..eng.log import get_logger
@@ -21,6 +21,7 @@ def task_check_gpu_usage():
     logger = get_logger('daemon')
     client = docker.from_env()
     user_db = UserDatabase()
+    quota_db = QuotaDatabase()
 
     gpu_processes = gpu_status_impl(list(range(GPUHandler().device_count())))
     user_proc_count: dict[str, int] = {}
@@ -43,7 +44,7 @@ def task_check_gpu_usage():
         user = user_db.get_user(username)
         if user.userid == 0:    # skip task not related to this database
             continue
-        max_gpu_count = user_db.check_user_quota(username).gpu_count
+        max_gpu_count = quota_db.check_quota(username).gpu_count
         if max_gpu_count >= 0 and proc_count > max_gpu_count:
             # kill container from this user (the one with the shortest uptime)
             # not process because we may not have permission to kill process...
@@ -66,10 +67,7 @@ def create_daemon_worker(fn: typing.Callable, interval, delay=0, args = (), kwar
             except Exception as e:
                 if isinstance(e, KeyboardInterrupt): raise
                 get_logger('daemon.err').exception(f"Error in daemon worker [{fn.__name__}]: {e}")
-            try:
-                time.sleep(interval)
-            except KeyboardInterrupt:
-                break
+            time.sleep(interval)
     return mp.Process(target=daemon_worker)
 
 @contextmanager

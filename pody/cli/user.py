@@ -1,8 +1,7 @@
 import typer
 import rich
 from typing import Optional
-from pody.eng.user import UserDatabase
-import docker
+from pody.eng.user import UserDatabase, QuotaDatabase
 from ..eng.utils import parse_storage_size
 from ..eng.docker import ContainerAction, DockerController
 
@@ -26,16 +25,15 @@ def update(
     password: Optional[str] = None,
     admin: Optional[bool] = None,
     ):
-    db = UserDatabase()
-    db.update_user(username, password=password, is_admin=admin)
+    UserDatabase().update_user(username, password=password, is_admin=admin)
 
 @app.command(help="List users, optionally filter by username")
 def list(usernames: Optional[list[str]] = typer.Argument(None)):
     console = rich.console.Console()
-    db = UserDatabase()
-    users = db.list_users(usernames)
+    users = UserDatabase().list_users(usernames)
+    qdb = QuotaDatabase()
     for idx, user in enumerate(users):
-        console.print(f"{idx+1}. {user} {db.check_user_quota(user.name)}")
+        console.print(f"{idx+1}. {user} {qdb.check_quota(user.name)}")
 
 @app.command()
 def update_quota(
@@ -46,8 +44,7 @@ def update_quota(
     storage_limit: Optional[str] = None, 
     shm_size: Optional[str] = None
     ):
-    db = UserDatabase()
-    db.update_user_quota(
+    QuotaDatabase().update_quota(
         username, max_pods=max_pods, gpu_count=gpu_count, 
         memory_limit=parse_storage_size(memory_limit) if not memory_limit is None else None, 
         storage_limit=parse_storage_size(storage_limit) if not storage_limit is None else None, 
@@ -56,8 +53,8 @@ def update_quota(
 
 @app.command(help="Delete user")
 def delete(username: str):
-    db = UserDatabase()
-    db.delete_user(username)
+    UserDatabase().delete_user(username)
+    QuotaDatabase().delete_quota(username)
 
 @app.command(help="Delete user and all related containers")
 def purge(
@@ -67,8 +64,8 @@ def purge(
     if not yes:
         typer.confirm(f"Are you sure to purge user {username}?", abort=True)
     c = DockerController()
-    db = UserDatabase()
-    db.delete_user(username)
+    UserDatabase().delete_user(username)
+    QuotaDatabase().delete_quota(username)
     containers = c.list_docker_containers(filter_name=username + "-")
     for container in containers:
         c.container_action(container, ContainerAction.DELETE)

@@ -11,7 +11,7 @@ from .constraint import eval_name_raise, get_user_pod_prefix
 
 from ..config import config, validate_name_part
 from ..eng.errors import *
-from ..eng.user import UserRecord, UserDatabase
+from ..eng.user import UserRecord, QuotaDatabase
 from ..eng.docker import ContainerAction, ContainerConfig, DockerController, ImageFilter
 
 router_pod = APIRouter(prefix="/pod")
@@ -30,7 +30,7 @@ def create_pod(ins: str, image: str, user: UserRecord = Depends(require_permissi
         raise DuplicateError(f"Container {container_name} already exists")
 
     # check user quota
-    user_quota = UserDatabase().check_user_quota(user.name)
+    user_quota = QuotaDatabase().check_quota(user.name)
     user_containers = c.list_docker_containers(get_user_pod_prefix(user.name))
     if user_quota.max_pods != -1 and user_quota.max_pods <= len(user_containers):
         raise PermissionError("Exceed max pod limit")

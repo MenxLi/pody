@@ -22,21 +22,6 @@ class UserRecord:
     name: str
     is_admin: bool
 
-@dataclasses.dataclass
-class UserQuota:
-    userid: int
-    max_pods: int
-    gpu_count: int
-    memory_limit: int # in bytes (per container)
-    storage_limit: int # in bytes (per container, exclude external volumes)
-    shm_size: int # in bytes (per container)
-
-    def __str__(self):
-        return  f"Quota(max_pods={self.max_pods}, gpu_count={self.gpu_count}, "\
-                f"memory_limit={format_storage_size(self.memory_limit) if self.memory_limit >= 0 else self.memory_limit}, "\
-                f"storage_limit={format_storage_size(self.storage_limit) if self.storage_limit >= 0 else self.storage_limit})"\
-                f"shm_size={format_storage_size(self.shm_size) if self.shm_size >= 0 else self.shm_size})"
-
 class DatabaseAbstract(ABC):
 
     @property
@@ -70,10 +55,12 @@ class DatabaseAbstract(ABC):
                 cursor.close()
         return _transaction()
 
+    def close(self):
+        self.conn.close()
+
 class UserDatabase(DatabaseAbstract):
     @property
     def conn(self): return self._conn
-
     def __init__(self):
         self.logger = get_logger('engine')
 
@@ -187,48 +174,106 @@ class UserDatabase(DatabaseAbstract):
             )
             self.logger.info(f"User {username} deleted")
 
-    def check_user_quota(self, usrname: str):
+@dataclasses.dataclass
+class UserQuota:
+    max_pods: int
+    gpu_count: int
+    memory_limit: int # in bytes (per container)
+    storage_limit: int # in bytes (per container, exclude external volumes)
+    shm_size: int # in bytes (per container)
+
+    def __str__(self):
+        return  f"Quota(max_pods={self.max_pods}, gpu_count={self.gpu_count}, "\
+                f"memory_limit={format_storage_size(self.memory_limit) if self.memory_limit >= 0 else self.memory_limit}, "\
+                f"storage_limit={format_storage_size(self.storage_limit) if self.storage_limit >= 0 else self.storage_limit})"\
+                f"shm_size={format_storage_size(self.shm_size) if self.shm_size >= 0 else self.shm_size})"
+
+
+class QuotaDatabase(DatabaseAbstract):
+    @property
+    def conn(self): return self._conn
+    def __init__(self):
+        self.logger = get_logger('engine')
+
+        DATA_HOME.mkdir(exist_ok=True)
+        self._conn = sqlite3.connect(DATA_HOME / "quota.db", check_same_thread=False)
+
+        with self.transaction() as cursor:
+            cursor.execute(
+                """
+                CREATE TABLE IF NOT EXISTS quota (
+                    username TEXT PRIMARY KEY,
+                    max_pods INTEGER NOT NULL DEFAULT -1,
+                    gpu_count INTEGER NOT NULL DEFAULT -1,
+                    memory_limit INTEGER NOT NULL DEFAULT -1,
+                    storage_limit INTEGER NOT NULL DEFAULT -1,
+                    shm_size INTEGER NOT NULL DEFAULT -1
+                );
+                """
+            )
+    
+    def delete_quota(self, usrname: str):
+        with self.transaction() as cursor:
+            r = cursor.execute(
+                "DELETE FROM quota WHERE username = ?",
+                (usrname,),
+            )
+            if r.rowcount:
+                self.logger.info(f"Quota for user {usrname} deleted")
+            else:
+                self.logger.debug(f"Skip deleting quota for user {usrname}, not found")
+
+    def check_quota(self, usrname: str):
         with self.cursor() as cur:
             cur.execute(
-                "SELECT user_id, max_pods, gpu_count, memory_limit, storage_limit, shm_size FROM user_quota WHERE user_id = (SELECT id FROM users WHERE username = ?)",
+                "SELECT max_pods, gpu_count, memory_limit, storage_limit, shm_size FROM quota WHERE username = ?",
                 (usrname,),
             )
             res = cur.fetchone()
-            if res is None: return UserQuota(0, -1, -1, -1, -1, -1)
+            if res is None: return UserQuota(-1, -1, -1, -1, -1)
             else: return UserQuota(*res)
 
-    def update_user_quota(self, usrname: str, **kwargs):
+    def update_quota(self, usrname: str, **kwargs):
+        """
+        Update user quota, 
+        will create a new record if not exists, update the record if exists
+        """
+        with self.transaction() as cursor:
+            r = cursor.execute(
+                "INSERT OR IGNORE INTO quota (username) VALUES (?)",
+                (usrname,),
+            )
+            if r.rowcount != 0:
+                self.logger.debug(f"Quota for user {usrname} initialized")
+
         with self.transaction() as cursor:
             if 'max_pods' in kwargs and kwargs['max_pods'] is not None:
                 cursor.execute(
-                    "UPDATE user_quota SET max_pods = ? WHERE user_id = (SELECT id FROM users WHERE username = ?)",
+                    "UPDATE quota SET max_pods = ? WHERE username = ?",
                     (kwargs.pop('max_pods'), usrname),
                 )
                 self.logger.info(f"User {usrname} max_pods updated")
             if 'gpu_count' in kwargs and kwargs['gpu_count'] is not None:
                 cursor.execute(
-                    "UPDATE user_quota SET gpu_count = ? WHERE user_id = (SELECT id FROM users WHERE username = ?)",
+                    "UPDATE quota SET gpu_count = ? WHERE username = ?",
                     (kwargs.pop('gpu_count'), usrname),
                 )
                 self.logger.info(f"User {usrname} gpu_count updated")
             if 'memory_limit' in kwargs and kwargs['memory_limit'] is not None:
                 cursor.execute(
-                    "UPDATE user_quota SET memory_limit = ? WHERE user_id = (SELECT id FROM users WHERE username = ?)",
+                    "UPDATE quota SET memory_limit = ? WHERE username = ?",
                     (kwargs.pop('memory_limit'), usrname),
                 )
                 self.logger.info(f"User {usrname} memory_limit updated")
             if 'storage_limit' in kwargs and kwargs['storage_limit'] is not None:
                 cursor.execute(
-                    "UPDATE user_quota SET storage_limit = ? WHERE user_id = (SELECT id FROM users WHERE username = ?)",
+                    "UPDATE quota SET storage_limit = ? WHERE username = ?",
                     (kwargs.pop('storage_limit'), usrname),
                 )
                 self.logger.info(f"User {usrname} storage_limit updated")
             if 'shm_size' in kwargs and kwargs['shm_size'] is not None:
                 cursor.execute(
-                    "UPDATE user_quota SET shm_size = ? WHERE user_id = (SELECT id FROM users WHERE username = ?)",
+                    "UPDATE quota SET shm_size = ? WHERE username = ?",
                     (kwargs.pop('shm_size'), usrname),
                 )
                 self.logger.info(f"User {usrname} shm_size updated")
-
-    def close(self):
-        self.conn.close()
