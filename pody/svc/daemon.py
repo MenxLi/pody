@@ -8,7 +8,7 @@ from ..eng.gpu import GPUHandler
 from ..eng.docker import DockerController
 from ..eng.log import get_logger
 from .router_host import gpu_status_impl
-from .conatraint import split_name_component
+from .constraint import split_name_component
 
 def leave_info(container_name, info: str, level: str = "info"):
     assert "'" not in info, "Single quote is not allowed in info"
@@ -31,7 +31,7 @@ def task_check_gpu_usage():
             pod_name: str = p['pod']
             if not pod_name:    # skip host process
                 continue
-            username = res['username'] if (res:=split_name_component(pod_name)) is not None else None
+            username = name_comp['username'] if (name_comp:=split_name_component(pod_name)) is not None else None
             if not username:    # skip container not created by us
                 continue
             this_gpu_users.add(username)
