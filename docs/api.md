@@ -50,12 +50,18 @@ curl -s ... | python -m json.tool
 ```
 :::
 </template>
-<template v-else-if="apiType !== 'curl'">
-
+<template v-else-if="apiType === 'podx'">
 
 ::: tip
-Here examples of API calls are provided using `podx/pody` utility.   
-More information about the client-side CLI utilities can be found at [here](/pody-cli).
+Here examples of API calls are provided using `podx` utility.  
+`podx` is a shorthand for `pody fetch` command, please refer to [here](./pody-cli) for more information.
+:::
+</template>
+<template v-else>
+
+::: tip
+Here examples of API calls are provided using `pody` utility.   
+More information about the client-side CLI utilities can be found at [here](./pody-cli).
 :::
 </template>
 

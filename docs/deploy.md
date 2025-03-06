@@ -8,19 +8,29 @@ Then you can install the Pody server from pip:
 pip install "pody[server]"
 ```
 
-## Usage
+## Start the server
 The server stores the data in `$PODY_HOME` directory, which is by default `~/.pody`.
 
 To start the server:
 ```sh
-pody-server
+pody-server --port 8000
 ```
+Then by setting appropriate environment variables, 
+you can use the [pody-cli](/pody-cli) to interact with the server.
 
+## Managements
+
+### Users
 To manage users:
 ```sh
 pody-user ...
 ```
 Please refer to `--help` for more information.
 
-To manage images, you should first pull or build the image, 
-then you can specify the images to expose to the client by editing the `$PODY_HOME/config.toml` file.
+### Configurations
+The server configuration is stored in `$PODY_HOME/config.toml` file. 
+There are comments in the file to help you understand the options. 
+
+For example, to manage images, you should first pull or build the image, 
+then you can specify the images to expose to the client by editing the `[[images]]` section in the
+`$PODY_HOME/config.toml` file.

@@ -1,8 +1,6 @@
 # Pody client utility
 
 Pody client CLI utility is a command-line tool that allows you to interact with the Pody API. 
-It act like `curl` but is more fiendly for Pody API.  
-
 The utility is written in Python and can be installed using `pip`:
 
 ```sh
@@ -51,7 +49,7 @@ So the above command can be written as:
 pody fetch pod/restart ins:myins
 ```
 
-:::tip Use shorthand! 🚀
+:::tip Use `podx`! 🚀
 `pody fetch` is the most used command, 
 a simple shorthand `podx` is provided for it. 
 Which means `podx ...` is equivalent to `pody fetch ...`. 
