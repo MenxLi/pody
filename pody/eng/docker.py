@@ -15,7 +15,7 @@ from typing import TYPE_CHECKING, Optional
 if TYPE_CHECKING:
     from docker.models.containers import _RestartPolicy
 
-import time
+import time, os
 from multiprocessing import Process, Queue
 from .errors import ContainerNotFoundError
 from .log import get_logger
@@ -102,30 +102,45 @@ class DockerController():
         self.logger = get_logger('engine')
 
     def create_container(self, config: ContainerConfig) -> str:
-        if not config.gpu_ids is None:
-            gpus = [
-                docker.types.DeviceRequest(
-                    capabilities=[["compute", "utility", "graphics"]], 
-                    driver="nvidia", 
-                    device_ids=[f"{gpu_id}" for gpu_id in config.gpu_ids]
-                )
-            ]
-        else:
-            # all gpus
-            gpus = [
-                docker.types.DeviceRequest(
-                    capabilities=[["compute", "utility", "graphics"]], 
-                    driver="nvidia", 
-                    count=-1
-                )
-            ]
+        def parse_mount(mount: str, create_source = True) -> docker.types.Mount:
+            mount_sp = mount.split(":")
+            if len(mount_sp) < 2:
+                raise ValueError(f"Invalid volume mapping: {mount}")
+            source = mount_sp[0]
+            target = mount_sp[1]
+            if len(mount_sp) == 3:
+                read_only = mount_sp[2] == "ro"
+            else:
+                read_only = False
+            if create_source and not os.path.exists(source):
+                os.makedirs(source)
+            return docker.types.Mount(target=target, source=source, type="bind", read_only=read_only)
+
+        def parse_gpus(gpu_ids: Optional[list[int]]) -> list[docker.types.DeviceRequest]:
+            if not gpu_ids:
+                # all gpus
+                return [
+                    docker.types.DeviceRequest(
+                        capabilities=[["compute", "utility", "graphics"]], 
+                        driver="nvidia", 
+                        count=-1
+                    )
+                ]
+            else:
+                return [
+                    docker.types.DeviceRequest(
+                        capabilities=[["compute", "utility", "graphics"]], 
+                        driver="nvidia", 
+                        device_ids=[f"{gpu_id}" for gpu_id in gpu_ids]
+                    )
+                ]
         # https://docker-py.readthedocs.io/en/stable/containers.html
         container = self.client.containers.run(
             image=config.image_name,
             name=config.container_name,
-            volumes={vol.split(":")[0]: {"bind": vol.split(":")[1], "mode": vol.split(":")[2] if len(vol) > 2 else 'rw'} for vol in config.volumes},
+            mounts=[parse_mount(vol) for vol in config.volumes],
             ports={port.split(":")[1]: port.split(":")[0] for port in config.port_mapping},     # type: ignore
-            device_requests=gpus,
+            device_requests=parse_gpus(config.gpu_ids),
             mem_limit=config.memory_limit,
             mem_swappiness=0,                       # disable swap
             memswap_limit=config.memory_limit,      # disable swap
