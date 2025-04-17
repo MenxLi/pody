@@ -35,10 +35,12 @@ class Config:
     
     @dataclass
     class DefaultQuota:
+        # ["" for string] and [-1 for integer] means no limit
         max_pods: int
         gpu_count: int
-        memory_limit: str
-        storage_size: str
+        gpus: str               # "all"="", "0,1", "none"
+        memory_limit: str       # "64g"
+        storage_size: str       # "100g"
         shm_size: str
 
     name_prefix: str

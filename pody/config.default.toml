@@ -17,6 +17,7 @@ volume_mappings = [
 [default_quota]
 max_pods = 5
 gpu_count = -1
+gpus = "all"
 memory_limit = '64g'
 storage_size = ''
 shm_size = '2g'

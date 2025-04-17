@@ -28,24 +28,28 @@ def update(
     UserDatabase().update_user(username, password=password, is_admin=admin)
 
 @app.command(help="List users, optionally filter by username")
-def list(usernames: Optional[list[str]] = typer.Argument(None)):
+def list(
+    usernames: Optional[list[str]] = typer.Argument(None), 
+    quota_fallback: bool = False
+    ):
     console = rich.console.Console()
     users = UserDatabase().list_users(usernames)
     qdb = QuotaDatabase()
     for idx, user in enumerate(users):
-        console.print(f"{idx+1}. {user} {qdb.check_quota(user.name, use_fallback=False)}")
+        console.print(f"{idx+1}. {user} {qdb.check_quota(user.name, use_fallback=quota_fallback)}")
 
 @app.command()
 def update_quota(
     username: str, 
     max_pods: Optional[int] = None,
     gpu_count: Optional[int] = None,
+    gpus: Optional[str] = None,
     memory_limit: Optional[str] = None, 
     storage_size: Optional[str] = None, 
     shm_size: Optional[str] = None
     ):
     QuotaDatabase().update_quota(
-        username, max_pods=max_pods, gpu_count=gpu_count, 
+        username, max_pods=max_pods, gpu_count=gpu_count, gpus=gpus,
         memory_limit=parse_storage_size(memory_limit) if not memory_limit is None else None, 
         storage_size=parse_storage_size(storage_size) if not storage_size is None else None, 
         shm_size=parse_storage_size(shm_size) if not shm_size is None else None

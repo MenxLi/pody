@@ -1,5 +1,6 @@
 import random
 from string import Template
+from typing import Optional
 
 from .app_base import *
 import dataclasses
@@ -64,13 +65,19 @@ def create_pod(ins: str, image: str, user: UserRecord = Depends(require_permissi
     # handling volume
     volume_mappings = [Template(mapping).substitute(username=user.name) for mapping in server_config.volume_mappings]
 
+    def parse_gpuids(s: str) -> Optional[list[int]]:
+        s = s.strip().lower()
+        if s == '' or s == 'all': return None   # no limit, all gpus
+        if s == 'none': return []               # no gpu
+        return [int(i) for i in s.split(',') if i.isdigit()]
+        
     # create container
     container_config = ContainerConfig(
         image_name=image,
         container_name=container_name,
         volumes=volume_mappings,
         port_mapping=port_mapping,
-        gpu_ids=None,
+        gpu_ids=parse_gpuids(user_quota.gpus),
         memory_limit=f'{user_quota.memory_limit}b' if user_quota.memory_limit > 0 else None,
         storage_size=f'{user_quota.storage_size}b' if user_quota.storage_size > 0 else None, 
         shm_size=f'{user_quota.shm_size}b' if user_quota.shm_size > 0 else None, 
