@@ -160,7 +160,7 @@ def get_logger(
                 format_str_plain = format_str_plain.replace(color, '')
 
         formatter_plain = logging.Formatter(format_str_plain)
-        log_home.mkdir(exist_ok=True)
+        log_home.mkdir(exist_ok=True, parents=True)
         log_file = log_home / f'{name}.log'
         if file_handler_type == 'simple':
             file_handler = logging.FileHandler(log_file)
