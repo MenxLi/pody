@@ -117,7 +117,7 @@ class DockerController():
             return docker.types.Mount(target=target, source=source, type="bind", read_only=read_only)
 
         def parse_gpus(gpu_ids: Optional[list[int]]) -> list[docker.types.DeviceRequest]:
-            if not gpu_ids:
+            if gpu_ids is None:
                 # all gpus
                 return [
                     docker.types.DeviceRequest(

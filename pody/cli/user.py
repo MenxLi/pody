@@ -10,7 +10,7 @@ app = typer.Typer(
     no_args_is_help=True
     )
 
-@app.command()
+@app.command(no_args_is_help=True, help="Add user")
 def add(
     username: str,
     password: str,
@@ -19,7 +19,7 @@ def add(
     db = UserDatabase()
     db.add_user(username, password, admin)
 
-@app.command()
+@app.command(no_args_is_help=True, help="Update user")
 def update(
     username: str, 
     password: Optional[str] = None,
@@ -38,12 +38,12 @@ def list(
     for idx, user in enumerate(users):
         console.print(f"{idx+1}. {user} {qdb.check_quota(user.name, use_fallback=quota_fallback)}")
 
-@app.command()
+@app.command(no_args_is_help=True, help="Set user quota")
 def update_quota(
     username: str, 
     max_pods: Optional[int] = None,
-    gpu_count: Optional[int] = None,
-    gpus: Optional[str] = None,
+    gpu_count: Optional[int] = typer.Option(None, "--gpu-count", help="Number of GPUs that can be used simultaneously"),
+    gpus: Optional[str] = typer.Option(None, "--gpus", help="GPU IDs visible to the user, comma separated, e.g. '0,1,2', or 'all' for all GPUs, or 'none' for no GPUs. Please not empty string means no limit (fallback to default)"),
     memory_limit: Optional[str] = None, 
     storage_size: Optional[str] = None, 
     shm_size: Optional[str] = None
@@ -55,12 +55,12 @@ def update_quota(
         shm_size=parse_storage_size(shm_size) if not shm_size is None else None
         )
 
-@app.command(help="Delete user")
+@app.command(help="Delete user", no_args_is_help=True)
 def delete(username: str):
     UserDatabase().delete_user(username)
     QuotaDatabase().delete_quota(username)
 
-@app.command(help="Delete user and all related containers")
+@app.command(help="Delete user and all related containers", no_args_is_help=True)
 def purge(
     username: str, 
     yes: bool= typer.Option(False, "--yes", "-y", help="Skip confirmation")

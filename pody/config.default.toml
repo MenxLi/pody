@@ -13,7 +13,7 @@ volume_mappings = [
 ]
 
 # fallback quota for unspecified user-quota
-# ["" for string] and [-1 for integer] means no limit
+# ["" for string] and [-1 for integer] means no limit ("none" for gpus means no gpu)
 [default_quota]
 max_pods = 5
 gpu_count = -1
