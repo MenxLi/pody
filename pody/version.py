@@ -37,6 +37,11 @@ VERSION_HISTORY = {
         "Add `podx` command line tool",
         "Improve error handling for client",
         "Show help when fetching for path ending with /",
+    ], 
+    "0.2.2": [
+        "Add gpu visibility to quota",
+        "Use bind mount for volumes",
+        "Fix log home directory initialization",
     ]
 }
 
