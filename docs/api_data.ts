@@ -237,7 +237,7 @@ const apiData: { [key: string]: APIDescription } ={
                 'pody_version': '0.1.10',
                 'docker_version': '26.1.5-ce',
                 'nvidia_driver_version': '550.78',
-                'nvidia_ctk_version': 'NVIDIA Container Toolkit CLI version unknown'
+                'nvidia_ctk_version': 'NVIDIA Container Toolkit CLI version 1.17.5 commit:...'
             }
         }
     }, 

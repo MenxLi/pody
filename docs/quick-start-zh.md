@@ -46,7 +46,7 @@ podx host/images
 ```sh
 podx pod/create image:nvidia/cuda:11.0-base ins:main
 ```
-`Pody fetch`命令使用`<key>:<value>`的形式传递参数，
+`podx (pody fetch)`命令使用`<key>:<value>`的形式传递参数，
 其中`ins:main`表示创建一个名为`main`的pod实例。
 
 ## 查看容器状态
@@ -78,7 +78,7 @@ podx pod/exec ins:main cmd:"service ssh start"
 ```
 :::
 
-添加公钥到容器可以通过以下方式来执行：
+添加公钥到容器可以通过以下方式来执行（假设本地公钥为`~/.ssh/id_rsa.pub`）：
 ```sh
 podx pod/exec ins:main cmd:"mkdir -p ~/.ssh && echo $(cat ~/.ssh/id_rsa.pub) >> ~/.ssh/authorized_keys"
 ```
