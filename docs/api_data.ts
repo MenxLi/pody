@@ -1,4 +1,4 @@
-const ex_ip = "http://10.256.1.10";
+const ex_ip = "http://10.254.29.178:8000";
 const ex_username = "username";
 const ex_password = "password";
 
@@ -168,6 +168,10 @@ const apiData: { [key: string]: APIDescription } ={
                 description: "The instance to restart"
             }
         },
+        example: {
+            input: {ins: "myins"},
+            output: `{log: " * Restarting OpenBSD Secure Shell server sshd..."}`
+        }
     }, 
     "/pod/exec": {
         method: "POST",

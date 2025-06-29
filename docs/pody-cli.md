@@ -49,7 +49,7 @@ So the above command can be written as:
 pody fetch pod/restart ins:myins
 ```
 
-:::tip Use `podx`! 🚀
+## Podx
 `pody fetch` is the most used command, 
 a simple shorthand `podx` is provided for it. 
 Which means `podx ...` is equivalent to `pody fetch ...`. 
@@ -57,7 +57,6 @@ The above command can be written as :
 ```sh
 podx pod/restart ins:myins
 ```
-:::
 
 ## Help
 You can also use `help` to get help on a specific route, or a subset of routes:
@@ -81,7 +80,7 @@ pody help user/
 ```
 :::
 
-:::tip Another shorthand 😊
+:::tip
 The `get/post/fetch` methods, when applied to a route, will invoke the `help` method instead,  
 *i.e.* `pody get user/` or `podx user/` will invoke `pody help user/` and show the parameters.
 :::

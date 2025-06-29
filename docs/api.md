@@ -9,8 +9,7 @@ outline: deep
     import APITable from './api_table.vue';
     import { ref } from 'vue';
 
-    const apiType = ref('podx' as 'curl' | 'podx' | 'pody');
-
+    const apiType = ref( 'podx' as 'curl' | 'podx' | 'pody');
 
 </script>
 
@@ -44,6 +43,8 @@ The API exposes interface for managing your own pods and query server status.
 
 ::: tip
 Here examples of API calls are provided using `curl` utility.  
+It is supposed that the pody server is running on `10.254.29.178:8000`. 
+Please replace it with your own server address.  
 For better readability, you can format the output using `python -m json.tool`:  
 ```sh
 curl -s ... | python -m json.tool
@@ -54,7 +55,7 @@ curl -s ... | python -m json.tool
 
 ::: tip
 Here examples of API calls are provided using `podx` utility.  
-`podx` is a shorthand for `pody fetch` command, please refer to [here](./pody-cli) for more information.
+`podx` is a shorthand for `pody fetch` command, please refer to [here](./pody-cli#podx) for more information.
 :::
 </template>
 <template v-else>
