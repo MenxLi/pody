@@ -162,6 +162,46 @@ app.command(
     )(help)
 
 @app.command(
+    help = "Upload ssh public key to the server, so you can use ssh to connect to the server without password",
+    rich_help_panel="Help"
+    )
+def copy_id(
+    ins: str = typer.Argument(help="Instance name to upload the key to"),
+    key: Optional[str] = typer.Argument(
+        default=None, 
+        help="Path to the SSH public key file, e.g. ~/.ssh/id_rsa.pub"
+    )):
+    if ins.startswith("ins:") or ins.startswith("ins="):
+        ins = ins[4:]
+
+    if key is None:
+        possible_locations = [
+            os.path.expanduser("~/.ssh/id_rsa.pub"),
+            os.path.expanduser("~/.ssh/id_ed25519.pub"),
+            os.path.expanduser("~/.ssh/id_dsa.pub"),
+            os.path.expanduser("~/.ssh/id_ecdsa.pub"),
+        ]
+        for loc in possible_locations:
+            if os.path.exists(loc):
+                key = loc
+                break
+    if key is None or not os.path.exists(key):
+        console.print(f"[bold red]Error: SSH public key file not found, please specify the path to the key file")
+        exit(1)
+    
+    with open(key, 'r') as f:
+        pub_key = f.read().strip()
+    assert pub_key.startswith("ssh-"), "Invalid SSH public key format"
+
+    post(
+        '/pod/exec', 
+        args = [
+            f"ins:{ins}",
+            f"cmd:mkdir -p ~/.ssh && echo \"{pub_key}\" >> ~/.ssh/authorized_keys",
+        ],
+    )
+
+@app.command(
     help = "Open the API documentation in the browser",
     rich_help_panel="Help"
     )

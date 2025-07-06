@@ -57,7 +57,8 @@ def systemd_unit(port = 8799) -> None:
     enviroment = " ".join(
         f'"{key}={value}"' 
         for key, value in env.items() 
-        if key.startswith("PODY_") and not (key == "PODY_API_BASE" or key == "PODY_PASSWORD")
+        if key.startswith("PODY_") and \
+            not (key in ["PODY_API_BASE", "PODY_USERNAME", "PODY_PASSWORD"])
         )
 
     # Build ExecStart command

@@ -98,17 +98,23 @@ echo "echo $(cat ~/.ssh/id_rsa.pub) >> ~/.ssh/authorized_keys" >> init.sh
 # 执行脚本
 cat init.sh | podx pod/exec ins:main cmd:
 ```
+
+除上述方法外，Pody v0.2.3 以后可以直接使用
+```sh
+pody copy-id ins:main [--key pub_key_path]
+```
+上传公钥。
 :::
 
-在上述操作后我们就可以通过`ssh`连接到容器了🎉：
+此时，我们就可以通过`ssh`连接到容器了🎉：
 ```sh
 ssh -p 20806 root@10.254.29.178
 ```
 
 :::warning
 用户通常会被赋予资源使用限制，可以通过`user/info`查看。  
-如果超过使用数量限制，Pody守护进程可能会杀掉你的容器！  
-此时，可以重启容器，并在`/log/pody/...`目录下查看日志文件，以排查问题。
+如果超过使用限制，Pody守护进程可能会杀掉你的容器，
+此时，可以重启容器，并在`/log/pody/...`目录下查看日志文件以排查问题。
 :::
 
 ## 更多操作
