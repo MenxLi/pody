@@ -78,18 +78,22 @@ podx pod/exec ins:main cmd:"service ssh start"
 ```
 :::
 
-添加公钥到容器可以通过以下方式来执行（假设本地公钥为`~/.ssh/id_rsa.pub`）：
+
+接下来，通过以下命令将本地的公钥上传到容器中：
 ```sh
-podx pod/exec ins:main cmd:"mkdir -p ~/.ssh && echo $(cat ~/.ssh/id_rsa.pub) >> ~/.ssh/authorized_keys"
+pody copy-id ins:main
 ```
+
 ::: details 结果示例
 ```json
 {'exit_code': 0, 'log': ''}
 ```
 :::
 
+<!-- podx pod/exec ins:main cmd:"mkdir -p ~/.ssh && echo $(cat ~/.ssh/id_rsa.pub) >> ~/.ssh/authorized_keys" -->
 :::tip
 如果要执行多条命令，或者需要避免使用`"`进行空格转义，可以直接写成脚本，然后以管道传递。
+例如，如下命令创建一个脚本`init.sh`用以设置ssh服务并添加公钥，并通过管道传递给`podx`远程执行：
 ```sh
 # 构建脚本
 echo "service ssh start && \\" > init.sh
@@ -98,12 +102,6 @@ echo "echo $(cat ~/.ssh/id_rsa.pub) >> ~/.ssh/authorized_keys" >> init.sh
 # 执行脚本
 cat init.sh | podx pod/exec ins:main cmd:
 ```
-
-除上述方法外，Pody v0.2.3 以后可以直接使用
-```sh
-pody copy-id ins:main [--key pub_key_path]
-```
-上传公钥。
 :::
 
 此时，我们就可以通过`ssh`连接到容器了🎉：

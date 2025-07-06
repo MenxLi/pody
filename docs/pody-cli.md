@@ -32,7 +32,7 @@ source ~/pody-credentials/node1.sh
 The latter method is more flexible and allows you to switch between different servers easily.
 
 ## Usage
-The usage follows folloiwing pattern:
+The usage mostly follows folloiwing pattern:
 ```sh
 pody [METHOD] [ROUTE] [OPTIONS...]
 ```
@@ -42,23 +42,26 @@ For example, to [restart a pod](./api.md#pod-restart) you can run:
 pody post pod/restart ins:myins
 ```
 
-The method is not strictly a HTTP method, it can be one of `get`, `post`, `fetch`, `help`, `version`. 
+The method is not strictly a HTTP method, it can be one of `get`, `post`, `fetch`, `help`. 
 Notebly, `fetch` is used to automatically select appropriate method based on the route. 
 So the above command can be written as:
 ```sh
 pody fetch pod/restart ins:myins
 ```
 
+In addition to the above, the subcommand can also be `version` and `copy-id`, 
+please use `--help` to see the details.
+
 ## Podx
 `pody fetch` is the most used command, 
 a simple shorthand `podx` is provided for it. 
 Which means `podx ...` is equivalent to `pody fetch ...`. 
-The above command can be written as : 
+The above command can be written as: 
 ```sh
 podx pod/restart ins:myins
 ```
 
-## Help
+## More
 You can also use `help` to get help on a specific route, or a subset of routes:
 ```sh
 pody help pod/restart
@@ -84,6 +87,12 @@ pody help user/
 The `get/post/fetch` methods, when applied to a route, will invoke the `help` method instead,  
 *i.e.* `pody get user/` or `podx user/` will invoke `pody help user/` and show the parameters.
 :::
+
+In addition, there is a `copy-id` command to copy your public key to the server,
+which is used to enable SSH access to the containers.
+```sh
+pody copy-id instance_name [--key pub_key_path]
+```
 
 To get the version of the utility:
 ```sh
