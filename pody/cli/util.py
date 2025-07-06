@@ -54,7 +54,11 @@ def systemd_unit(port = 8799) -> None:
         raise typer.Exit(code=1)
 
     env = dict(os.environ)
-    enviroment = "".join(f"{key}={value}" for key, value in env.items() if key.startswith("PODY_"))
+    enviroment = " ".join(
+        f'"{key}={value}"' 
+        for key, value in env.items() 
+        if key.startswith("PODY_") and not (key == "PODY_API_BASE" or key == "PODY_PASSWORD")
+        )
 
     # Build ExecStart command
     exec_start = f"{cmd_path} --port {port}"
@@ -68,7 +72,7 @@ After=network.target
 [Service]
 Type=simple
 User={username}
-Environment="{enviroment}"
+Environment={enviroment}
 ExecStart={exec_start}
 WorkingDirectory={Path.home()}
 Restart=on-failure
