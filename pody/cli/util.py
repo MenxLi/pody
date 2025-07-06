@@ -5,14 +5,14 @@ import typer
 
 app = typer.Typer(no_args_is_help=True)
 
-@app.command(no_args_is_help=True)
+@app.command()
 def show_home() -> None:
     """
     Show the current Pody home directory.
     This is where Pody stores its data and configuration files.
     """
     pody_home = os.environ.get("PODY_HOME", str(Path.home() / ".pody"))
-    typer.echo(f"Pody home directory: {pody_home}")
+    print(f"{pody_home}")
 
 @app.command()
 def systemd_unit(port = 8799) -> None:
