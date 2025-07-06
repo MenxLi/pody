@@ -42,6 +42,11 @@ VERSION_HISTORY = {
         "Add gpu visibility to quota",
         "Use bind mount for volumes",
         "Fix log home directory initialization",
+    ], 
+    "0.2.3": [
+        "Add `copy-id` command to copy public key to server", 
+        "Add `pody-util` command and to generate systemd service file",
+        "Change default service port to 8799"
     ]
 }
 
