@@ -91,7 +91,7 @@ The `get/post/fetch` methods, when applied to a route, will invoke the `help` me
 In addition, there is a `copy-id` command to copy your public key to the server,
 which is used to enable SSH access to the containers.
 ```sh
-pody copy-id instance_name [--key pub_key_path]
+pody copy-id instance_name [pub_key_path]
 ```
 
 To get the version of the utility:
