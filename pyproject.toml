@@ -29,6 +29,7 @@ pytest = "*"
 pody-serve = "pody.cli.serve:main"
 pody-user = "pody.cli.user:app"
 pody-log = "pody.cli.log:app"
+pody-util = "pody.cli.util:app"
 pody = "pody.cli.client:app"
 podx = "pody.cli.client_x:app"
 
