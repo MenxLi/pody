@@ -43,7 +43,7 @@ The API exposes interface for managing your own pods and query server status.
 
 ::: tip
 Here examples of API calls are provided using `curl` utility.  
-It is supposed that the pody server is running on `10.254.29.178:8000`. 
+It is supposed that the pody server is running on `10.254.29.178:8799`. 
 Please replace it with your own server address.  
 For better readability, you can format the output using `python -m json.tool`:  
 ```sh

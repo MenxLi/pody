@@ -1,4 +1,4 @@
-const ex_ip = "http://10.254.29.178:8000";
+const ex_ip = "http://10.254.29.178:8799";
 const ex_username = "username";
 const ex_password = "password";
 

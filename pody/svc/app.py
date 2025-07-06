@@ -69,7 +69,7 @@ def version():
                 
 def start_server(
     host: str = "0.0.0.0",
-    port: int = 8000,
+    port: int = 8799,
     workers: Optional[int] = None,
 ):
     with daemon_context():

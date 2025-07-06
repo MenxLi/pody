@@ -8,10 +8,10 @@ pip install pody
 如果以前安装过，请使用`pody version`检查与服务器的兼容性。
 
 ## 连接到服务器 
-首先，从管理员处获得一个节点IP、账号和密码，例如三者分别为`10.254.29.178:8000`，`limengxun`和`123`，
+首先，从管理员处获得一个节点IP、账号和密码，例如三者分别为`10.254.29.178:8799`，`limengxun`和`123`，
 然后设置好相应环境变量：
 ```sh
-export PODY_API_BASE="http://10.254.29.178:8000";
+export PODY_API_BASE="http://10.254.29.178:8799";
 export PODY_USERNAME="limengxun";
 export PODY_PASSWORD="123";
 ```

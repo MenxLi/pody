@@ -13,7 +13,7 @@ The server stores the data in `$PODY_HOME` directory, which is by default `~/.po
 
 To start the server:
 ```sh
-pody-server --port 8000
+pody-server --port 8799
 ```
 Then by setting appropriate environment variables, 
 you can use the [pody-cli](/pody-cli) to interact with the server.
