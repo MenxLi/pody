@@ -34,3 +34,22 @@ There are comments in the file to help you understand the options.
 For example, to manage images, you should first pull or build the image, 
 then you can specify the images to expose to the client by editing the `[[images]]` section in the
 `$PODY_HOME/config.toml` file.
+
+## Start on boot
+To start the server on boot, you can use the `pody-util systemd-unit` helper command to generate a systemd unit file content:
+```sh
+pody-util systemd-unit --port 8799
+```
+This will load the current environment variable settings, 
+write a systemd unit file for the Pody server using current user, 
+and print the content of the unit file to the standard output.
+Should put the output to global systemd unit directory, e.g
+```sh
+pody-util systemd-unit | sudo tee /etc/systemd/system/pody.service
+```
+and enable it with: 
+```sh
+sudo systemctl daemon-reload && \
+sudo systemctl enable pody.service && \
+sudo systemctl start pody.service
+```
