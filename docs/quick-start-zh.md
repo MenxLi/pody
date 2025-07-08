@@ -17,7 +17,8 @@ export PODY_PASSWORD="123";
 ```
 
 ::: tip
-此处我们使用`pody/podx`命令行工具，更多信息请参考[这里](/pody-cli.md)。
+一个更好的方法是将这些环境变量写入一个脚本文件中，参考[这里](./pody-cli#configuration)。  
+此处我们使用`pody/podx`命令行工具，更多信息可见[文档](/pody-cli)。
 :::
 
 接着，你可以使用`pody` 和 `podx`命令来管理pod了，首先测试一下是否能够连接到服务器，如无问题则会返回用户信息：
@@ -110,11 +111,29 @@ ssh -p 20806 root@10.254.29.178
 ```
 
 :::warning
-用户通常会被赋予资源使用限制，可以通过`user/info`查看。  
+用户通常有资源使用限制，可以通过`user/info`查看。  
 如果超过使用限制，Pody守护进程可能会杀掉你的容器，
-此时，可以重启容器，并在`/log/pody/...`目录下查看日志文件以排查问题。
+此时可以重启容器，并在`/log/pody/...`目录下查看日志文件以排查问题。
 :::
+
+## 查看帮助
+如果记不住路径和对应参数怎么办？可以使用帮助命令：
+```sh
+pody help /path/to/route
+```
+
+此外，当`podx`应用于`/`结尾的路径时，也会显示帮助，例如：
+![帮助示例](./assets/help_example.png)
+
 
 ## 更多操作
 更多操作请参考[API文档](./api.md)。  
 关于Pody-CLI的更多信息请参考[这里](./pody-cli.md)。  
+
+<style scoped>
+    img {
+        margin-top: 1rem;
+        max-width: 24rem;
+        filter: invert(1);
+    }
+</style>
