@@ -19,7 +19,7 @@ def add(
     db = UserDatabase()
     db.add_user(username, password, admin)
 
-@app.command(no_args_is_help=True, help="Update user")
+@app.command(no_args_is_help=True, help="Update user password or admin status")
 def update(
     username: str, 
     password: Optional[str] = None,
@@ -43,7 +43,7 @@ def update_quota(
     username: str, 
     max_pods: Optional[int] = None,
     gpu_count: Optional[int] = typer.Option(None, "--gpu-count", help="Number of GPUs that can be used simultaneously"),
-    gpus: Optional[str] = typer.Option(None, "--gpus", help="GPU IDs visible to the user, comma separated, e.g. '0,1,2', or 'all' for all GPUs, or 'none' for no GPUs. Please not empty string means no limit (fallback to default)"),
+    gpus: Optional[str] = typer.Option(None, "--gpus", help="GPU IDs visible to the user, comma separated, e.g. '0,1,2', or 'all' for all GPUs, or 'none' for no GPUs. NOTE: empty string means no limit (fallback to default)"),
     memory_limit: Optional[str] = None, 
     storage_size: Optional[str] = None, 
     shm_size: Optional[str] = None
@@ -54,6 +54,10 @@ def update_quota(
         storage_size=parse_storage_size(storage_size) if not storage_size is None else None, 
         shm_size=parse_storage_size(shm_size) if not shm_size is None else None
         )
+
+@app.command(no_args_is_help=True, help="Remove user quota from database, so to use default fallback from config")
+def reset_quota(username: str):
+    QuotaDatabase().delete_quota(username)
 
 @app.command(help="Delete user", no_args_is_help=True)
 def delete(username: str):
