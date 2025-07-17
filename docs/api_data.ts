@@ -193,6 +193,59 @@ const apiData: { [key: string]: APIDescription } ={
             output: {'exit_code': 0, 'log': '/workspace\r\n'}
         }
     }, 
+    
+    // statistics endpoints ========================================
+    "/stat/cputime": {
+        method: "GET",
+        description: "Get the CPU time of the user(s) in seconds. " + 
+            "The time is calculated using the [user CPU time] + [system CPU time] of all processes by the user(s) ", 
+        parameters: {
+            "user": {
+                type: "string",
+                description: "The usernames to get CPU time for, can be a comma-separated list, " +
+                "if not provided, will include all users"
+            }, 
+            "t": {
+                type: "string",
+                description: "The start time of the process to include in the statistics, " +
+                "should be like: 1y, 1w, 1d, 1h, 1s, or a timestamp in seconds. " +
+                "If not provided, will include all time ranges. "
+            }
+        },
+        example: {
+            input: {user: "limengxun,lijiayu", t: "1w"},
+            output: {
+                "limengxun": 1234567.89,
+                "lijiayu": 9876543.21
+            }
+        }
+    },
+
+    "/stat/gputime": {
+        method: "GET",
+        description: "Get the (rough) GPU time of the user(s) in seconds. " +
+            "The time is calculated as [the number of GPUs used] * [the time the GPU is used] for all processes by the user(s)",
+        parameters: {
+            "user": {
+                type: "string",
+                description: "The usernames to get GPU time for, can be a comma-separated list, " +
+                "if not provided, will include all users. "
+            }, 
+            "t": {
+                type: "string",
+                description: "The start time of the process to include in the statistics, " +
+                "should be like: 1y, 1w, 1d, 1h, 1s, or a timestamp in seconds. " +
+                "If not provided, will include all time ranges"
+            }
+        },
+        example: {
+            input: {user: "limengxun,lijiayu", t: "1w"},
+            output: {
+                "limengxun": 1234567.89,
+                "lijiayu": 9876543.21
+            }
+        }
+    },
 
     // resource endpoints ========================================
     "/host/images": {

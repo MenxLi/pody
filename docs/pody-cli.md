@@ -31,7 +31,7 @@ source ~/pody-credentials/node1.sh
 
 The latter method is more flexible and allows you to switch between different servers easily.
 
-## Usage
+## Make requests
 The usage mostly follows folloiwing pattern:
 ```sh
 pody [METHOD] [ROUTE] [OPTIONS...]
@@ -49,7 +49,7 @@ So the above command can be written as:
 pody fetch pod/restart ins:myins
 ```
 
-## Podx
+### Podx
 `pody fetch` is the most used command, 
 a simple shorthand `podx` is provided for it. 
 Which means `podx ...` is equivalent to `pody fetch ...`. 
@@ -58,12 +58,29 @@ The above command can be written as:
 podx pod/restart ins:myins
 ```
 
-## Helpers
-
-In addition to the above, the subcommand of `pody` can also be `help`, `version` and `copy-id`. 
-The overall usage is as follows: 
+## Higher-level Utilities
+In addition to the above, the subcommand of `pody` also contains some higher-level utilities, 
+namely `copy-id` and `stat`.
 
 ---
+The `copy-id` command is used to copy your public key to the server,
+enabling SSH access to the containers: 
+```sh
+pody copy-id instance_name [pub_key_path]
+```
+
+---
+The `stat` command is used to get the statistics of the server. 
+Now support `cputime` and `gputime`, for example: 
+```sh
+pody stat gputime 1w
+```
+This will return the (roughly) GPU time usage of the server in the last week.
+
+
+## More Helpers
+Moreover, the utility provides a `help` command to list all available routes and their parameters:
+
 You can use `help` to get help on a specific route, or a subset of routes:
 ```sh
 pody help pod/restart
@@ -91,14 +108,7 @@ The `get/post/fetch` methods, when applied to a route, will invoke the `help` me
 :::
 
 ---
-The `copy-id` command is used to copy your public key to the server,
-enabling SSH access to the containers: 
-```sh
-pody copy-id instance_name [pub_key_path]
-```
-
----
-To get the version of the utility:
+To get the version of the CLI tools, you can use the `version` command:
 ```sh
 pody version
 ```
