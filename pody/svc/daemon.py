@@ -6,7 +6,7 @@ from contextlib import contextmanager
 from ..eng.user import UserDatabase, QuotaDatabase
 from ..eng.gpu import GPUHandler
 from ..eng.docker import DockerController
-from ..eng.resmon import ResourceMonitor, ContainerProcessInfo, ResourceMonitorDatabase
+from ..eng.resmon import ProcessIter, ContainerProcessInfo, ResourceMonitorDatabase
 from ..eng.log import get_logger
 from ..eng.constraint import split_name_component
 
@@ -28,11 +28,11 @@ def task_check_gpu_usage():
 
     def is_user_process(p: ContainerProcessInfo) -> bool:
         return split_name_component(p.container_name) is not None
-    mon = ResourceMonitor(filter_fn=is_user_process)
+    mon = ProcessIter(filter_fn=is_user_process)
 
     for i in range(GPUHandler().device_count()):
         this_gpu_users = set()
-        for p in mon.docker_gpu_proc_iter([i]):
+        for p in mon.docker_gpu_proc([i]):
             pod_name: str = p.container_name
             name_comp = split_name_component(pod_name)
             assert name_comp is not None
@@ -65,12 +65,12 @@ def task_record_resource_usage():
     This is a daemon task that runs periodically.
     """
     logger = get_logger('daemon')
-    mon = ResourceMonitor()
+    mon = ProcessIter()
     resmon_db = ResourceMonitorDatabase()
     
     try:
-        resmon_db.update(mon.docker_proc_iter())
-        resmon_db.update(mon.docker_gpu_proc_iter())
+        resmon_db.update(mon.docker_proc())
+        resmon_db.update(mon.docker_gpu_proc())
     except Exception as e:
         logger.error(f"Error recording resource usage: {e}")
 

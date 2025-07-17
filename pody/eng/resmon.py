@@ -61,14 +61,14 @@ class ContainerProcessInfo:
             "gproc": dataclasses.asdict(self.gproc) if self.gproc else None,
         }
 
-class ResourceMonitor:
+class ProcessIter:
     def __init__(self, filter_fn: Callable[[ContainerProcessInfo], bool] = lambda _: True):
         self.logger = get_logger("resmon")
         self.filter_fn = filter_fn
         self.docker_con = DockerController()
         self.gpu_handler = GPUHandler()
     
-    def docker_proc_iter(self) -> Iterator[ContainerProcessInfo]:
+    def docker_proc(self) -> Iterator[ContainerProcessInfo]:
         for proc in psutil.process_iter(['pid']):
             try:
                 pid = proc.info['pid']
@@ -88,7 +88,7 @@ class ResourceMonitor:
                 self.logger.error(f"Error querying process {pid} [{type(e)}]: {e}")
                 continue
     
-    def docker_gpu_proc_iter(self, gpu_ids: Optional[list[int]] = None) -> Iterator[ContainerProcessInfo]:
+    def docker_gpu_proc(self, gpu_ids: Optional[list[int]] = None) -> Iterator[ContainerProcessInfo]:
         if gpu_ids is None:
             gpu_ids = list(range(self.gpu_handler.device_count()))
         gpu_procs = list_processes_on_gpus(gpu_ids)
@@ -212,13 +212,14 @@ class ResourceMonitorDatabase(DatabaseAbstract):
             result = cur.fetchall()
             return {row[0]: row[1] for row in result}
 
+
 if __name__ == "__main__":
-    monitor = ResourceMonitor()
-    for proc in monitor.docker_proc_iter():
+    piter = ProcessIter()
+    for proc in piter.docker_proc():
         print(proc.json())
 
     resmon_db = ResourceMonitorDatabase(in_memory=True)
-    resmon_db.update(monitor.docker_proc_iter())
-    resmon_db.update(monitor.docker_gpu_proc_iter())
+    resmon_db.update(piter.docker_proc())
+    resmon_db.update(piter.docker_gpu_proc())
     print(resmon_db.query_cputime())
     print(resmon_db.query_gputime())
