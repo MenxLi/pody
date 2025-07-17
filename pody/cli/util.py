@@ -1,5 +1,6 @@
 import os, subprocess
 from pathlib import Path
+from ..config import DATA_HOME
 
 import typer
 
@@ -11,8 +12,23 @@ def show_home() -> None:
     Show the current Pody home directory.
     This is where Pody stores its data and configuration files.
     """
-    pody_home = os.environ.get("PODY_HOME", str(Path.home() / ".pody"))
-    print(f"{pody_home}")
+    print(f"{DATA_HOME}")
+
+@app.command()
+def config(editor = typer.Option(
+    None, "--editor", "-e", help="Editor to use for editing the configuration file."
+    )):
+    """
+    Edit the configuration file. 
+    The file is at `${PODY_HOME}/config.toml`.
+    """
+    from ..config import config as ensure_config_exists
+    ensure_config_exists()
+    config_path = DATA_HOME / "config.toml"
+    assert config_path.exists(), "Config file does not exist at: " + str(config_path)
+    if editor is None:
+        editor = os.environ.get("EDITOR", "vi")
+    os.system(f"{editor} {config_path}")
 
 @app.command()
 def systemd_unit(port = 8799) -> None:
