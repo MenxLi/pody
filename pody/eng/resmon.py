@@ -10,7 +10,7 @@ from .db import DatabaseAbstract
 from .log import get_logger
 from .gpu import GPUHandler, list_processes_on_gpus, GPUProcessInfo
 from .docker import DockerController
-from .errors import ProcessNotFoundError
+from .errors import ProcessUnavailableError
 from .constraint import split_name_component
 
 @dataclasses.dataclass
@@ -33,8 +33,10 @@ def query_process(pid: int) -> ProcessInfo:
     
     try:
         proc = psutil.Process(pid)
+    except psutil.ZombieProcess as e:
+        raise ProcessUnavailableError(f"Process {pid} is a zombie") from e
     except psutil.NoSuchProcess as e:
-        raise ProcessNotFoundError(f"Process {pid} not found") from e
+        raise ProcessUnavailableError(f"Process {pid} not found") from e
     
     cputimes = proc.cpu_times()
     return ProcessInfo(
@@ -79,6 +81,9 @@ class ResourceMonitor:
                 )
                 if self.filter_fn(p):
                     yield p
+            except ProcessUnavailableError as e:
+                self.logger.warning(f"Process {pid} unavailable: {e}")
+                continue
             except Exception as e:
                 self.logger.error(f"Error querying process {pid} [{type(e)}]: {e}")
                 continue
@@ -101,6 +106,9 @@ class ResourceMonitor:
                     )
                     if self.filter_fn(p):
                         yield p
+                except ProcessUnavailableError as e:
+                    self.logger.warning(f"Process {pid} unavailable: {e}")
+                    continue
                 except Exception as e:
                     self.logger.error(f"Error querying process {pid} [{type(e)}]: {e}")
                     continue
