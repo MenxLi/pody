@@ -1,13 +1,17 @@
 """
 Resource monitoring utilities (High-level docker and GPU process monitoring)
 """
-import psutil, time
+import psutil, time, sqlite3, time
 from typing import Iterator, Callable, Optional
 import dataclasses
+from ..config import DATA_HOME
+from .user import UserDatabase
+from .db import DatabaseAbstract
 from .log import get_logger
 from .gpu import GPUHandler, list_processes_on_gpus, GPUProcessInfo
 from .docker import DockerController
 from .errors import ProcessNotFoundError
+from .constraint import split_name_component
 
 @dataclasses.dataclass
 class ProcessInfo:
@@ -79,7 +83,9 @@ class ResourceMonitor:
                 self.logger.error(f"Error querying process {pid} [{type(e)}]: {e}")
                 continue
     
-    def docker_gpu_proc_iter(self, gpu_ids: list[int]) -> Iterator[ContainerProcessInfo]:
+    def docker_gpu_proc_iter(self, gpu_ids: Optional[list[int]] = None) -> Iterator[ContainerProcessInfo]:
+        if gpu_ids is None:
+            gpu_ids = list(range(self.gpu_handler.device_count()))
         gpu_procs = list_processes_on_gpus(gpu_ids)
         for _, procs in gpu_procs.items():
             for proc in procs:
@@ -99,7 +105,112 @@ class ResourceMonitor:
                     self.logger.error(f"Error querying process {pid} [{type(e)}]: {e}")
                     continue
 
+
+class ResourceMonitorDatabase(DatabaseAbstract):
+    def __init__(self, in_memory: bool = False):
+        self.user_db = UserDatabase()
+        self.logger = get_logger("resmon")
+        self.boot_id = str(psutil.boot_time())
+        db_path = ":memory:" if in_memory else f"{DATA_HOME}/resmon.db"
+        self._conn = sqlite3.connect(db_path)
+
+        with self.transaction() as cur:
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS resource_usage (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    boot_id TEXT NOT NULL,
+                    pid INTEGER NOT NULL,
+                    start_time REAL NOT NULL,
+                    username TEXT NOT NULL,
+                    container_id TEXT NOT NULL,
+                    cmd TEXT NOT NULL,
+                    uptime REAL NOT NULL,
+                    cputime REAL NOT NULL,
+                    ngpus INTEGER NOT NULL
+                )
+            """)
+
+    @property
+    def conn(self) -> sqlite3.Connection:
+        return self._conn
+    
+    def update(self, pinfo_iter: Iterator[ContainerProcessInfo]):
+
+        with self.transaction() as cur:
+            proc_gpu_count: dict[int, int] = {}
+            for pinfo in pinfo_iter:
+                name_sp = split_name_component(pinfo.container_name, check=True)
+                if not name_sp:
+                    # not a user process, skip
+                    continue
+
+                username = name_sp['username']
+                user = self.user_db.get_user(username)
+                if user.userid == 0:  
+                    # user not found, skip
+                    continue
+
+                pid = pinfo.cproc.pid
+                if pinfo.gproc:
+                    proc_gpu_count[pid] = proc_gpu_count.get(pid, 0) + 1
+                
+                ngpus = proc_gpu_count.get(pid, 0)
+
+                # remove old records for this process
+                cur.execute("""
+                    DELETE FROM resource_usage
+                    WHERE boot_id = ? AND pid = ?
+                """, (self.boot_id, pid))
+
+                now_time = time.time()
+                start_time = now_time - pinfo.cproc.uptime
+                cur.execute("""
+                    INSERT INTO resource_usage (boot_id, pid, start_time,
+                    username, container_id, cmd, uptime, cputime, ngpus)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """, (
+                    self.boot_id,
+                    pid,
+                    start_time, 
+                    username,
+                    pinfo.container_name,
+                    pinfo.cproc.cmd,
+                    pinfo.cproc.uptime,
+                    pinfo.cproc.cputime,
+                    ngpus
+                ))
+    
+    def query_cputime(self, *username: str, after: float = 0) -> dict[str, float]:
+        if not username:
+            username = [user.name for user in self.user_db.list_users() if user.userid != 0] # type: ignore
+        with self.cursor() as cur:
+            cur.execute("""
+                SELECT username, SUM(cputime) FROM resource_usage
+                WHERE start_time > ? AND cputime > 1 AND username IN ({})
+                GROUP BY username
+            """.format(','.join('?' for _ in username)), (after, *username))
+            result = cur.fetchall()
+            return {row[0]: row[1] for row in result}
+    
+    def query_gputime(self, *username: str, after: float = 0) -> dict[str, float]:
+        if not username:
+            username = [user.name for user in self.user_db.list_users() if user.userid != 0] # type: ignore
+        with self.cursor() as cur:
+            cur.execute("""
+                SELECT username, SUM(ngpus * uptime) FROM resource_usage
+                WHERE start_time > ? AND ngpus > 0 AND username IN ({})
+                GROUP BY username
+            """.format(','.join('?' for _ in username)), (after, *username))
+            result = cur.fetchall()
+            return {row[0]: row[1] for row in result}
+
 if __name__ == "__main__":
     monitor = ResourceMonitor()
     for proc in monitor.docker_proc_iter():
         print(proc.json())
+
+    resmon_db = ResourceMonitorDatabase(in_memory=True)
+    resmon_db.update(monitor.docker_proc_iter())
+    resmon_db.update(monitor.docker_gpu_proc_iter())
+    print(resmon_db.query_cputime())
+    print(resmon_db.query_gputime())

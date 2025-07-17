@@ -2,9 +2,8 @@ import sqlite3
 import hashlib
 import dataclasses
 from typing import Optional
-from contextlib import contextmanager
-from abc import ABC, abstractmethod
 
+from .db import DatabaseAbstract
 from .log import get_logger
 from .errors import InvalidUsernameError
 from .utils import format_storage_size, parse_storage_size
@@ -21,42 +20,6 @@ class UserRecord:
     userid: int
     name: str
     is_admin: bool
-
-class DatabaseAbstract(ABC):
-
-    @property
-    @abstractmethod
-    def conn(self) -> sqlite3.Connection:
-        ...
-
-    def cursor(self):
-        @contextmanager
-        def _cursor():
-            cursor = self.conn.cursor()
-            try:
-                yield cursor
-            finally:
-                cursor.close()
-        return _cursor()
-    
-    def transaction(self):
-        @contextmanager
-        def _transaction():
-            cursor = self.conn.cursor()
-            try:
-                cursor.execute("BEGIN")
-                yield cursor
-            except Exception as e:
-                cursor.execute("ROLLBACK")
-                raise e
-            else:
-                self.conn.commit()
-            finally:
-                cursor.close()
-        return _transaction()
-
-    def close(self):
-        self.conn.close()
 
 class UserDatabase(DatabaseAbstract):
     @property

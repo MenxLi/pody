@@ -8,7 +8,7 @@ from fastapi import Depends
 from fastapi.routing import APIRouter
 from contextlib import suppress
 
-from .constraint import eval_name_raise, get_user_pod_prefix
+from ..eng.constraint import eval_name_raise, get_user_pod_prefix
 
 from ..config import config, validate_name_part
 from ..eng.errors import *

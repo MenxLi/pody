@@ -6,6 +6,7 @@ from .errors import InvalidInputError
 @dataclasses.dataclass
 class GPUProcessInfo:
     pid: int
+    gpu_id: int
     gpu_memory_used: int
 
     def json(self):
@@ -30,6 +31,7 @@ def list_processes_on_gpus(gpu_ids: list[int]) -> dict[int, list[GPUProcessInfo]
             processes[gpu_id] = [
                 GPUProcessInfo(
                     pid=proc.pid,
+                    gpu_id=gpu_id,
                     gpu_memory_used=proc.usedGpuMemory,
                 ) for proc in info
             ]

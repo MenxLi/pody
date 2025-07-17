@@ -8,7 +8,7 @@ from ..eng.gpu import GPUHandler
 from ..eng.docker import DockerController
 from ..eng.resmon import ResourceMonitor, ContainerProcessInfo
 from ..eng.log import get_logger
-from .constraint import split_name_component
+from ..eng.constraint import split_name_component
 
 def leave_info(container_name, info: str, level: str = "info"):
     assert "'" not in info, "Single quote is not allowed in info"

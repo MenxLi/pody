@@ -1,7 +1,12 @@
-from pody.config import config
-from pody.eng.user import UserRecord
-from pody.eng.errors import *
+"""
+Name constraint for containers. 
+This module provides functions to validate and manipulate container names.
+"""
 from typing import TypedDict, Optional, overload, Literal
+
+from .user import UserRecord
+from .errors import *
+from ..config import config
 
 class InsNameComponentX(TypedDict):
     prefix: Optional[str]
