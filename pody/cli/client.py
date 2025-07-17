@@ -222,7 +222,7 @@ def version(changelog: bool = False):
     if changelog:
         console.print("[bold]Pody Client Version History[/bold]")
         table = Table(title=None, show_header=True, show_lines=True)
-        table.add_column("Date", style="magenta")
+        table.add_column("Version", style="magenta")
         table.add_column("Changes", style="green")
         for i, (k, v) in enumerate(VERSION_HISTORY.items()):
             if i == len(VERSION_HISTORY) - 1:
