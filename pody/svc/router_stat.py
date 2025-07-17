@@ -18,8 +18,6 @@ def parse_time(time_str: str) -> Optional[float]:
         match time_str[-1]:
             case 'y':
                 return float(time_str[:-1]) * 365 * 24 * 3600
-            case 'm':
-                return float(time_str[:-1]) * 30 * 24 * 3600
             case 'w':
                 return float(time_str[:-1]) * 7 * 24 * 3600
             case 'd':
@@ -31,7 +29,7 @@ def parse_time(time_str: str) -> Optional[float]:
             case _:
                 return float(time_str)
     except ValueError:
-        raise InvalidInputError(f"Invalid time format: {time_str}. Should be like 1y, 1m, 1w, 1d, 1h, 1m, 1s or a number of seconds.")
+        raise InvalidInputError(f"Invalid time format: {time_str}. Should be like 1y, 1w, 1d, 1h, 1s or a number of seconds.")
     
 @router_stat.get("/cputime")
 @handle_exception

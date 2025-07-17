@@ -1,3 +1,4 @@
+from enum import Enum
 from typing import List, Optional
 from functools import wraps
 import sys, os, json
@@ -179,6 +180,38 @@ def copy_id(
             f"cmd:mkdir -p ~/.ssh && echo \"{pub_key}\" >> ~/.ssh/authorized_keys",
         ],
     )
+class StatType(str, Enum):
+    cputime = 'cputime'
+    gputime = 'gputime'
+@app.command(rich_help_panel="Utility")
+@handle_request_error()
+def stat(
+    resouce_type: StatType, 
+    time_limit = typer.Argument(None, help="Only consider statistics after this time, can be like: 1y, 1w, 1d, 1h...")
+):
+    dst = f"/stat/{resouce_type.value}"
+    r: dict[str, float] = PodyAPI().get(dst, {"t": time_limit} if time_limit else {})
+
+    table = Table(title=f"{resouce_type.value} statistics", show_header=True, show_lines=True)
+    table.add_column("User", style="cyan")
+    table.add_column("Time", style="green")
+    table.add_column("Chart", style="magenta")
+    max_val = max(r.values(), default=0)
+    MAX_BAR_LENGTH = 30
+    
+    def sec2str(sec: float) -> str:
+        s_sec = int(sec % 60)
+        m_sec = int((sec // 60) % 60)
+        h_sec = int((sec // 3600) % 24)
+        d_sec = int(sec // 86400)
+        return f"{d_sec}d {h_sec}h {m_sec}m {s_sec}s" if d_sec > 0 else f"{h_sec}h {m_sec}m {s_sec}s"
+
+    sorted_stat = sorted(r.items(), key=lambda x: x[1], reverse=True)
+    for user, value in sorted_stat:
+        bar_length = int(value / max_val * MAX_BAR_LENGTH) if max_val > 0 else 0
+        bar = '█' * bar_length + ' ' * (MAX_BAR_LENGTH - bar_length)
+        table.add_row(user, sec2str(value), bar)
+    console.print(table)
 
 @handle_request_error()
 def help(
