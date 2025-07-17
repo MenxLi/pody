@@ -76,7 +76,7 @@ def fetch_impl(method: str, path: str, args: Optional[list[str]], raw: bool):
     def fmt_unit(res):
         """ Format some numeric values in the response to human-readable format """
         storage_size_kw = set(("memory_limit", "gpu_memory_used", "memory_used", "shm_size"))
-        time_size_kw = ["uptime"]
+        time_size_kw = ["uptime", "cputime"]
         if isinstance(res, list):
             return [fmt_unit(r) for r in res]
         if isinstance(res, dict):

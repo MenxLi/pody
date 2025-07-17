@@ -108,6 +108,7 @@ class UserDatabase(DatabaseAbstract):
             return cur.fetchone() is not None
     
     def get_user(self, user_id: str | int):
+        """May return UserRecord of id=0 if not found"""
         if isinstance(user_id, str):
             with self.cursor() as cur:
                 cur.execute("SELECT id, username, is_admin FROM users WHERE username = ?", (user_id,))

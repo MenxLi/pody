@@ -1,13 +1,13 @@
 import time
+import typing 
 import docker
 import multiprocessing as mp
 from contextlib import contextmanager
-import typing 
 from ..eng.user import UserDatabase, QuotaDatabase
 from ..eng.gpu import GPUHandler
 from ..eng.docker import DockerController
+from ..eng.resmon import ResourceMonitor, ContainerProcessInfo
 from ..eng.log import get_logger
-from .router_host import gpu_status_impl
 from .constraint import split_name_component
 
 def leave_info(container_name, info: str, level: str = "info"):
@@ -23,18 +23,20 @@ def task_check_gpu_usage():
     user_db = UserDatabase()
     quota_db = QuotaDatabase()
 
-    gpu_processes = gpu_status_impl(list(range(GPUHandler().device_count())))
     user_proc_count: dict[str, int] = {}
-    user_procs: dict[str, list[dict[str, str]]] = {}
-    for i, ps in gpu_processes.items():
+    user_procs: dict[str, list[ContainerProcessInfo]] = {}
+
+    def is_user_process(p: ContainerProcessInfo) -> bool:
+        return split_name_component(p.container_name) is not None
+    mon = ResourceMonitor(filter_fn=is_user_process)
+
+    for i in range(GPUHandler().device_count()):
         this_gpu_users = set()
-        for p in ps:
-            pod_name: str = p['pod']
-            if not pod_name:    # skip host process
-                continue
-            username = name_comp['username'] if (name_comp:=split_name_component(pod_name)) is not None else None
-            if not username:    # skip container not created by us
-                continue
+        for p in mon.docker_gpu_proc_iter([i]):
+            pod_name: str = p.container_name
+            name_comp = split_name_component(pod_name)
+            assert name_comp is not None
+            username = name_comp['username']
             this_gpu_users.add(username)
             user_procs[username] = user_procs.get(username, []) + [p]
         for user in this_gpu_users:
@@ -48,11 +50,11 @@ def task_check_gpu_usage():
         if max_gpu_count >= 0 and proc_count > max_gpu_count:
             # kill container from this user (the one with the shortest uptime)
             # not process because we may not have permission to kill process...
-            user_procs[username].sort(key=lambda x: x['uptime'])
-            p = user_procs[username][0]
-            pod_name = p['pod']
-            pid = int(p['pid'])
-            cmd = p['cmd']
+            user_procs[username].sort(key=lambda x: x.cproc.uptime)
+            proc_info = user_procs[username][0]
+            pod_name = proc_info.container_name
+            pid = int(proc_info.cproc.pid)
+            cmd = proc_info.cproc.cmd
             leave_info(pod_name, f"Killed container with pid-{pid} ({cmd}) due to GPU quota exceeded.", "critical")
             client.containers.get(pod_name).stop()
             logger.info(f"Killed container {pod_name} with pid-{pid} ({cmd}) due to GPU quota exceeded.")

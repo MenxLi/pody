@@ -1,14 +1,17 @@
 from typing import Optional
 import pynvml
-from dataclasses import dataclass
+import dataclasses
 from .errors import InvalidInputError
 
-@dataclass
-class GPUProcess:
+@dataclasses.dataclass
+class GPUProcessInfo:
     pid: int
     gpu_memory_used: int
 
-def list_processes_on_gpus(gpu_ids: list[int]) -> dict[int, list[GPUProcess]]:
+    def json(self):
+        return dataclasses.asdict(self)
+
+def list_processes_on_gpus(gpu_ids: list[int]) -> dict[int, list[GPUProcessInfo]]:
     """
     Query the process running on the specified GPUs.
     return a dictionary with GPU ID as key and a list of process IDs as value.
@@ -25,7 +28,7 @@ def list_processes_on_gpus(gpu_ids: list[int]) -> dict[int, list[GPUProcess]]:
                 raise e
             info = pynvml.nvmlDeviceGetComputeRunningProcesses(handle)
             processes[gpu_id] = [
-                GPUProcess(
+                GPUProcessInfo(
                     pid=proc.pid,
                     gpu_memory_used=proc.usedGpuMemory,
                 ) for proc in info
@@ -36,7 +39,7 @@ def list_processes_on_gpus(gpu_ids: list[int]) -> dict[int, list[GPUProcess]]:
         pynvml.nvmlShutdown()
     return processes
 
-@dataclass()
+@dataclasses.dataclass()
 class GPUDevice:
     idx: int
     uid: str

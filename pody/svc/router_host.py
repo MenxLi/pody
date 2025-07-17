@@ -7,8 +7,8 @@ from typing import Optional
 from ..eng.errors import *
 from ..eng.user import UserRecord
 from ..eng.docker import ImageFilter, DockerController
-from ..eng.gpu import list_processes_on_gpus, GPUProcess, GPUHandler
-from ..eng.cpu import query_process
+from ..eng.gpu import list_processes_on_gpus, GPUProcessInfo, GPUHandler
+from ..eng.resmon import query_process
 
 from ..config import config
 from ..version import VERSION
@@ -16,7 +16,7 @@ from ..version import VERSION
 router_host = APIRouter(prefix="/host")
 
 def gpu_status_impl(gpu_ids: list[int]):
-    def fmt_gpu_proc(gpu_proc: GPUProcess):
+    def fmt_gpu_proc(gpu_proc: GPUProcessInfo):
         c = DockerController()
         process_info = query_process(gpu_proc.pid)
         container_id = c.container_from_pid(gpu_proc.pid)

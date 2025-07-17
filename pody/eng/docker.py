@@ -265,17 +265,18 @@ class DockerController():
         return q.get()
 
     def container_from_pid(self, host_pid: int) -> Optional[str]:
+        """Return the container name if the process with given PID is running inside a Docker container, otherwise return None."""
         try:
             with open(f"/proc/{host_pid}/cgroup", "r") as f:
                 cgroup_info = f.read()
         except FileNotFoundError:
             return None     # Not running inside Docker
 
-        # Extract container ID (Docker uses /docker/<container_id> in cgroups)
         container_id = None
         for line in cgroup_info.splitlines():
             parts = line.split(':')
             if len(parts) == 3 and "docker" in parts[2]:
+                # uses the format /docker/<container_id>
                 container_id = parts[2].split('/')[-1]
                 # some systems have a different format
                 if container_id.startswith("docker-") and container_id.endswith(".scope"):
@@ -284,7 +285,10 @@ class DockerController():
 
         if not container_id:
             return None  # Not running inside Docker
-        container = self.client.containers.get(container_id)
+        try:
+            container = self.client.containers.get(container_id)
+        except docker.errors.NotFound:
+            return None
         return container.name
 
 
