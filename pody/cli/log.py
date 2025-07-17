@@ -41,7 +41,7 @@ def show(
         'CRITICAL': 'bold red', 
         'FATAL': 'bold red'
     }
-    for row in cursor.fetchall():
+    for row in cursor.fetchall()[::-1]:
         log = eval_logline(row)
         console.print(f"{log.created} [{levelname_color[log.levelname]}][{log.levelname}] [default]{log.message}")
     conn.close()
