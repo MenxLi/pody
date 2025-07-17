@@ -32,6 +32,7 @@ source ~/pody-credentials/node1.sh
 The latter method is more flexible and allows you to switch between different servers easily.
 
 ## Make requests
+The most basic usage of the utility is to make requests to the Pody API. 
 The usage mostly follows folloiwing pattern:
 ```sh
 pody [METHOD] [ROUTE] [OPTIONS...]
@@ -42,7 +43,7 @@ For example, to [restart a pod](./api.md#pod-restart) you can run:
 pody post pod/restart ins:myins
 ```
 
-The method is not strictly a HTTP method, it can be one of `get`, `post`, `fetch`, `help`. 
+The method is not strictly a HTTP method, it can be one of `get`, `post`, `fetch`. 
 Notebly, `fetch` is used to automatically select appropriate method based on the route. 
 So the above command can be written as:
 ```sh
@@ -58,7 +59,7 @@ The above command can be written as:
 podx pod/restart ins:myins
 ```
 
-## Higher-level Utilities
+## High-level Utilities
 In addition to the above, the subcommand of `pody` also contains some higher-level utilities, 
 namely `copy-id` and `stat`.
 
@@ -75,7 +76,8 @@ Now support `cputime` and `gputime`, for example:
 ```sh
 pody stat gputime 1w
 ```
-This will return the (roughly) GPU time usage of the server in the last week.
+This will return the (rough) GPU time usage of the server in the last week, 
+or you can omit the time limit to get the total time usage. 
 
 
 ## More Helpers
@@ -108,7 +110,7 @@ The `get/post/fetch` methods, when applied to a route, will invoke the `help` me
 :::
 
 ---
-To get the version of the CLI tools, you can use the `version` command:
+Lastly, to get the version of the CLI tools, you can use the `version` command:
 ```sh
 pody version
 ```
