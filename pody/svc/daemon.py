@@ -6,7 +6,7 @@ from contextlib import contextmanager
 from ..eng.user import UserDatabase, QuotaDatabase
 from ..eng.gpu import GPUHandler
 from ..eng.docker import DockerController
-from ..eng.resmon import ResourceMonitor, ContainerProcessInfo
+from ..eng.resmon import ResourceMonitor, ContainerProcessInfo, ResourceMonitorDatabase
 from ..eng.log import get_logger
 from ..eng.constraint import split_name_component
 
@@ -59,6 +59,21 @@ def task_check_gpu_usage():
             client.containers.get(pod_name).stop()
             logger.info(f"Killed container {pod_name} with pid-{pid} ({cmd}) due to GPU quota exceeded.")
 
+def task_record_resource_usage():
+    """
+    Record resource usage of all containers.
+    This is a daemon task that runs periodically.
+    """
+    logger = get_logger('daemon')
+    mon = ResourceMonitor()
+    resmon_db = ResourceMonitorDatabase()
+    
+    try:
+        resmon_db.update(mon.docker_proc_iter())
+        resmon_db.update(mon.docker_gpu_proc_iter())
+    except Exception as e:
+        logger.error(f"Error recording resource usage: {e}")
+
 def create_daemon_worker(fn: typing.Callable, interval, delay=0, args = (), kwargs = {}):
     def daemon_worker():
         time.sleep(delay)
@@ -76,6 +91,7 @@ def create_daemon_worker(fn: typing.Callable, interval, delay=0, args = (), kwar
 def daemon_context():
     ps = [
         create_daemon_worker(task_check_gpu_usage, 60),
+        create_daemon_worker(task_record_resource_usage, 60, delay=5)
     ]
     for p in ps: p.start()
     try:
