@@ -189,6 +189,13 @@ def stat(
     resouce_type: StatType, 
     time_limit = typer.Argument(None, help="Only consider statistics after this time, can be like: 1y, 1w, 1d, 1h...")
 ):
+    """
+    Display the statistics of the resource usage, e.g. CPU time or GPU time.
+
+    NOTE: The time limit indicates the time after which the processes are started, 
+    which means if a process runs for a long time, and you specify a time limit short, 
+    it may not be counted in the statistics.
+    """
     dst = f"/stat/{resouce_type.value}"
     r: dict[str, float] = PodyAPI().get(dst, {"t": time_limit} if time_limit else {})
 

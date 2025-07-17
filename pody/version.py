@@ -55,6 +55,11 @@ VERSION_HISTORY = {
         "Reverse log show order",
         "Fix documentation",
     ],
+    "0.2.5": [
+        "Add `pody stat` command for resource statistics",
+        "Add resource monitor database",
+        "Some refactors",
+    ]
 }
 
 VERSION = tuple([int(x) for x in list(VERSION_HISTORY.keys())[-1].split('.')])
