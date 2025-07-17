@@ -8,6 +8,8 @@ import typer
 
 from pody.eng.utils import format_storage_size, format_time
 from pody.api import PodyAPI, ClientRequestError
+
+from pody.version import VERSION_HISTORY
 from pody import __version__
 
 app = typer.Typer(
@@ -137,34 +139,11 @@ app.command(
     rich_help_panel="Request"
     )(fetch)
 
-@handle_request_error()
-def help(
-    path: Optional[str] = typer.Argument('/', help="Path to get help for"),
-    _: Optional[List[str]] = typer.Argument(None, help="Ignored"), 
-    ):
-    table = Table(title=None, show_header=True)
-    table.add_column("Path", style="cyan")
-    table.add_column("Methods", style="magenta")
-    table.add_column("Params", style="green")
-
-    api = PodyAPI()
-    if not path is None and not path.startswith("/"):
-        path = f"/{path}"
-    res = api.get("/help", {"path": path})
-    for r in res:
-        table.add_row(r['path'], ', '.join(r['methods']), ', '.join([
-            f"{p['name']}{'?' if p['optional'] else ''}" for p in r['params']
-        ]))
-    console.print(table)
-app.command(
-    help=f"Display help for the path, e.g. {cli_command()} help /pod/restart", 
-    rich_help_panel="Help"
-    )(help)
-
 @app.command(
     help = "Upload ssh public key to the server, so you can use ssh to connect to the server without password",
-    rich_help_panel="Help"
+    rich_help_panel="Utility"
     )
+@handle_request_error()
 def copy_id(
     ins: str = typer.Argument(help="Instance name to upload the key to"),
     key: Optional[str] = typer.Argument(
@@ -201,6 +180,30 @@ def copy_id(
         ],
     )
 
+@handle_request_error()
+def help(
+    path: Optional[str] = typer.Argument('/', help="Path to get help for"),
+    _: Optional[List[str]] = typer.Argument(None, help="Ignored"), 
+    ):
+    table = Table(title=None, show_header=True)
+    table.add_column("Path", style="cyan")
+    table.add_column("Methods", style="magenta")
+    table.add_column("Params", style="green")
+
+    api = PodyAPI()
+    if not path is None and not path.startswith("/"):
+        path = f"/{path}"
+    res = api.get("/help", {"path": path})
+    for r in res:
+        table.add_row(r['path'], ', '.join(r['methods']), ', '.join([
+            f"{p['name']}{'?' if p['optional'] else ''}" for p in r['params']
+        ]))
+    console.print(table)
+app.command(
+    help=f"Display help for the path, e.g. {cli_command()} help /pod/restart", 
+    rich_help_panel="Help"
+    )(help)
+
 @app.command(
     help = "Open the API documentation in the browser",
     rich_help_panel="Help"
@@ -211,10 +214,23 @@ def manual():
     webbrowser.open_new_tab(f"{api.api_base}/pody/pody-cli.html")
 
 @app.command(
-    help = "Display the version of the Pody client and server",
+    help =  "Display the version of the Pody client and server. "
+            "If --changelog is specified, display the version history.",
     rich_help_panel="Help"
     )
-def version():
+def version(changelog: bool = False):
+    if changelog:
+        console.print("[bold]Pody Client Version History[/bold]")
+        table = Table(title=None, show_header=True, show_lines=True)
+        table.add_column("Date", style="magenta")
+        table.add_column("Changes", style="green")
+        for i, (k, v) in enumerate(VERSION_HISTORY.items()):
+            if i == len(VERSION_HISTORY) - 1:
+                k = f"[bold]{k}[/bold]"
+            table.add_row(k, '\n'.join(map(lambda x: f"- {x}", v)))
+        console.print(table)
+        return
+
     def fmt_version(v: tuple[int, ...]):
         return '.'.join(map(str, v))
     client_version = __version__
