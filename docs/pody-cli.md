@@ -58,11 +58,12 @@ The above command can be written as:
 podx pod/restart ins:myins
 ```
 
-## More
+## Helpers
 
 In addition to the above, the subcommand of `pody` can also be `help`, `version` and `copy-id`. 
 The overall usage is as follows: 
 
+---
 You can use `help` to get help on a specific route, or a subset of routes:
 ```sh
 pody help pod/restart
@@ -89,16 +90,23 @@ The `get/post/fetch` methods, when applied to a route, will invoke the `help` me
 *i.e.* `pody get user/` or `podx user/` will invoke `pody help user/` and show the parameters.
 :::
 
+---
 The `copy-id` command is used to copy your public key to the server,
 enabling SSH access to the containers: 
 ```sh
 pody copy-id instance_name [pub_key_path]
 ```
 
+---
 To get the version of the utility:
 ```sh
 pody version
 ```
-You should use this command to check if the utility version is in sync with the server version.
+You should use this command to check if the utility version is in sync with the server version. 
+In addition, you can use: 
+```sh
+pody version --changelog
+```
+to see the changelog of the software.
 
-Please use `--help` to see the details of each command.  
+**Please always use `--help` to see the details of each command.**

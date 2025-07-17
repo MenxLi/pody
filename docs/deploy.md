@@ -31,6 +31,11 @@ Please refer to `--help` for more information.
 The server configuration is stored in `$PODY_HOME/config.toml` file. 
 There are comments in the file to help you understand the options. 
 
+This command opens the configuration file in your default editor:
+```sh
+pody-util config
+```
+
 For example, to manage images, you should first pull or build the image, 
 then specify the images to expose to the client by editing the `[[images]]` section in the
 `$PODY_HOME/config.toml` file.
