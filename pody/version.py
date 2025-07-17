@@ -47,7 +47,14 @@ VERSION_HISTORY = {
         "Add `copy-id` command to copy public key to server", 
         "Add `pody-util` command and to generate systemd service file",
         "Change default service port to 8799"
-    ]
+    ],
+    "0.2.4": [
+        "Add `config` subcommand to `util` to edit configuration file",
+        "Add `reset-quota` subcommand to `user` to reset user quota",
+        "Add `--changelog` option to `pody version`", 
+        "Reverse log show order",
+        "Fix documentation",
+    ],
 }
 
 VERSION = tuple([int(x) for x in list(VERSION_HISTORY.keys())[-1].split('.')])
