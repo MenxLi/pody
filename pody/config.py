@@ -43,6 +43,7 @@ class Config:
         memory_limit: str       # "64g"
         storage_size: str       # "100g"
         shm_size: str
+        commit_count: int
 
     name_prefix: str
     available_ports: list[int | tuple[int, int]]

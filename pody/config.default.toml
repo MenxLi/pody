@@ -7,16 +7,16 @@ name_prefix = ""
 # e.g. "20000,20002-20010"
 available_ports = "20000-21000"
 
-volume_mappings = [
-	"/data/pody-volume/$username:/workspace/$username:rw", 
-	"/data/pody-volume/share:/workspace/share:ro"
-]
-
 # the name of the user committed image
 # the actual image name will be [commit_name]:[username] or [commit_name]:[username]-[tag]
 commit_name = "pody-commit"
 commit_size_limit = "20g"
 commit_image_ports = [22, 8000]
+
+volume_mappings = [
+	"/data/pody-volume/$username:/workspace/$username:rw", 
+	"/data/pody-volume/share:/workspace/share:ro"
+]
 
 # fallback quota for unspecified user-quota
 # ["" for string] and [-1 for integer] means no limit ("none" for gpus means no gpu)
@@ -27,6 +27,7 @@ gpus = "all"
 memory_limit = '64g'
 storage_size = ''
 shm_size = '2g'
+commit_count = 1
 
 # Below are the images that will be exposed to the user, 
 # please configure them according to available images in the system

@@ -118,12 +118,14 @@ class UserQuota:
     memory_limit: int # in bytes (per container)
     storage_size: int # in bytes (per container, exclude external volumes)
     shm_size: int # in bytes (per container)
+    commit_count: int
 
     def __str__(self):
         return  f"Quota(max_pods={self.max_pods}, gpu_count={self.gpu_count}, gpus={self.gpus}, "\
                 f"memory_limit={format_storage_size(self.memory_limit) if self.memory_limit >= 0 else self.memory_limit}, "\
                 f"storage_size={format_storage_size(self.storage_size) if self.storage_size >= 0 else self.storage_size}, "\
-                f"shm_size={format_storage_size(self.shm_size) if self.shm_size >= 0 else self.shm_size})"
+                f"shm_size={format_storage_size(self.shm_size) if self.shm_size >= 0 else self.shm_size}, "\
+                f"commit_count={self.commit_count})"
 
 def get_fallback_quota(q: UserQuota, cq: Optional[Config.DefaultQuota] = None) -> UserQuota:
     """
@@ -143,6 +145,7 @@ def get_fallback_quota(q: UserQuota, cq: Optional[Config.DefaultQuota] = None) -
         memory_limit = q.memory_limit if q.memory_limit >= 0 else storage_size_from_str(cq.memory_limit),
         storage_size = q.storage_size if q.storage_size >= 0 else storage_size_from_str(cq.storage_size),
         shm_size = q.shm_size if q.shm_size >= 0 else storage_size_from_str(cq.shm_size),
+        commit_count= q.commit_count if q.commit_count >= 0 else cq.commit_count
         )
 
 class QuotaDatabase(DatabaseAbstract):
@@ -164,7 +167,8 @@ class QuotaDatabase(DatabaseAbstract):
                     gpus TEXT NOT NULL DEFAULT '',
                     memory_limit INTEGER NOT NULL DEFAULT -1,
                     storage_size INTEGER NOT NULL DEFAULT -1,
-                    shm_size INTEGER NOT NULL DEFAULT -1
+                    shm_size INTEGER NOT NULL DEFAULT -1, 
+                    commit_count INTEGER NOT NULL DEFAULT -1
                 );
                 """
             )
@@ -172,15 +176,15 @@ class QuotaDatabase(DatabaseAbstract):
         self.__maybe_upgrade()
     
     def __maybe_upgrade(self):
-        # if gpus is not in schema, add it
+        # if commit_count is not in schema, add it
         with self.cursor() as cursor:
             cursor.execute("PRAGMA table_info(quota)")
             columns = [col[1] for col in cursor.fetchall()]
-            if "gpus" in columns:
+            if "commit_count" in columns:
                 return
         with self.transaction() as cursor:
             cursor.execute(
-                "ALTER TABLE quota ADD COLUMN gpus TEXT NOT NULL DEFAULT ''"
+                "ALTER TABLE quota ADD COLUMN commit_count INTEGER NOT NULL DEFAULT -1"
             )
             self.logger.info("Quota database upgraded to latest version")
     
@@ -202,11 +206,11 @@ class QuotaDatabase(DatabaseAbstract):
         """
         with self.cursor() as cur:
             cur.execute(
-                "SELECT max_pods, gpu_count, gpus, memory_limit, storage_size, shm_size FROM quota WHERE username = ?",
+                "SELECT max_pods, gpu_count, gpus, memory_limit, storage_size, shm_size, commit_count FROM quota WHERE username = ?",
                 (usrname,),
             )
             res = cur.fetchone()
-            if res is None: q = UserQuota(-1, -1, "", -1, -1, -1)
+            if res is None: q = UserQuota(-1, -1, "", -1, -1, -1, -1)
             else: q = UserQuota(*res)
         if use_fallback:
             return get_fallback_quota(q)
@@ -221,6 +225,7 @@ class QuotaDatabase(DatabaseAbstract):
         memory_limit: Optional[int] = None,
         storage_size: Optional[int] = None,
         shm_size: Optional[int] = None,
+        commit_count: Optional[int] = None, 
         ):
         """
         Update user quota, 
@@ -271,3 +276,9 @@ class QuotaDatabase(DatabaseAbstract):
                     (shm_size, usrname),
                 )
                 self.logger.info(f"User {usrname} shm_size updated")
+            if commit_count is not None:
+                cursor.execute(
+                    "UPDATE quota SET commit_count = ? WHERE username = ?",
+                    (commit_count, usrname),
+                )
+                self.logger.info(f"User {usrname} commit_count updated")

@@ -125,9 +125,24 @@ def commit_pod(ins: str, tag: Optional[str] = None, user: UserRecord = Depends(r
     container_name = eval_name_raise(ins, user)
     cfg = config()
     c = DockerController()
+
+    # check commit quota
+    user_quota = QuotaDatabase().check_quota(user.name, use_fallback=True)
+    if user_quota.commit_count != -1:
+        im_filter = ImageFilter(
+            config = cfg, 
+            raw_images=c.list_docker_images(),
+            username=user.name
+        )
+        n_user_commits = sum(im_filter.is_user_image(im) for im in im_filter.list())
+        if n_user_commits >= user_quota.commit_count:
+            raise PermissionError(f"Exceed user commit limit ({user_quota.commit_count}), please delete some images first")
+
+    # check size
     container_size = c.inspect_container_size(container_name)
     if container_size.total > cfg.commit_size_limit:
-        raise PermissionError(f"Container size {container_size.total} exceeds the limit {cfg.commit_size_limit}")
+        raise PermissionError(f"Container size {container_size.total} exceeds server configured commit limit {cfg.commit_size_limit}")
+    
     commit_image_name = cfg.commit_name
     commit_tag_name = f"{user.name}" + (f"-{tag}" if tag else "")
     im_name = c.commit_container(container_name, commit_image_name, commit_tag_name)
