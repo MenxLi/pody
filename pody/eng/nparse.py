@@ -1,5 +1,5 @@
 """
-Name constraint for containers. 
+Name parse for containers. 
 This module provides functions to validate and manipulate container names.
 """
 from typing import TypedDict, Optional, overload, Literal

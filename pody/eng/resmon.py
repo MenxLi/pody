@@ -11,7 +11,7 @@ from .log import get_logger
 from .gpu import GPUHandler, list_processes_on_gpus, GPUProcessInfo
 from .docker import DockerController
 from .errors import ProcessUnavailableError
-from .constraint import split_name_component
+from .nparse import split_name_component
 
 @dataclasses.dataclass
 class ProcessInfo:
