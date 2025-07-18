@@ -121,7 +121,7 @@ const apiData: { [key: string]: APIDescription } ={
         },
         example: {
             input: {ins: "test"},
-            output: {'container_id': '014031e97c87', 'name': 'limengxun-test', 'status': 'running', 'image': 'exp:latest', 'port_mapping': ['20806:22', '20299:8000'], 'gpu_ids': [], "memory_limit": -1}
+            output: {'container_id': '014031e97c87', 'name': 'limengxun-test', 'status': 'running', 'image': 'exp:latest', 'port_mapping': ['20806:22', '20299:8000'], 'gpu_ids': [], "memory_limit": -1, "shm_size": 8589934592}
         }
     },
 
@@ -193,6 +193,16 @@ const apiData: { [key: string]: APIDescription } ={
             output: {'exit_code': 0, 'log': '/workspace\r\n'}
         }
     }, 
+
+    // image endpoints ========================================
+    "/image/list": {
+        method: "GET",
+        description: "List all available images",
+        example: {
+            input: {},
+            output: `(A list of all available image names)`
+        }
+    },
     
     // statistics endpoints ========================================
     "/stat/cputime": {
@@ -250,11 +260,7 @@ const apiData: { [key: string]: APIDescription } ={
     // resource endpoints ========================================
     "/host/images": {
         method: "GET",
-        description: "List all available images",
-        example: {
-            input: {},
-            output: `(A list of all available image names)`
-        }
+        description: "Will redirect to /image/list, for compatibility with the old API",
     },
 
     "/host/gpu-ps": {

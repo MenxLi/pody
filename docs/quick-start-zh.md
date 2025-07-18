@@ -35,7 +35,7 @@ podx user/info
 ## 创建一个容器
 然后，拉取可用镜像名称列表：
 ```sh
-podx host/images
+podx image/list
 ```
 ::: details 结果示例
 ```json

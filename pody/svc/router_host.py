@@ -2,15 +2,15 @@ from .app_base import *
 
 from fastapi import Depends
 from fastapi.routing import APIRouter
+from fastapi.responses import RedirectResponse
 from typing import Optional
 
 from ..eng.errors import *
 from ..eng.user import UserRecord
-from ..eng.docker import ImageFilter, DockerController
+from ..eng.docker import DockerController
 from ..eng.gpu import GPUHandler
 from ..eng.resmon import ProcessIter
 
-from ..config import config
 from ..version import VERSION
 
 router_host = APIRouter(prefix="/host")
@@ -47,7 +47,7 @@ def gpu_status(id: Optional[str] = None):
 @router_host.get("/images")
 @handle_exception
 def list_images(_: UserRecord = Depends(require_permission("all"))):
-    return list(ImageFilter(config = config()))
+    return RedirectResponse(url="/image/list", status_code=303)
 
 @router_host.get("/spec")
 def spec(_: UserRecord = Depends(require_permission("all"))):

@@ -53,6 +53,7 @@ class ContainerInfo:
     port_mapping: list[str]     # e.g. ["8000:8000", "8888:8888"]
     gpu_ids: Optional[list[int]]
     memory_limit: int
+    shm_size: int
 
 class ContainerAction(Enum):
     START = "start"
@@ -203,6 +204,7 @@ class DockerController():
             port_mapping=[f"{host_port}:{container_port}" for host_port, container_port in port_mappings_dict.items()],
             gpu_ids=gpu_ids, 
             memory_limit=container.attrs['HostConfig']['Memory'] if container.attrs['HostConfig']['Memory'] else -1, 
+            shm_size=container.attrs['HostConfig']['ShmSize'] if container.attrs['HostConfig']['ShmSize'] else -1, 
         )
         return container_info
 
