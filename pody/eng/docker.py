@@ -179,6 +179,23 @@ class DockerController():
             container.exec_run(after_action, tty=True)
         self.logger.info(f"Container {container.name} {action.value}")
         return container.logs().decode()
+    
+    def commit_container(
+        self, container_name: str, image_name: str, tag: str, 
+        author: Optional[str] = None, message: Optional[str] = None
+        ) -> str:
+        """Return The name of the committed image"""
+        container = self.client.containers.get(container_name)
+        image_name = f"{image_name}:{tag}"
+        existing_images = self.client.images.list(name=image_name)
+        if existing_images:
+            raise ValueError(f"Image {image_name} already exists. Please use a different name or tag.")
+        container.commit(
+            repository=image_name, tag=tag, 
+            author=author, message=message
+            )
+        self.logger.info(f"Container {container_name} committed to image {image_name}")
+        return image_name
 
     def inspect_container(self, container_id: str) -> ContainerInfo:
         container = self.client.containers.get(container_id)

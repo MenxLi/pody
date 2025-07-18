@@ -12,6 +12,10 @@ volume_mappings = [
 	"/data/pody-volume/share:/workspace/share:ro"
 ]
 
+# the name of the user committed image
+commit_name = "pody-commit"
+commit_size_limit = "20g"
+
 # fallback quota for unspecified user-quota
 # ["" for string] and [-1 for integer] means no limit ("none" for gpus means no gpu)
 [default_quota]

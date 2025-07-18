@@ -2,6 +2,7 @@ import os
 import toml
 import pathlib
 from dataclasses import dataclass
+from .eng.utils import parse_storage_size
 
 """
 DATA_HOME structure:
@@ -48,6 +49,8 @@ class Config:
     volume_mappings: list[str]
     default_quota: DefaultQuota
     images: list[ImageConfig]
+    commit_name: str
+    commit_size_limit: int
 
 def config():
     def parse_ports(ports_str: str) -> list[int | tuple[int, int]]:
@@ -90,10 +93,13 @@ def config():
         prefix_valid, reason = validate_name_part(loaded['name_prefix'])
         if not prefix_valid:
             raise ValueError(f"Invalid name prefix: {reason}")
+    
     return Config(
         name_prefix=name_prefix,
         available_ports=parse_ports(loaded['available_ports']), 
         volume_mappings=loaded['volume_mappings'],
         default_quota=Config.DefaultQuota(**loaded['default_quota']),
         images=[Config.ImageConfig(name=i['name'], ports=i['ports']) for i in loaded['images']], 
+        commit_name=loaded.get('commit_name', 'pody-commit'),
+        commit_size_limit=parse_storage_size(loaded.get('commit_size_limit', '20g')),
         )
