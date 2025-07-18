@@ -119,6 +119,20 @@ def start_pod(ins: str, user: UserRecord = Depends(require_permission("all"))):
     c = DockerController()
     return {"log": c.container_action(container_name, ContainerAction.START)}
 
+@router_pod.post("/commit")
+@handle_exception
+def commit_pod(ins: str, tag: Optional[str] = None, user: UserRecord = Depends(require_permission("all"))):
+    container_name = eval_name_raise(ins, user)
+    cfg = config()
+    c = DockerController()
+    container_size = c.inspect_container_size(container_name)
+    if container_size.total > cfg.commit_size_limit:
+        raise PermissionError(f"Container size {container_size.total} exceeds the limit {cfg.commit_size_limit}")
+    commit_image_name = cfg.commit_name
+    commit_tag_name = f"{user.name}" + (f"-{tag}" if tag else "")
+    im_name = c.commit_container(container_name, commit_image_name, commit_tag_name)
+    return {"image_name": im_name, "log": f"Container [{container_name}] committed to image [{im_name}]"}
+
 @router_pod.get("/info")
 @handle_exception
 def info_pod(ins: str, user: UserRecord = Depends(require_permission("all"))):

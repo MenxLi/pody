@@ -17,9 +17,9 @@ if TYPE_CHECKING:
 
 import time, os
 from multiprocessing import Process, Queue
-from .errors import ContainerNotFoundError
+from .errors import *
 from .log import get_logger
-from ..config import Config
+from .utils import parse_storage_size
 
 @dataclass
 class ContainerConfig:
@@ -64,8 +64,8 @@ class ContainerAction(Enum):
 
 @dataclass
 class ContainerSize:
-    total: str
-    virtual: str
+    total: int
+    virtual: int
 
 def _get_image_name(image: docker.models.images.Image):
     image_name = image.tags[0] if image and image.tags else image.short_id if image.short_id else ""
@@ -80,7 +80,7 @@ class DockerController():
     2. `logger`: a logging.Logger object
     """
     def __init__(self):
-        self.client = docker.from_env()
+        self.client = docker.from_env(timeout = 600)
         self.logger = get_logger('engine')
 
     def create_container(self, config: ContainerConfig) -> str:
@@ -170,7 +170,7 @@ class DockerController():
         image_name = f"{image_name}:{tag}"
         existing_images = self.client.images.list(name=image_name)
         if existing_images:
-            raise ValueError(f"Image {image_name} already exists. Please use a different name or tag.")
+            raise DuplicateError(f"Image {image_name} already exists. Please use a different name or tag.")
         container.commit(
             repository=image_name, tag=tag, 
             author=author, message=message
@@ -216,7 +216,17 @@ class DockerController():
         assert '(virtual' in res[1], "Error: cannot parse the size query result"
         total = res[0]
         virtual = res[2].replace('(virtual ', '').replace(')', '')
-        return ContainerSize(total, virtual)
+        def parse_size(size_str: str) -> int:
+            """Parse size string like '1.2GB', '500MB', '2.5TB' into bytes."""
+            size_str = size_str.strip().lower()
+            if size_str[-1].isdigit():
+                return int(size_str)
+            if size_str[-1] == 'b' and size_str[-2].isdigit():
+                return int(size_str[:-1])
+            else:
+                size_str = size_str[:-1]
+                return parse_storage_size(size_str)
+        return ContainerSize(parse_size(total), parse_size(virtual))
 
     def check_container(self, container_id: str):
         """ Check if the container exists and return the very basic information """
@@ -238,6 +248,17 @@ class DockerController():
         filters = None
         images = self.client.images.list(filters=filters)
         return [_get_image_name(image) for image in images]
+    
+    def delete_docker_image(self, image_name: str):
+        """
+        Delete a Docker image by name.
+        # If the image is in use by any container, it will raise an error.
+        """
+        try:
+            self.client.images.remove(image=image_name, force=True)
+            self.logger.info(f"Image {image_name} deleted")
+        except docker.errors.APIError as e:
+            raise ValueError(f"Failed to delete image {image_name}: {e}")
 
     def get_docker_used_ports(self):
         containers = self.client.containers.list(all=True)

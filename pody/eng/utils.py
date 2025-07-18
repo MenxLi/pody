@@ -9,11 +9,11 @@ def parse_storage_size(s: str) -> int:
         return int(s)
     unit = s[-1].lower()
     match unit:
-        case 'b': return int(s[:-1])
-        case 'k': return int(s[:-1]) * 1024
-        case 'm': return int(s[:-1]) * 1024**2
-        case 'g': return int(s[:-1]) * 1024**3
-        case 't': return int(s[:-1]) * 1024**4
+        case 'b': return int(float(s[:-1]))
+        case 'k': return int(float(s[:-1])) * 1024
+        case 'm': return int(float(s[:-1])) * 1024**2
+        case 'g': return int(float(s[:-1])) * 1024**3
+        case 't': return int(float(s[:-1])) * 1024**4
         case _: raise ValueError(f"Invalid file size string: {s}")
 
 def format_storage_size(size: int, precision: int = 2) -> str:

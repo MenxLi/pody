@@ -51,6 +51,7 @@ class Config:
     images: list[ImageConfig]
     commit_name: str
     commit_size_limit: int
+    commit_image_ports: list[int]
 
 def config():
     def parse_ports(ports_str: str) -> list[int | tuple[int, int]]:
@@ -102,4 +103,5 @@ def config():
         images=[Config.ImageConfig(name=i['name'], ports=i['ports']) for i in loaded['images']], 
         commit_name=loaded.get('commit_name', 'pody-commit'),
         commit_size_limit=parse_storage_size(loaded.get('commit_size_limit', '20g')),
+        commit_image_ports=loaded.get('commit_image_ports', [22])
         )

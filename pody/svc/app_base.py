@@ -1,4 +1,5 @@
 import inspect, json
+import requests
 from functools import wraps
 import docker.errors
 from fastapi import FastAPI, Depends, Request, Response
@@ -46,6 +47,7 @@ def handle_exception(fn):
             if isinstance(e, DuplicateError): raise HTTPException(status_code=409, detail=str(e))
             if isinstance(e, docker.errors.NotFound): raise HTTPException(status_code=404, detail=str(e))
             if isinstance(e, docker.errors.APIError): raise HTTPException(status_code=500, detail=str(e))
+            if isinstance(e, requests.exceptions.ReadTimeout): raise HTTPException(status_code=504, detail="Request timed out")
             raise
     return wrapper
 
