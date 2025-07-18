@@ -5,9 +5,10 @@ from typing import Optional
 
 from .db import DatabaseAbstract
 from .log import get_logger
+from .nparse import validate_name_part
 from .errors import InvalidUsernameError
 from .utils import format_storage_size, parse_storage_size
-from ..config import DATA_HOME, validate_name_part, Config, config
+from ..config import DATA_HOME, Config, config
 
 def hash_password(username: str, password: str):
     return hashlib.sha256(f"{username}:{password}".encode()).hexdigest()

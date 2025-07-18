@@ -8,6 +8,19 @@ from .user import UserRecord
 from .errors import *
 from ..config import config, Config
 
+def validate_name_part(part: str, reserved_kw: list[str] = []) -> tuple[bool, str]:
+    if not 1 <= len(part) <= 20:
+        return False, "Name part must be between 1 and 20 characters"
+    if part in reserved_kw:
+        return False, f"Name part '{part}' is reserved"
+    if not part.isidentifier():
+        return False, "Name part must be an identifier"
+    if '-' in part or ':' in part:
+        return False, "Name part cannot contain '-' or ':'"
+    if part.startswith('_') or part.endswith('_'):
+        return False, "Name part cannot start or end with '_'"
+    return True, ""
+
 class InsNameComponentX(TypedDict):
     prefix: Optional[str]
     username: Optional[str]

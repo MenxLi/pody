@@ -10,9 +10,9 @@ from contextlib import suppress
 
 from ..eng.nparse import eval_name_raise, get_user_pod_prefix
 
-from ..config import config, validate_name_part
+from ..config import config
 from ..eng.errors import *
-from ..eng.nparse import ImageFilter
+from ..eng.nparse import ImageFilter, validate_name_part
 from ..eng.user import UserRecord, QuotaDatabase
 from ..eng.docker import ContainerAction, ContainerConfig, DockerController
 
@@ -125,6 +125,9 @@ def commit_pod(ins: str, tag: Optional[str] = None, user: UserRecord = Depends(r
     container_name = eval_name_raise(ins, user)
     cfg = config()
     c = DockerController()
+
+    # check tag validity
+    if tag: validate_name_part(tag)
 
     # check commit quota
     user_quota = QuotaDatabase().check_quota(user.name, use_fallback=True)

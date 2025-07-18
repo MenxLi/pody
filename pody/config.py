@@ -3,6 +3,7 @@ import toml
 import pathlib
 from dataclasses import dataclass
 from .eng.utils import parse_storage_size
+from .eng.nparse import validate_name_part
 
 """
 DATA_HOME structure:
@@ -12,19 +13,6 @@ DATA_HOME structure:
 """
 DATA_HOME = pathlib.Path(os.environ.get('PODY_HOME', os.path.expanduser('~/.pody')))
 SRC_HOME = pathlib.Path(__file__).parent
-
-def validate_name_part(part: str, reserved_kw: list[str] = []) -> tuple[bool, str]:
-    if not 1 <= len(part) <= 20:
-        return False, "Name part must be between 1 and 20 characters"
-    if part in reserved_kw:
-        return False, f"Name part '{part}' is reserved"
-    if not part.isidentifier():
-        return False, "Name part must be an identifier"
-    if '-' in part or ':' in part:
-        return False, "Name part cannot contain '-' or ':'"
-    if part.startswith('_') or part.endswith('_'):
-        return False, "Name part cannot start or end with '_'"
-    return True, ""
 
 @dataclass
 class Config:
