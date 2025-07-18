@@ -58,22 +58,27 @@ class ContainerProcessInfo:
         return {
             "container_name": self.container_name,
             "cproc": self.cproc.json(),
-            "gproc": dataclasses.asdict(self.gproc) if self.gproc else None,
+            "gproc": self.gproc.json() if self.gproc else None,
         }
 
 class ProcessIter:
-    def __init__(self, filter_fn: Callable[[ContainerProcessInfo], bool] = lambda _: True):
+    def __init__(self, 
+        filter_fn: Callable[[ContainerProcessInfo], bool] = lambda _: True, 
+        docker_only: bool = True
+        ):
         self.logger = get_logger("resmon")
         self.filter_fn = filter_fn
+        self.docker_only = docker_only
         self.docker_con = DockerController()
         self.gpu_handler = GPUHandler()
     
-    def docker_proc(self) -> Iterator[ContainerProcessInfo]:
+    def all_process(self) -> Iterator[ContainerProcessInfo]:
         for proc in psutil.process_iter(['pid']):
             try:
                 pid = proc.info['pid']
                 if not (name:=self.docker_con.container_from_pid(pid)):
-                    continue
+                    if self.docker_only: continue
+                    else: name = ""
                 p = ContainerProcessInfo(
                     container_name = name,
                     cproc = query_process(pid),
@@ -88,16 +93,18 @@ class ProcessIter:
                 self.logger.error(f"Error querying process {pid} [{type(e)}]: {e}")
                 continue
     
-    def docker_gpu_proc(self, gpu_ids: Optional[list[int]] = None) -> Iterator[ContainerProcessInfo]:
+    def gpu_process(self, gpu_ids: Optional[list[int]] = None) -> Iterator[ContainerProcessInfo]:
         if gpu_ids is None:
             gpu_ids = list(range(self.gpu_handler.device_count()))
+
         gpu_procs = list_processes_on_gpus(gpu_ids)
         for _, procs in gpu_procs.items():
             for proc in procs:
                 try:
                     pid = proc.pid
                     if not (name := self.docker_con.container_from_pid(pid)):
-                        continue
+                        if self.docker_only: continue
+                        else: name = ""
                     cproc = query_process(pid)
                     p = ContainerProcessInfo(
                         container_name=name,
@@ -215,11 +222,11 @@ class ResourceMonitorDatabase(DatabaseAbstract):
 
 if __name__ == "__main__":
     piter = ProcessIter()
-    for proc in piter.docker_proc():
+    for proc in piter.all_process():
         print(proc.json())
 
     resmon_db = ResourceMonitorDatabase(in_memory=True)
-    resmon_db.update(piter.docker_proc())
-    resmon_db.update(piter.docker_gpu_proc())
+    resmon_db.update(piter.all_process())
+    resmon_db.update(piter.gpu_process())
     print(resmon_db.query_cputime())
     print(resmon_db.query_gputime())

@@ -32,7 +32,7 @@ def task_check_gpu_usage():
 
     for i in range(GPUHandler().device_count()):
         this_gpu_users = set()
-        for p in mon.docker_gpu_proc([i]):
+        for p in mon.gpu_process([i]):
             pod_name: str = p.container_name
             name_comp = split_name_component(pod_name)
             assert name_comp is not None
@@ -69,8 +69,8 @@ def task_record_resource_usage():
     resmon_db = ResourceMonitorDatabase()
     
     try:
-        resmon_db.update(mon.docker_proc())
-        resmon_db.update(mon.docker_gpu_proc())
+        resmon_db.update(mon.all_process())
+        resmon_db.update(mon.gpu_process())
     except Exception as e:
         logger.error(f"Error recording resource usage: {e}")
 
