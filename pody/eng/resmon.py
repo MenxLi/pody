@@ -62,9 +62,19 @@ class ContainerProcessInfo:
         }
 
 T = TypeVar('T')
+V = TypeVar('V')
 class ProcessIter(Generic[T]):
+
+    @dataclasses.dataclass
+    class FilterReturn(Generic[V]):
+        is_valid: bool
+        extra: Optional[V] = None
+    
+    ContainerProcessInfo = ContainerProcessInfo
+
     def __init__(self, 
-        filter_fn: Callable[[ContainerProcessInfo], tuple[bool, T]] = lambda _: (True, None), 
+        filter_fn: Callable[[ContainerProcessInfo], FilterReturn[T]] \
+            = lambda _: ProcessIter.FilterReturn(is_valid=True), 
         docker_only: bool = True
         ):
         self.logger = get_logger("resmon")
@@ -85,9 +95,9 @@ class ProcessIter(Generic[T]):
                     cproc = query_process(pid),
                     gproc = None
                 )
-                is_process_valid, extra_info = self.filter_fn(p)
-                if is_process_valid:
-                    yield p, extra_info
+                filter_r = self.filter_fn(p)
+                if filter_r.is_valid:
+                    yield p, filter_r.extra     # type: ignore
             except ProcessUnavailableError as e:
                 self.logger.warning(f"Process {pid} unavailable: {e}")
                 continue
@@ -113,9 +123,9 @@ class ProcessIter(Generic[T]):
                         cproc=cproc,
                         gproc=proc
                     )
-                    is_process_valid, extra_info = self.filter_fn(p)
-                    if is_process_valid:
-                        yield p, extra_info
+                    r = self.filter_fn(p)
+                    if r.is_valid:
+                        yield p, r.extra    # type: ignore
                 except ProcessUnavailableError as e:
                     self.logger.warning(f"Process {pid} unavailable: {e}")
                     continue

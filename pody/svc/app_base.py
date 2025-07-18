@@ -20,7 +20,6 @@ g_user_db = UserDatabase()
 async def life_span(app: FastAPI):
     config()    # maybe init configuration file at the beginning
     yield
-    g_user_db.close()
 
 app = FastAPI(docs_url=None, redoc_url=None, lifespan=life_span)
 app.add_middleware(

@@ -30,7 +30,10 @@ def task_check_gpu_usage():
         name_sp = split_name_component(p.container_name, check=True)
         username = name_sp['username'] if name_sp else ""
         user = user_db.get_user(username)
-        return name_sp is not None and user.userid != 0, user
+        return ProcessIter.FilterReturn(
+            is_valid=name_sp is not None and user.userid != 0,
+            extra=user
+        )
     mon = ProcessIter(filter_fn=is_user_process)
 
     for i in range(GPUHandler().device_count()):

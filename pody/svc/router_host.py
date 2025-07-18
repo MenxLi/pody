@@ -7,8 +7,8 @@ from typing import Optional
 from ..eng.errors import *
 from ..eng.user import UserRecord
 from ..eng.docker import ImageFilter, DockerController
-from ..eng.gpu import list_processes_on_gpus, GPUProcessInfo, GPUHandler
-from ..eng.resmon import query_process
+from ..eng.gpu import GPUHandler
+from ..eng.resmon import ProcessIter
 
 from ..config import config
 from ..version import VERSION
@@ -16,21 +16,21 @@ from ..version import VERSION
 router_host = APIRouter(prefix="/host")
 
 def gpu_status_impl(gpu_ids: list[int]):
-    def fmt_gpu_proc(gpu_proc: GPUProcessInfo):
-        c = DockerController()
-        process_info = query_process(gpu_proc.pid)
-        container_id = c.container_from_pid(gpu_proc.pid)
-        container_name = c.check_container(container_id)["name"] if container_id else ""
-        return {
-            "pid": gpu_proc.pid,
-            "pod": container_name,
-            "cmd": process_info.cmd,
-            "uptime": process_info.uptime,
-            "memory_used": process_info.memory_used,
-            "gpu_memory_used": gpu_proc.gpu_memory_used,
+    def gpu_proc_filter(p: ProcessIter.ContainerProcessInfo):
+        if p.gproc is None:
+            return ProcessIter.FilterReturn(is_valid=False)
+        r = {
+            "pid": p.gproc.pid,
+            "pod": p.container_name,
+            "cmd": p.cproc.cmd if p.container_name else "[host process]",
+            "uptime": p.cproc.uptime,
+            "memory_used": p.cproc.memory_used,
+            "gpu_memory_used": p.gproc.gpu_memory_used,
         }
-    gpu_procs = list_processes_on_gpus(gpu_ids)
-    return {gpu_id: [fmt_gpu_proc(proc) for proc in gpu_procs[gpu_id]] for gpu_id in gpu_procs}
+        return ProcessIter.FilterReturn(is_valid=True, extra=r)
+    
+    piter = ProcessIter(filter_fn=gpu_proc_filter, docker_only=False)
+    return {i: list(map(lambda x: x[1], piter.gpu_process([i]))) for i in gpu_ids}
 
 @router_host.get("/gpu-ps")
 @handle_exception
