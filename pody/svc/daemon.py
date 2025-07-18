@@ -26,26 +26,24 @@ def task_check_gpu_usage():
     user_proc_count: dict[str, int] = {}
     user_procs: dict[str, list[ContainerProcessInfo]] = {}
 
-    def is_user_process(p: ContainerProcessInfo) -> bool:
-        return split_name_component(p.container_name) is not None
+    def is_user_process(p: ContainerProcessInfo):
+        name_sp = split_name_component(p.container_name, check=True)
+        username = name_sp['username'] if name_sp else ""
+        user = user_db.get_user(username)
+        return name_sp is not None and user.userid != 0, user
     mon = ProcessIter(filter_fn=is_user_process)
 
     for i in range(GPUHandler().device_count()):
         this_gpu_users = set()
-        for p in mon.gpu_process([i]):
+        for p, user in mon.gpu_process([i]):
             pod_name: str = p.container_name
-            name_comp = split_name_component(pod_name)
-            assert name_comp is not None
-            username = name_comp['username']
+            username = user.name
             this_gpu_users.add(username)
             user_procs[username] = user_procs.get(username, []) + [p]
         for user in this_gpu_users:
             user_proc_count[user] = user_proc_count.get(user, 0) + 1
     
     for username, proc_count in user_proc_count.items():
-        user = user_db.get_user(username)
-        if user.userid == 0:    # skip task not related to this database
-            continue
         max_gpu_count = quota_db.check_quota(username, use_fallback=True).gpu_count
         if max_gpu_count >= 0 and proc_count > max_gpu_count:
             # kill container from this user (the one with the shortest uptime)
@@ -69,8 +67,8 @@ def task_record_resource_usage():
     resmon_db = ResourceMonitorDatabase()
     
     try:
-        resmon_db.update(mon.all_process())
-        resmon_db.update(mon.gpu_process())
+        resmon_db.update(map(lambda it: it[0], mon.all_process()))
+        resmon_db.update(map(lambda it: it[0], mon.gpu_process()))
     except Exception as e:
         logger.error(f"Error recording resource usage: {e}")
 

@@ -2,7 +2,7 @@
 Resource monitoring utilities (High-level docker and GPU process monitoring)
 """
 import psutil, time, sqlite3, time
-from typing import Iterator, Callable, Optional
+from typing import Iterator, Callable, Optional, Generic, TypeVar
 import dataclasses
 from ..config import DATA_HOME
 from .user import UserDatabase
@@ -61,9 +61,10 @@ class ContainerProcessInfo:
             "gproc": self.gproc.json() if self.gproc else None,
         }
 
-class ProcessIter:
+T = TypeVar('T')
+class ProcessIter(Generic[T]):
     def __init__(self, 
-        filter_fn: Callable[[ContainerProcessInfo], bool] = lambda _: True, 
+        filter_fn: Callable[[ContainerProcessInfo], tuple[bool, T]] = lambda _: (True, None), 
         docker_only: bool = True
         ):
         self.logger = get_logger("resmon")
@@ -72,7 +73,7 @@ class ProcessIter:
         self.docker_con = DockerController()
         self.gpu_handler = GPUHandler()
     
-    def all_process(self) -> Iterator[ContainerProcessInfo]:
+    def all_process(self) -> Iterator[tuple[ContainerProcessInfo, T]]:
         for proc in psutil.process_iter(['pid']):
             try:
                 pid = proc.info['pid']
@@ -84,8 +85,9 @@ class ProcessIter:
                     cproc = query_process(pid),
                     gproc = None
                 )
-                if self.filter_fn(p):
-                    yield p
+                is_process_valid, extra_info = self.filter_fn(p)
+                if is_process_valid:
+                    yield p, extra_info
             except ProcessUnavailableError as e:
                 self.logger.warning(f"Process {pid} unavailable: {e}")
                 continue
@@ -93,7 +95,7 @@ class ProcessIter:
                 self.logger.error(f"Error querying process {pid} [{type(e)}]: {e}")
                 continue
     
-    def gpu_process(self, gpu_ids: Optional[list[int]] = None) -> Iterator[ContainerProcessInfo]:
+    def gpu_process(self, gpu_ids: Optional[list[int]] = None) -> Iterator[tuple[ContainerProcessInfo, T]]:
         if gpu_ids is None:
             gpu_ids = list(range(self.gpu_handler.device_count()))
 
@@ -111,8 +113,9 @@ class ProcessIter:
                         cproc=cproc,
                         gproc=proc
                     )
-                    if self.filter_fn(p):
-                        yield p
+                    is_process_valid, extra_info = self.filter_fn(p)
+                    if is_process_valid:
+                        yield p, extra_info
                 except ProcessUnavailableError as e:
                     self.logger.warning(f"Process {pid} unavailable: {e}")
                     continue
@@ -222,11 +225,11 @@ class ResourceMonitorDatabase(DatabaseAbstract):
 
 if __name__ == "__main__":
     piter = ProcessIter()
-    for proc in piter.all_process():
+    for proc, extra in piter.all_process():
         print(proc.json())
 
     resmon_db = ResourceMonitorDatabase(in_memory=True)
-    resmon_db.update(piter.all_process())
-    resmon_db.update(piter.gpu_process())
+    resmon_db.update(map(lambda it: it[0], piter.all_process()))
+    resmon_db.update(map(lambda it: it[0], piter.gpu_process()))
     print(resmon_db.query_cputime())
     print(resmon_db.query_gputime())
