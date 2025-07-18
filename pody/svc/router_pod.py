@@ -12,8 +12,9 @@ from ..eng.nparse import eval_name_raise, get_user_pod_prefix
 
 from ..config import config, validate_name_part
 from ..eng.errors import *
+from ..eng.nparse import ImageFilter
 from ..eng.user import UserRecord, QuotaDatabase
-from ..eng.docker import ContainerAction, ContainerConfig, DockerController, ImageFilter
+from ..eng.docker import ContainerAction, ContainerConfig, DockerController
 
 router_pod = APIRouter(prefix="/pod")
 
@@ -37,7 +38,10 @@ def create_pod(ins: str, image: str, user: UserRecord = Depends(require_permissi
         raise PermissionError("Exceed max pod limit")
 
     # check image
-    im_filter = ImageFilter(config = server_config)
+    im_filter = ImageFilter(
+        config = server_config, 
+        raw_images=c.list_docker_images()
+        )
     target_im_config = im_filter.query_config(image)
     if not target_im_config:
         raise InvalidInputError("Invalid image name, please check the available images")

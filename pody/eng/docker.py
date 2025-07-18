@@ -67,25 +67,6 @@ class ContainerSize:
     total: str
     virtual: str
 
-class ImageFilter():
-    def __init__(self, config: Config):
-        self.raw_images = DockerController().list_docker_images()
-        self.image_configs = config.images
-    def query_config(self, q_image: str) -> Optional[Config.ImageConfig]:
-        """ Return the image config if the config name matches the query and the image is available """
-        if not q_image in self.raw_images:
-            return None
-        for im_c in self.image_configs:
-            if im_c.name == q_image or (not ':' in im_c.name and q_image.startswith(im_c.name + ':')):
-                return im_c
-        return None
-    def __contains__(self, q_image: str):
-        a = self.query_config(q_image)
-        return True if a else False
-    def __iter__(self):
-        return (image for image in self.raw_images if image in self)
-
-    
 def _get_image_name(image: docker.models.images.Image):
     image_name = image.tags[0] if image and image.tags else image.short_id if image.short_id else ""
     return image_name

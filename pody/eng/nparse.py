@@ -6,7 +6,7 @@ from typing import TypedDict, Optional, overload, Literal
 
 from .user import UserRecord
 from .errors import *
-from ..config import config
+from ..config import config, Config
 
 class InsNameComponentX(TypedDict):
     prefix: Optional[str]
@@ -91,3 +91,23 @@ def eval_name_raise(ins: str, user: UserRecord):
 def get_user_pod_prefix(username: str):
     ins_prefix = config().name_prefix
     return f"{ins_prefix}-{username}-" if ins_prefix else f"{username}-"
+
+
+class ImageFilter():
+    def __init__(self, config: Config, raw_images: list[str]):
+        self.raw_images = raw_images
+        self.config = config
+        self.image_configs = config.images
+    def query_config(self, q_image: str) -> Optional[Config.ImageConfig]:
+        """ Return the image config if the config name matches the query and the image is available """
+        if not q_image in self.raw_images:
+            return None
+        for im_c in self.image_configs:
+            if im_c.name == q_image or (not ':' in im_c.name and q_image.startswith(im_c.name + ':')):
+                return im_c
+        return None
+    def __contains__(self, q_image: str):
+        a = self.query_config(q_image)
+        return True if a else False
+    def __iter__(self):
+        return (image for image in self.raw_images if image in self)
