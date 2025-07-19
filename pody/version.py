@@ -59,7 +59,15 @@ VERSION_HISTORY = {
         "Add `pody stat` command for resource statistics",
         "Add resource monitor database",
         "Some refactors",
-    ]
+    ], 
+    "0.3.0": [
+        "Add /image endpoint, allow user commit image via /pod/commit",
+        "Remove image description from config, add via commit message",
+        "Deprecate /pod/info endpoint, use /pod/inspect instead",
+        "Deprecate /host/images endpoint, move to /image/list",
+        "Add timeout option to /pod/exec",
+        "Various refactors",
+    ], 
 }
 
 VERSION = tuple([int(x) for x in list(VERSION_HISTORY.keys())[-1].split('.')])
