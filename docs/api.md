@@ -7,10 +7,15 @@ outline: deep
     import { fmtCurlCmd, fmtPodyCmd, fmtPodxCmd } from './api_data.ts';
     import APIBlock from './api_block.vue';
     import APITable from './api_table.vue';
-    import { ref } from 'vue';
+    import { ref, watch } from 'vue';
 
-    const apiType = ref( 'podx' as 'curl' | 'podx' | 'pody');
-
+    const urlParams = new URLSearchParams(window.location.search);
+    const initialApiType = urlParams.get('api') || 'podx' as 'curl' | 'podx' | 'pody';
+    const apiType = ref( initialApiType as 'curl' | 'podx' | 'pody');
+    watch(apiType, (newType) => {
+        urlParams.set('api', newType);
+        window.history.replaceState({}, '', `${window.location.pathname}?${urlParams.toString()}`);
+    });
 </script>
 
 # HTTP API
