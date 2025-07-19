@@ -192,6 +192,7 @@ const apiData: { [key: string]: APIDescription } ={
             timeout: {
                 type: "number",
                 description: "The timeout of the command in seconds",
+                optional: true
             }
         },
         example: {
@@ -200,6 +201,24 @@ const apiData: { [key: string]: APIDescription } ={
         }
     }, 
 
+    "/pod/commit": {
+        method: "POST",
+        description: "Commit a pod to an image, the image will be saved as <pody-commit-prefix>:<username>[-<tag>]. " + 
+            "Note there are restrictions for image size and number of committed images for each user, " +
+            "please refer to the user quota for more details. ", 
+        parameters: {
+            ins: {
+                type: "string",
+                description: "The instance id of the pod to commit"
+            }, 
+            tag: {
+                type: "string",
+                description: "The tag of the image to commit", 
+                optional: true
+            }
+        },
+    },
+
     // image endpoints ========================================
     "/image/list": {
         method: "GET",
@@ -207,6 +226,21 @@ const apiData: { [key: string]: APIDescription } ={
         example: {
             input: {},
             output: `(A list of all available image names)`
+        }
+    },
+
+    "/image/delete": {
+        method: "POST",
+        description: "Delete an image, please be careful, this operation is irreversible",
+        parameters: {
+            image: {
+                type: "string",
+                description: "The image to delete, can only be user commit images. "
+            }
+        },
+        example: {
+            input: {image: "pody-commit:limengxun"},
+            output: {'log': 'Image [pody-commit:limengxun] deleted'}
         }
     },
     
@@ -225,7 +259,8 @@ const apiData: { [key: string]: APIDescription } ={
                 type: "string",
                 description: "The start time of the process to include in the statistics, " +
                 "should be like: 1y, 1w, 1d, 1h, 1s, or a timestamp in seconds. " +
-                "If not provided, will include all time ranges. "
+                "If not provided, will include all time ranges. ",
+                optional: true
             }
         },
         example: {
@@ -251,7 +286,8 @@ const apiData: { [key: string]: APIDescription } ={
                 type: "string",
                 description: "The start time of the process to include in the statistics, " +
                 "should be like: 1y, 1w, 1d, 1h, 1s, or a timestamp in seconds. " +
-                "If not provided, will include all time ranges"
+                "If not provided, will include all time ranges", 
+                optional: true
             }
         },
         example: {
@@ -275,7 +311,8 @@ const apiData: { [key: string]: APIDescription } ={
         parameters: {
             "id": {
                 type: "string",
-                description: "The id(s) of the GPU, multiple ids can be separated by comma"
+                description: "The id(s) of the GPU, multiple ids can be separated by comma", 
+                optional: true
             }
         },
         example: {

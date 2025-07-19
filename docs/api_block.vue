@@ -22,8 +22,9 @@
                 <i>Parameters</i>
                 <ul>
                     <li v-for="paramName in Object.keys(props.apiDesc.parameters)">
-                        <span class="params">
+                        <span :class="'params'">
                             <strong>{{ paramName }}</strong> [{{ props.apiDesc.parameters[paramName].type }}] 
+                            <span v-if="props.apiDesc.parameters[paramName].optional" class="optional">optional</span>
                         </span>{{ props.apiDesc.parameters[paramName].description }}
                     </li>
                 </ul>
@@ -64,6 +65,11 @@
     span.params {
         font-weight: unset;
         color: var(--vp-c-text-1);
+    }
+
+    span.optional {
+        color: var(--vp-c-text-3);
+        margin-left: 0.5em;
     }
 
     .detail-block {
