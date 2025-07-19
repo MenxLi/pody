@@ -2,8 +2,6 @@ import os
 import toml
 import pathlib
 from dataclasses import dataclass
-from .eng.utils import parse_storage_size
-from .eng.nparse import validate_name_part
 
 """
 DATA_HOME structure:
@@ -43,6 +41,10 @@ class Config:
     commit_image_ports: list[int]
 
 def config():
+    # prevent circular import
+    from .eng.nparse import validate_name_part
+    from .eng.utils import parse_storage_size
+
     def parse_ports(ports_str: str) -> list[int | tuple[int, int]]:
         ports: list[int | tuple[int, int]] = []
         ports_str_sp = ports_str.split(',')

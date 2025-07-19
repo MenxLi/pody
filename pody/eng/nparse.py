@@ -2,11 +2,14 @@
 Name parse for containers. 
 This module provides functions to validate and manipulate container names.
 """
-from typing import TypedDict, Optional, overload, Literal
+from __future__ import annotations
+from typing import TypedDict, Optional, overload, Literal, TYPE_CHECKING
 
-from .user import UserRecord
 from .errors import *
 from ..config import config, Config
+
+if TYPE_CHECKING:
+    from .user import UserRecord
 
 def validate_name_part(part: str, reserved_kw: list[str] = []) -> tuple[bool, str]:
     if not 1 <= len(part) <= 20:

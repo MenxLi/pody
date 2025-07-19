@@ -271,7 +271,7 @@ class DockerController():
                         used_ports.append(int(port['HostPort']))
         return used_ports
 
-    def exec_container_bash(self, container_name: str, command: str, timeout: int = 10) -> tuple[int, str]:
+    def exec_container_bash(self, container_name: str, command: str, timeout: int = 30) -> tuple[int, str]:
         self.check_container(container_name)
         start_time = time.time()
         q = Queue()
