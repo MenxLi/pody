@@ -170,10 +170,15 @@ def list_pod(user: UserRecord = Depends(require_permission("all"))):
 
 @router_pod.post("/exec")
 @handle_exception
-def exec_pod(ins: str, cmd: str, user: UserRecord = Depends(require_permission("all"))):
+def exec_pod(
+    ins: str, cmd: str, timeout: Optional[int] = None,
+    user: UserRecord = Depends(require_permission("all"))
+    ):
     container_name = eval_name_raise(ins, user)
     c = DockerController()
-    exit_code, log = c.exec_container_bash(container_name, cmd)
+    if timeout is None:
+        timeout = 30
+    exit_code, log = c.exec_container_bash(container_name, cmd, timeout=timeout)
     return {"exit_code": exit_code, "log": log}
 
 # ====== admin only ======

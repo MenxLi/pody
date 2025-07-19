@@ -39,6 +39,7 @@ export interface APIDescription {
         [key: string]: {
             type: string,
             description: string
+            optional?: boolean,
         }
     },
     example?: {
@@ -177,7 +178,8 @@ const apiData: { [key: string]: APIDescription } ={
         method: "POST",
         description: 
             "Execute a command in a pod, the command will be executed as root user using bash. " +
-            "There is a timeout of 10 seconds for the command to execute, long running task will be terminated. ",
+            "The default timeout is 30 seconds, long-running task will be terminated after the timeout. " +
+            "If you want to run a long-running task, please set the timeout to a larger value.", 
         parameters: {
             ins: {
                 type: "string",
@@ -186,6 +188,10 @@ const apiData: { [key: string]: APIDescription } ={
             cmd: {
                 type: "string",
                 description: "The command to execute"
+            }, 
+            timeout: {
+                type: "number",
+                description: "The timeout of the command in seconds",
             }
         },
         example: {
