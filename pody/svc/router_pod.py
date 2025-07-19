@@ -122,7 +122,12 @@ def start_pod(ins: str, user: UserRecord = Depends(require_permission("all"))):
 
 @router_pod.post("/commit")
 @handle_exception
-def commit_pod(ins: str, tag: Optional[str] = None, user: UserRecord = Depends(require_permission("all"))):
+def commit_pod(
+    ins: str, 
+    tag: Optional[str] = None, 
+    msg: Optional[str] = None,
+    user: UserRecord = Depends(require_permission("all"))
+    ):
     container_name = eval_name_raise(ins, user)
     cfg = config()
     c = DockerController()
@@ -151,7 +156,7 @@ def commit_pod(ins: str, tag: Optional[str] = None, user: UserRecord = Depends(r
     
     commit_image_name = cfg.commit_name
     commit_tag_name = f"{user.name}" + (f"-{tag}" if tag else "")
-    im_name = c.commit_container(container_name, commit_image_name, commit_tag_name)
+    im_name = c.commit_container(container_name, commit_image_name, commit_tag_name, message=msg)
     return {"image_name": im_name, "log": f"Container {container_name} committed to image: {im_name}"}
 
 @router_pod.get("/inspect")

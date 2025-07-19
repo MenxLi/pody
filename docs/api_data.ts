@@ -215,6 +215,11 @@ const apiData: { [key: string]: APIDescription } ={
                 type: "string",
                 description: "The tag of the image to commit", 
                 optional: true
+            }, 
+            msg: {
+                type: "string",
+                description: "The commit message, this will be used as the image comment", 
+                optional: true 
             }
         },
         example: {
