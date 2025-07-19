@@ -38,3 +38,22 @@ def delete_image(image: str, user: UserRecord = Depends(require_permission("all"
     
     c.delete_docker_image(image)
     return {"log": "Image {} deleted".format(image)}
+
+@router_image.post("/inspect")
+@handle_exception
+def inspect_image(image: str, user: UserRecord = Depends(require_permission("all"))):
+    c = DockerController()
+    im_list = c.list_docker_images()
+    if not image in im_list:
+        raise InvalidInputError("Image not found, please check the available images")
+
+    im_filter = ImageFilter(
+        config = config(), 
+        raw_images = im_list,
+        username=user.name
+    )
+    if im_filter.query_config(image) or im_filter.is_user_image(image):
+        return c.inspect_docker_image(image)
+    else:
+        raise PermissionError("Invalid image name, please check the available images")
+    

@@ -52,7 +52,7 @@ podx pod/create image:nvidia/cuda:11.0-base ins:main
 
 ## 查看容器状态
 ```sh
-podx pod/info ins:main
+podx pod/inspect ins:main
 ```
 ::: details 结果示例
 ```json

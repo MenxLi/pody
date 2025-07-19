@@ -111,7 +111,7 @@ const apiData: { [key: string]: APIDescription } ={
         }
     },
 
-    "/pod/info": {
+    "/pod/inspect": {
         method: "GET",
         description: "Get the information of a pod",
         parameters: {
@@ -236,6 +236,17 @@ const apiData: { [key: string]: APIDescription } ={
         }
     },
 
+    "image/inspect": {
+        method: "GET",
+        description: "Get the information of an image",
+        parameters: {
+            image: {
+                type: "string",
+                description: "The image to inspect, should be a full image name. " 
+            }, 
+        },
+    }, 
+
     "/image/delete": {
         method: "POST",
         description: "Delete an image, please be careful, this operation is irreversible",
@@ -307,11 +318,6 @@ const apiData: { [key: string]: APIDescription } ={
     },
 
     // resource endpoints ========================================
-    "/host/images": {
-        method: "GET",
-        description: "Will redirect to /image/list, for compatibility with the old API",
-    },
-
     "/host/gpu-ps": {
         method: "GET",
         description: "Get the process list running on the GPU(s)",
