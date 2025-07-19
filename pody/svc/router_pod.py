@@ -152,7 +152,7 @@ def commit_pod(ins: str, tag: Optional[str] = None, user: UserRecord = Depends(r
     commit_image_name = cfg.commit_name
     commit_tag_name = f"{user.name}" + (f"-{tag}" if tag else "")
     im_name = c.commit_container(container_name, commit_image_name, commit_tag_name)
-    return {"image_name": im_name, "log": f"Container [{container_name}] committed to image [{im_name}]"}
+    return {"image_name": im_name, "log": f"Container {container_name} committed to image: {im_name}"}
 
 @router_pod.get("/info")
 @handle_exception

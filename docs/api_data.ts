@@ -217,6 +217,13 @@ const apiData: { [key: string]: APIDescription } ={
                 optional: true
             }
         },
+        example: {
+            input: {ins: "myins", tag: "latest"},
+            output: {
+                'image_name': 'pody-commit:limengxun-latest',
+                'log': 'Container myins committed to image: pody-commit:limengxun-latest'
+            }
+        }
     },
 
     // image endpoints ========================================
@@ -240,7 +247,7 @@ const apiData: { [key: string]: APIDescription } ={
         },
         example: {
             input: {image: "pody-commit:limengxun"},
-            output: {'log': 'Image [pody-commit:limengxun] deleted'}
+            output: {'log': 'Image pody-commit:limengxun deleted'}
         }
     },
     

@@ -37,4 +37,4 @@ def delete_image(image: str, user: UserRecord = Depends(require_permission("all"
         raise PermissionError("Can only delete user commit images")
     
     c.delete_docker_image(image)
-    return {"log": "Image [{}] deleted".format(image)}
+    return {"log": "Image {} deleted".format(image)}
