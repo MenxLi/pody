@@ -249,6 +249,24 @@ class DockerController():
         images = self.client.images.list(filters=filters)
         return [_get_image_name(image) for image in images]
     
+    def inspect_docker_image(self, image_name: str) -> Optional[dict]:
+        """
+        Return the same as `docker inspect <image_name>`
+        """
+        try:
+            image = self.client.images.get(image_name)
+            return {
+                "name": _get_image_name(image),
+                "id": image.id,
+                "tags": image.tags,
+                "comment": image.attrs.get('Comment', 'N/A'),
+                "size": image.attrs.get('Size', 'N/A'),
+                "exposed_ports": image.attrs.get('Config', {}).get('ExposedPorts', 'N/A'),
+                "created": image.attrs.get('Created', 'N/A'),
+            }
+        except docker.errors.NotFound:
+            return None
+    
     def delete_docker_image(self, image_name: str):
         """
         Delete a Docker image by name.

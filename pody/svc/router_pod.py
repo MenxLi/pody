@@ -154,7 +154,7 @@ def commit_pod(ins: str, tag: Optional[str] = None, user: UserRecord = Depends(r
     im_name = c.commit_container(container_name, commit_image_name, commit_tag_name)
     return {"image_name": im_name, "log": f"Container {container_name} committed to image: {im_name}"}
 
-@router_pod.get("/info")
+@router_pod.get("/inspect")
 @handle_exception
 def info_pod(ins: str, user: UserRecord = Depends(require_permission("all"))):
     container_name = eval_name_raise(ins, user)
@@ -183,6 +183,11 @@ def exec_pod(
         timeout = 30
     exit_code, log = c.exec_container_bash(container_name, cmd, timeout=timeout)
     return {"exit_code": exit_code, "log": log}
+
+@router_pod.get("/info")
+@deprecated_route("Use /pod/inspect instead, will be removed in 0.4.0")
+def info_pod_old(ins: str):
+    ...
 
 # ====== admin only ======
 @router_pod.get("/listall")

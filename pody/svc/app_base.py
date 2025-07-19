@@ -29,6 +29,18 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+def deprecated_route(message: str):
+    def decorator(func):
+        @wraps(func)
+        async def wrapper(*args, **kwargs):
+            if inspect.iscoroutinefunction(func):
+                res = await func(*args, **kwargs)
+            else:
+                res = func(*args, **kwargs)
+            return {"deprecated": message, "res": res}
+        return wrapper
+    return decorator
                     
 def handle_exception(fn):
     @wraps(fn)
@@ -80,5 +92,5 @@ async def log_requests(request: Request, call_next):
     }))
     return response
 
-__all__ = ["app", "g_user_db", "get_user", "require_permission", "handle_exception"]
+__all__ = ["app", "g_user_db", "get_user", "require_permission", "handle_exception", "deprecated_route"]
                 

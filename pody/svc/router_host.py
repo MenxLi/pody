@@ -44,11 +44,6 @@ def gpu_status(id: Optional[str] = None):
             raise InvalidInputError("Invalid GPU ID")
     return gpu_status_impl(_ids)
 
-@router_host.get("/images")
-@handle_exception
-def list_images(_: UserRecord = Depends(require_permission("all"))):
-    return RedirectResponse(url="/image/list", status_code=303)
-
 @router_host.get("/spec")
 def spec(_: UserRecord = Depends(require_permission("all"))):
     def get_docerk_version():
@@ -79,3 +74,8 @@ def spec(_: UserRecord = Depends(require_permission("all"))):
         "nvidia_driver_version": get_nv_driver_version(),
         "nvidia_ctk_version": get_nv_ctk_version(),
     }
+
+@router_host.get("/images")
+@deprecated_route("Use /image/list instead, will be removed in 0.4.0")
+def list_images_deprecated(_: UserRecord = Depends(require_permission("all"))):
+    ...

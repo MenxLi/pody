@@ -53,7 +53,6 @@ async def help(path: Optional[str] = None, _: UserRecord = Depends(get_user)):
                 "/docs", "/openapi.json", "/redoc", "/docs", "/docs/oauth2-redirect", 
             ]
         return [route for route in routes if criteria(route)]   # type: ignore
-        
 
     route_candidates = filter_routes(app.routes)
     if path is None:
