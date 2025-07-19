@@ -10,7 +10,6 @@ available_ports = "20000-21000"
 # the name of the user committed image
 # the actual image name will be [commit_name]:[username] or [commit_name]:[username]-[tag]
 commit_name = "pody-commit"
-commit_size_limit = "20g"
 commit_image_ports = [22, 8000]
 
 volume_mappings = [
@@ -28,6 +27,7 @@ memory_limit = '64g'
 storage_size = ''
 shm_size = '2g'
 commit_count = 1
+commit_size_limit = '20g'
 
 # Below are the images that will be exposed to the user, 
 # please configure them according to available images in the system

@@ -30,6 +30,7 @@ class Config:
         storage_size: str       # "100g"
         shm_size: str
         commit_count: int
+        commit_size_limit: str  # "20g"
 
     name_prefix: str
     available_ports: list[int | tuple[int, int]]
@@ -37,7 +38,6 @@ class Config:
     default_quota: DefaultQuota
     images: list[ImageConfig]
     commit_name: str
-    commit_size_limit: int
     commit_image_ports: list[int]
 
 def config():
@@ -93,6 +93,5 @@ def config():
         default_quota=Config.DefaultQuota(**loaded['default_quota']),
         images=[Config.ImageConfig(name=i['name'], ports=i['ports']) for i in loaded['images']], 
         commit_name=loaded.get('commit_name', 'pody-commit'),
-        commit_size_limit=parse_storage_size(loaded.get('commit_size_limit', '20g')),
         commit_image_ports=loaded.get('commit_image_ports', [22])
         )

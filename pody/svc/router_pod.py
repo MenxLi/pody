@@ -13,6 +13,7 @@ from ..eng.nparse import eval_name_raise, get_user_pod_prefix
 from ..config import config
 from ..eng.errors import *
 from ..eng.nparse import ImageFilter, validate_name_part
+from ..eng.utils import format_storage_size
 from ..eng.user import UserRecord, QuotaDatabase
 from ..eng.docker import ContainerAction, ContainerConfig, DockerController
 
@@ -143,8 +144,10 @@ def commit_pod(ins: str, tag: Optional[str] = None, user: UserRecord = Depends(r
 
     # check size
     container_size = c.inspect_container_size(container_name)
-    if container_size.total > cfg.commit_size_limit:
-        raise PermissionError(f"Container size {container_size.total} exceeds server configured commit limit {cfg.commit_size_limit}")
+    if container_size.total > user_quota.commit_size_limit:
+        raise PermissionError(
+            f"Container size {format_storage_size(container_size.total)} "
+            f"exceeds user commit size limit ({format_storage_size(user_quota.commit_size_limit)})")
     
     commit_image_name = cfg.commit_name
     commit_tag_name = f"{user.name}" + (f"-{tag}" if tag else "")
