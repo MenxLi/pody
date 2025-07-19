@@ -18,7 +18,6 @@ class Config:
     class ImageConfig:
         name: str           # e.g. "ubuntu2204-cuda121:latest"
         ports: list[int]    # e.g. [22, 80, 443]
-        description: str = ""
     
     @dataclass
     class DefaultQuota:

@@ -125,7 +125,6 @@ class ImageFilter():
             return Config.ImageConfig(
                 name=q_image,
                 ports=self.config.commit_image_ports,
-                description="User commit image"
             )
 
         for im_c in self.image_configs:

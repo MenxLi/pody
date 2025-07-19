@@ -36,9 +36,7 @@ commit_size_limit = '20g'
 [[images]]
 name = "ubuntu2204-cu121-base:latest"
 ports = [22, 8000]
-description = "Ubuntu 22.04 with CUDA 12.1 base image"
 
 [[images]]
 name = "lab-cuda"
 ports = [22]
-description = "Our lab image, the tag indicates its specificaion"
