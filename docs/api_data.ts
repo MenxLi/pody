@@ -241,7 +241,7 @@ const apiData: { [key: string]: APIDescription } ={
         }
     },
 
-    "image/inspect": {
+    "/image/inspect": {
         method: "GET",
         description: "Get the information of an image",
         parameters: {

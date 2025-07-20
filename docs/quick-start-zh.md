@@ -17,8 +17,8 @@ export PODY_PASSWORD="123";
 ```
 
 ::: tip
-一个更好的方法是将这些环境变量写入一个脚本文件中，参考[这里](./pody-cli#configuration)。  
-此处我们使用`pody/podx`命令行工具，更多信息可见[文档](/pody-cli)。
+如果你的使用场景要在多个计算节点之间切换，或者需要频繁使用不同的账号，
+更好的方法是将这些环境变量写入脚本文件中，参考[这里](./pody-cli#configuration)。  
 :::
 
 接着，你可以使用`pody` 和 `podx`命令来管理pod了，首先测试一下是否能够连接到服务器，如无问题则会返回用户信息：
@@ -30,6 +30,8 @@ podx user/info
 {'user': {'name': 'limengxun', 'is_admin': 0}, 'quota': {'max_pods': -1, 'gpu_count': -1, 'memory_limit': -1}}
 ```
 :::
+
+`podx`用以发送HTTP请求到服务器，所有可用的路径可在[API文档](./api.md)中查看。  
 
 
 ## 创建一个容器
@@ -123,7 +125,23 @@ pody help /path/to/route
 ```
 
 此外，当`podx`应用于`/`结尾的路径时，也会显示帮助，例如：
-![帮助示例](./assets/help_example.png)
+<!-- ![帮助示例](./assets/help_example.png) -->
+```sh
+limengxun@localhost:~$ pody help pod/
+```
+输出：
+| Path          | Methods | Params             |
+|---------------|---------|--------------------| 
+| /pod/create   | POST    | ins, image         |
+| /pod/delete   | POST    | ins                |    
+| /pod/restart  | POST    | ins                |
+| /pod/stop     | POST    | ins                |
+| /pod/start    | POST    | ins                |
+| /pod/commit   | POST    | ins, tag?, msg?    |
+| /pod/inspect  | GET     | ins                |
+| /pod/list     | GET     |                    |
+| /pod/exec     | POST    | ins, cmd, timeout? |
+| /pod/info     | GET     | ins                |
 
 
 ## 更多操作
