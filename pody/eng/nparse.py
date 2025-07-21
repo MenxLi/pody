@@ -147,3 +147,22 @@ class ImageFilter():
     
     def list(self):
         return list(self)
+
+class UserCommitImageTran:
+    def __init__(self, user_commit_name: str):
+        self.prefix = user_commit_name
+
+    def abbreviate_if_user_commit(self, image_full: str) -> str:
+        """
+        Abbreviate the image name if it is a user commit image.
+        May raise an error if the image does not contain a tag.
+        """
+        assert ":" in image_full, "Image name must contain a tag"
+        if image_full.startswith(self.prefix + ":"):
+            return image_full[len(self.prefix) + 1:]
+        return image_full
+
+    def expand_if_user_commit(self, image_abbr: str) -> str:
+        """ Expand the image name if it is a user commit image.  """
+        if ":" in image_abbr: return image_abbr
+        return f"{self.prefix}:{image_abbr}"

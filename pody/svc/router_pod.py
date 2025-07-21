@@ -12,7 +12,7 @@ from ..eng.nparse import eval_name_raise, get_user_pod_prefix
 
 from ..config import config
 from ..eng.errors import *
-from ..eng.nparse import ImageFilter, validate_name_part
+from ..eng.nparse import ImageFilter, validate_name_part, UserCommitImageTran
 from ..eng.utils import format_storage_size
 from ..eng.user import UserRecord, QuotaDatabase
 from ..eng.docker import ContainerAction, ContainerConfig, DockerController
@@ -22,7 +22,13 @@ router_pod = APIRouter(prefix="/pod")
 @router_pod.post("/create")
 @handle_exception
 def create_pod(ins: str, image: str, user: UserRecord = Depends(require_permission("all"))):
-    validate_name_part(ins)
+    valid, reason = validate_name_part(ins)
+    if not valid:
+        raise InvalidInputError(f"Invalid pod name: {reason}")
+
+    image = UserCommitImageTran(config().commit_name)\
+            .expand_if_user_commit(image)
+
     server_config = config()
     container_name = eval_name_raise(ins, user)
 
@@ -132,8 +138,9 @@ def commit_pod(
     cfg = config()
     c = DockerController()
 
-    # check tag validity
-    if tag: validate_name_part(tag)
+    if tag: 
+        valid, reason = validate_name_part(tag)
+        if not valid: raise InvalidInputError(f"Invalid tag name: {reason}")
 
     # check commit quota
     user_quota = QuotaDatabase().check_quota(user.name, use_fallback=True)

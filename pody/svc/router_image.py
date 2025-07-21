@@ -6,7 +6,7 @@ from fastapi.routing import APIRouter
 from ..eng.errors import *
 from ..eng.user import UserRecord
 from ..eng.docker import DockerController
-from ..eng.nparse import ImageFilter
+from ..eng.nparse import ImageFilter, UserCommitImageTran
 from ..config import config
 
 router_image = APIRouter(prefix="/image")
@@ -14,15 +14,21 @@ router_image = APIRouter(prefix="/image")
 @router_image.get("/list")
 @handle_exception
 def list_images(user: UserRecord = Depends(require_permission("all"))):
-    return ImageFilter(
-        config = config(), 
-        raw_images=DockerController().list_docker_images(), 
-        username = user.name
-        ).list()
+    tran = UserCommitImageTran(config().commit_name)
+    return list(map(
+            tran.abbreviate_if_user_commit,
+            ImageFilter(
+                config = config(), 
+                raw_images=DockerController().list_docker_images(), 
+                username = user.name
+            )
+        ))
 
 @router_image.post("/delete")
 @handle_exception
 def delete_image(image: str, user: UserRecord = Depends(require_permission("all"))):
+    image = UserCommitImageTran(config().commit_name)\
+            .expand_if_user_commit(image)
     c = DockerController()
     im_list = c.list_docker_images()
     if not image in im_list:
@@ -42,6 +48,8 @@ def delete_image(image: str, user: UserRecord = Depends(require_permission("all"
 @router_image.post("/inspect")
 @handle_exception
 def inspect_image(image: str, user: UserRecord = Depends(require_permission("all"))):
+    image = UserCommitImageTran(config().commit_name)\
+            .expand_if_user_commit(image)
     c = DockerController()
     im_list = c.list_docker_images()
     if not image in im_list:
