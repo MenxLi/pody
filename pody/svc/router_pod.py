@@ -143,7 +143,7 @@ def commit_pod(
             raw_images=c.list_docker_images(),
             username=user.name
         )
-        n_user_commits = sum(im_filter.is_user_image(im) for im in im_filter.list())
+        n_user_commits = sum(im_filter.has_user_image(im) for im in im_filter.list())
         if n_user_commits >= user_quota.commit_count:
             raise PermissionError(f"Exceed user commit limit ({user_quota.commit_count}), please delete some images first")
 

@@ -33,7 +33,7 @@ def delete_image(image: str, user: UserRecord = Depends(require_permission("all"
         raw_images = im_list,
         username=user.name
     )
-    if not im_filter.is_user_image(image):
+    if not im_filter.has_user_image(image):
         raise PermissionError("Can only delete user commit images")
     
     c.delete_docker_image(image)
@@ -52,7 +52,7 @@ def inspect_image(image: str, user: UserRecord = Depends(require_permission("all
         raw_images = im_list,
         username=user.name
     )
-    if im_filter.query_config(image) or im_filter.is_user_image(image):
+    if im_filter.query_config(image) or im_filter.has_user_image(image):
         return c.inspect_docker_image(image)
     else:
         raise PermissionError("Invalid image name, please check the available images")

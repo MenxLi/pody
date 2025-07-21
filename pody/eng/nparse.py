@@ -1,6 +1,6 @@
 """
 Name parse for containers. 
-This module provides functions to validate and manipulate container names.
+This module provides functions to validate and manipulate container/image names.
 """
 from __future__ import annotations
 from typing import TypedDict, Optional, overload, Literal, TYPE_CHECKING
@@ -116,12 +116,12 @@ class ImageFilter():
         self.image_configs = config.images
         self.username = username
 
-    def query_config(self, q_image: str) -> Optional[Config.ImageConfig]:
+    def query_config(self, q_image: str, allow_user_image = True) -> Optional[Config.ImageConfig]:
         """ Return the image config if the config name matches the query and the image is available """
         if not q_image in self.raw_images:
             return None
         
-        if self.username and self.is_user_image(q_image):
+        if allow_user_image and self.has_user_image(q_image):
             return Config.ImageConfig(
                 name=q_image,
                 ports=self.config.commit_image_ports,
@@ -133,12 +133,13 @@ class ImageFilter():
 
         return None
     
-    def is_user_image(self, q_image: str) -> bool:
-        return q_image == f"{self.config.commit_name}:{self.username}" or \
+    def has_user_image(self, q_image: str) -> bool:
+        return self.username and q_image in self.raw_images and \
+            q_image == f"{self.config.commit_name}:{self.username}" or \
             q_image.startswith(f"{self.config.commit_name}:{self.username}-")
 
     def __contains__(self, q_image: str):
-        a = self.query_config(q_image)
+        a = self.query_config(q_image, allow_user_image=True)
         return True if a else False
 
     def __iter__(self):
