@@ -68,6 +68,11 @@ VERSION_HISTORY = {
         "Add timeout option to /pod/exec",
         "Various refactors",
     ], 
+    "0.3.1": [
+        "Fix pod/create instance name check", 
+        "Simplify image name handle for user committed images",
+        "Refactors", 
+    ]
 }
 
 VERSION = tuple([int(x) for x in list(VERSION_HISTORY.keys())[-1].split('.')])
