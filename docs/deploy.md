@@ -8,6 +8,11 @@ Then you can install the Pody server from pip:
 pip install "pody[server]"
 ```
 
+:::tip 
+If you run the server as a non-root user, please add the user to the `docker` group.   
+For details, refer to the [Docker documentation (linux-postinstall)](https://docs.docker.com/engine/install/linux-postinstall/#manage-docker-as-a-non-root-user).
+:::
+
 ## Start the server
 The server stores the data in `$PODY_HOME` directory, which is by default `~/.pody`.
 

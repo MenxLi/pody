@@ -5,7 +5,9 @@ outline: deep
 # Pody
 
 Pody is a container manager that adds a layer of abstraction on top of Docker. 
-It uses server-client architecture to expose a RESTful API for managing containers.  
+It uses server-client architecture to expose API for managing containers.  
+
+![arch](./assets/topo.svg)
 
 Specifically: 
 
