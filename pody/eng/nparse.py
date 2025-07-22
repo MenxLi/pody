@@ -11,7 +11,11 @@ from ..config import config, Config
 if TYPE_CHECKING:
     from .user import UserRecord
 
-def validate_name_part(part: str, reserved_kw: list[str] = []) -> tuple[bool, str]:
+def check_name_part(part: str, reserved_kw: list[str] = []) -> tuple[bool, str]:
+    """
+    Check if the name part is valid.
+    Return a tuple of (valid: bool, reason: str)
+    """
     if not 1 <= len(part) <= 20:
         return False, "Name part must be between 1 and 20 characters"
     if part in reserved_kw:
@@ -76,7 +80,7 @@ def split_name_component(ins_name: str, check:bool = True) -> Optional[InsNameCo
     return None
     
 
-def eval_name_raise(ins: str, user: UserRecord):
+def eval_name_raise(ins: str, user: UserRecord) -> str:
     """ 
     takes a instance name and return the full container name, 
     raise error if the name is invalid or the user does not have permission 
@@ -109,7 +113,7 @@ def get_user_pod_prefix(username: str):
     return f"{ins_prefix}-{username}-" if ins_prefix else f"{username}-"
 
 
-class ImageFilter():
+class ImageFilter:
     def __init__(self, config: Config, raw_images: list[str], username: Optional[str] = None):
         self.raw_images = raw_images
         self.config = config
@@ -121,15 +125,15 @@ class ImageFilter():
         if not q_image in self.raw_images:
             return None
         
+        for im_c in self.image_configs:
+            if im_c.name == q_image or (not ':' in im_c.name and q_image.startswith(im_c.name + ':')):
+                return im_c
+
         if allow_user_image and self.has_user_image(q_image):
             return Config.ImageConfig(
                 name=q_image,
                 ports=self.config.commit_image_ports,
             )
-
-        for im_c in self.image_configs:
-            if im_c.name == q_image or (not ':' in im_c.name and q_image.startswith(im_c.name + ':')):
-                return im_c
 
         return None
     
@@ -138,17 +142,16 @@ class ImageFilter():
             q_image == f"{self.config.commit_name}:{self.username}" or \
             q_image.startswith(f"{self.config.commit_name}:{self.username}-")
 
-    def __contains__(self, q_image: str):
-        a = self.query_config(q_image, allow_user_image=True)
-        return True if a else False
+    def iter(self):
+        """ 
+        Iterate over valid image names, 
+        filtering out those not in the config or not user images 
+        """
+        for image in self.raw_images:
+            if self.query_config(image, allow_user_image=True):
+                yield image
 
-    def __iter__(self):
-        return (image for image in self.raw_images if image in self)
-    
-    def list(self):
-        return list(self)
-
-class UserCommitImageTran:
+class ImageNameTran:
     def __init__(self, user_commit_name: str):
         self.prefix = user_commit_name
 

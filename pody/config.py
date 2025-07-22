@@ -41,7 +41,7 @@ class Config:
 
 def config():
     # prevent circular import
-    from .eng.nparse import validate_name_part
+    from .eng.nparse import check_name_part
     from .eng.utils import parse_storage_size
 
     def parse_ports(ports_str: str) -> list[int | tuple[int, int]]:
@@ -81,7 +81,7 @@ def config():
     loaded = toml.load(config_path)
     name_prefix = loaded.get('name_prefix', "")
     if name_prefix:
-        prefix_valid, reason = validate_name_part(loaded['name_prefix'])
+        prefix_valid, reason = check_name_part(loaded['name_prefix'])
         if not prefix_valid:
             raise ValueError(f"Invalid name prefix: {reason}")
     

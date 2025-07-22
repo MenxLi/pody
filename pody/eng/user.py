@@ -5,7 +5,7 @@ from typing import Optional
 
 from .db import DatabaseAbstract
 from .log import get_logger
-from .nparse import validate_name_part
+from .nparse import check_name_part
 from .errors import InvalidUsernameError
 from .utils import format_storage_size, parse_storage_size
 from ..config import DATA_HOME, Config, config
@@ -14,7 +14,7 @@ def hash_password(username: str, password: str):
     return hashlib.sha256(f"{username}:{password}".encode()).hexdigest()
 
 def check_username(username: str):
-    if not (res := validate_name_part(username, ['share']))[0]: raise InvalidUsernameError(res[1])
+    if not (res := check_name_part(username, ['share']))[0]: raise InvalidUsernameError(res[1])
 
 @dataclasses.dataclass
 class UserRecord:

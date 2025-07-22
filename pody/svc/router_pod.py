@@ -12,7 +12,7 @@ from ..eng.nparse import eval_name_raise, get_user_pod_prefix
 
 from ..config import config
 from ..eng.errors import *
-from ..eng.nparse import ImageFilter, validate_name_part, UserCommitImageTran
+from ..eng.nparse import ImageFilter, check_name_part, ImageNameTran
 from ..eng.utils import format_storage_size
 from ..eng.user import UserRecord, QuotaDatabase
 from ..eng.docker import ContainerAction, ContainerConfig, DockerController
@@ -22,11 +22,11 @@ router_pod = APIRouter(prefix="/pod")
 @router_pod.post("/create")
 @handle_exception
 def create_pod(ins: str, image: str, user: UserRecord = Depends(require_permission("all"))):
-    valid, reason = validate_name_part(ins)
+    valid, reason = check_name_part(ins)
     if not valid:
         raise InvalidInputError(f"Invalid pod name: {reason}")
 
-    image = UserCommitImageTran(config().commit_name)\
+    image = ImageNameTran(config().commit_name)\
             .expand_if_user_commit(image)
 
     server_config = config()
@@ -139,7 +139,7 @@ def commit_pod(
     c = DockerController()
 
     if tag: 
-        valid, reason = validate_name_part(tag)
+        valid, reason = check_name_part(tag)
         if not valid: raise InvalidInputError(f"Invalid tag name: {reason}")
 
     # check commit quota
@@ -150,7 +150,7 @@ def commit_pod(
             raw_images=c.list_docker_images(),
             username=user.name
         )
-        n_user_commits = sum(im_filter.has_user_image(im) for im in im_filter.list())
+        n_user_commits = sum(im_filter.has_user_image(im) for im in im_filter.iter())
         if n_user_commits >= user_quota.commit_count:
             raise PermissionError(f"Exceed user commit limit ({user_quota.commit_count}), please delete some images first")
 
