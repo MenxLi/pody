@@ -234,10 +234,11 @@ const apiData: { [key: string]: APIDescription } ={
     // image endpoints ========================================
     "/image/list": {
         method: "GET",
-        description: "List all available images",
+        description: "List all available images. " + 
+            "The user committed images will omit the image name, leaving only the <username>-<tag>. ", 
         example: {
             input: {},
-            output: `(A list of all available image names)`
+            output: `['limengxun-cu126_base', 'captain-cuda:12.6.3-cudnn-devel-ubuntu22.04']`
         }
     },
 
@@ -250,11 +251,23 @@ const apiData: { [key: string]: APIDescription } ={
                 description: "The image to inspect, should be a full image name. " 
             }, 
         },
+        example: {
+            input: {image: "limengxun-latest"},
+            output: {
+                'name': 'pody-commit:limengxun-latest',
+                'id': 'sha256:b9dbbd6961b98d2e489076b876dcb6fff37a57265b379066f7730cf8578aed05',
+                'tags': ['pody-commit:limengxun-latest'],
+                'comment': '',
+                'size': 28695585758,
+                'exposed_ports': {'22/tcp': {}, '8000/tcp': {}},
+                'created': '2025-07-21T13:29:07.17395499Z'
+            }
+        }
     }, 
 
     "/image/delete": {
         method: "POST",
-        description: "Delete an image, please be careful, this operation is irreversible",
+        description: "Delete a user committed image, please be careful, this operation is irreversible",
         parameters: {
             image: {
                 type: "string",
@@ -262,7 +275,7 @@ const apiData: { [key: string]: APIDescription } ={
             }
         },
         example: {
-            input: {image: "pody-commit:limengxun"},
+            input: {image: "limengxun"},
             output: {'log': 'Image pody-commit:limengxun deleted'}
         }
     },
@@ -276,7 +289,8 @@ const apiData: { [key: string]: APIDescription } ={
             "user": {
                 type: "string",
                 description: "The usernames to get CPU time for, can be a comma-separated list, " +
-                "if not provided, will include all users"
+                "if not provided, will include all users", 
+                optional: true
             }, 
             "t": {
                 type: "string",
@@ -303,7 +317,8 @@ const apiData: { [key: string]: APIDescription } ={
             "user": {
                 type: "string",
                 description: "The usernames to get GPU time for, can be a comma-separated list, " +
-                "if not provided, will include all users. "
+                "if not provided, will include all users. ",
+                optional: true
             }, 
             "t": {
                 type: "string",

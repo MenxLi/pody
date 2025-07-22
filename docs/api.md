@@ -7,14 +7,17 @@ outline: deep
     import { fmtCurlCmd, fmtPodyCmd, fmtPodxCmd } from './api_data.ts';
     import APIBlock from './api_block.vue';
     import APITable from './api_table.vue';
-    import { ref, watch } from 'vue';
+    import { ref, watch, onMounted } from 'vue';
 
-    const urlParams = new URLSearchParams(window.location.search);
-    const initialApiType = urlParams.get('api') || 'podx' as 'curl' | 'podx' | 'pody';
-    const apiType = ref( initialApiType as 'curl' | 'podx' | 'pody');
-    watch(apiType, (newType) => {
-        urlParams.set('api', newType);
-        window.history.replaceState({}, '', `${window.location.pathname}?${urlParams.toString()}`);
+    const apiType = ref<'curl' | 'podx' | 'pody'>('podx');
+    onMounted(() => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const initialApiType = urlParams.get('api') || 'podx' as 'curl' | 'podx' | 'pody';
+        apiType.value = initialApiType;
+        watch(apiType, (newType) => {
+            urlParams.set('api', newType);
+            window.history.replaceState({}, '', `${window.location.pathname}?${urlParams.toString()}`);
+        });
     });
 </script>
 

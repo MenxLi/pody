@@ -127,7 +127,7 @@ pody help /path/to/route
 此外，当`podx`应用于`/`结尾的路径时，也会显示帮助，例如：
 <!-- ![帮助示例](./assets/help_example.png) -->
 ```sh
-limengxun@localhost:~$ pody help pod/
+pody help pod/
 ```
 输出：
 | Path          | Methods | Params             |
@@ -135,13 +135,7 @@ limengxun@localhost:~$ pody help pod/
 | /pod/create   | POST    | ins, image         |
 | /pod/delete   | POST    | ins                |    
 | /pod/restart  | POST    | ins                |
-| /pod/stop     | POST    | ins                |
-| /pod/start    | POST    | ins                |
-| /pod/commit   | POST    | ins, tag?, msg?    |
-| /pod/inspect  | GET     | ins                |
-| /pod/list     | GET     |                    |
-| /pod/exec     | POST    | ins, cmd, timeout? |
-| /pod/info     | GET     | ins                |
+| ...           | ...     | ...                |
 
 
 ## 更多操作
