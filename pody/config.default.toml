@@ -1,7 +1,7 @@
 # prefix for the container names
 # if empty, the container name will be [username]-[instance], 
 # otherwise, [prefix]-[username]-[instance]. e.g. "pd" -> pd-[username]-[instance]
-name_prefix = ""
+name_prefix = "pd"
 
 # should be comma-separated list of ports or ranges
 # e.g. "20000,20002-20010"
@@ -16,6 +16,11 @@ volume_mappings = [
 	"/data/pody-volume/$username:/workspace/$username:rw", 
 	"/data/pody-volume/share:/workspace/share:ro"
 ]
+
+# the name of the network to be created for the containers
+# should manually create the network before using it
+# if empty, the default bridge network will be used
+network = ""
 
 # fallback quota for unspecified user-quota
 # ["" for string] and [-1 for integer] means no limit ("none" for gpus means no gpu)

@@ -38,6 +38,7 @@ class ContainerConfig:
     shm_size: Optional[str] = None          # e.g. "8g"
 
     # other default settings
+    network: str = ""                       # e.g. "pody-net", if empty, the default bridge network will be used
     restart_policy: Optional["_RestartPolicy"] = field(default_factory=lambda: {"Name": "always", "MaximumRetryCount": 0})
     tty = True
     auto_remove = False
@@ -116,6 +117,16 @@ class DockerController():
                         device_ids=[f"{gpu_id}" for gpu_id in gpu_ids]
                     )
                 ]
+        
+        def parse_network(network: str) -> Optional[str]:
+            if not network:
+                return None
+            try:
+                self.client.networks.get(network)
+                return network
+            except docker.errors.NotFound:
+                raise IncorrectConfigError(f"Network {network} not found.")
+        
         # https://docker-py.readthedocs.io/en/stable/containers.html
         container = self.client.containers.run(
             image=config.image_name,
@@ -129,6 +140,7 @@ class DockerController():
             shm_size=config.shm_size,
             tty=config.tty, 
             detach=config.detach,                   # type: ignore
+            network=parse_network(config.network),
             restart_policy=config.restart_policy, 
             auto_remove=config.auto_remove, 
             entrypoint=config.entrypoint, 

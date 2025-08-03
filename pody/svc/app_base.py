@@ -57,6 +57,7 @@ def handle_exception(fn):
             if isinstance(e, PermissionError): raise HTTPException(status_code=403, detail=str(e))
             if isinstance(e, NotFoundError): raise HTTPException(status_code=404, detail=str(e))
             if isinstance(e, DuplicateError): raise HTTPException(status_code=409, detail=str(e))
+            if isinstance(e, IncorrectConfigError): raise HTTPException(status_code=500, detail=str(e))
             if isinstance(e, docker.errors.NotFound): raise HTTPException(status_code=404, detail=str(e))
             if isinstance(e, docker.errors.APIError): raise HTTPException(status_code=500, detail=str(e))
             if isinstance(e, requests.exceptions.ReadTimeout): raise HTTPException(status_code=504, detail="Request timed out")

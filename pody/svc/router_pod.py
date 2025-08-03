@@ -88,6 +88,7 @@ def create_pod(ins: str, image: str, user: UserRecord = Depends(require_permissi
         container_name=container_name,
         volumes=volume_mappings,
         port_mapping=port_mapping,
+        network=server_config.network,
         gpu_ids=parse_gpuids(user_quota.gpus),
         memory_limit=f'{user_quota.memory_limit}b' if user_quota.memory_limit > 0 else None,
         storage_size=f'{user_quota.storage_size}b' if user_quota.storage_size > 0 else None, 

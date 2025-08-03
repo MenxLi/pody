@@ -34,6 +34,7 @@ class Config:
     name_prefix: str
     available_ports: list[int | tuple[int, int]]
     volume_mappings: list[str]
+    network: str
     default_quota: DefaultQuota
     images: list[ImageConfig]
     commit_name: str
@@ -42,7 +43,6 @@ class Config:
 def config():
     # prevent circular import
     from .eng.nparse import check_name_part
-    from .eng.utils import parse_storage_size
 
     def parse_ports(ports_str: str) -> list[int | tuple[int, int]]:
         ports: list[int | tuple[int, int]] = []
@@ -89,6 +89,7 @@ def config():
         name_prefix=name_prefix,
         available_ports=parse_ports(loaded['available_ports']), 
         volume_mappings=loaded['volume_mappings'],
+        network=loaded.get('network', ""),
         default_quota=Config.DefaultQuota(**loaded['default_quota']),
         images=[Config.ImageConfig(name=i['name'], ports=i['ports']) for i in loaded['images']], 
         commit_name=loaded.get('commit_name', 'pody-commit'),
