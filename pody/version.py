@@ -74,7 +74,7 @@ VERSION_HISTORY = {
         "Refactors", 
     ], 
     "0.3.2": [
-        "Add network option to configuration",
+        "Add network to configuration",
     ]
 }
 
