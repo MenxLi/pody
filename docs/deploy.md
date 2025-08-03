@@ -45,8 +45,8 @@ For example, to manage images, you should first pull or build the image,
 then specify the images to expose to the client by editing the `[[images]]` section in the
 `$PODY_HOME/config.toml` file.
 
-### Optional: Communicate between containers
-If you want to allow containers to communicate with each other,
+### Optional: Using Docker network
+If you want to allow containers to communicate with each other in a dedicated network (with DNS resolution), 
 you can create a user-defined docker network (e.g. `pody-net`) and specify it in the container configuration.
 ```sh
 docker network create pody-net

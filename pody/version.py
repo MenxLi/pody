@@ -72,6 +72,9 @@ VERSION_HISTORY = {
         "Fix pod/create instance name check", 
         "Simplify image name handle for user committed images",
         "Refactors", 
+    ], 
+    "0.3.2": [
+        "Add network option to configuration",
     ]
 }
 
