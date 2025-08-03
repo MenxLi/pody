@@ -51,6 +51,7 @@ class ContainerInfo:
     name: str
     status: str
     image: str
+    networks: list[str]
     port_mapping: list[str]     # e.g. ["8000:8000", "8888:8888"]
     gpu_ids: Optional[list[int]]
     memory_limit: int
@@ -199,12 +200,18 @@ class DockerController():
         else:
             gpu_ids = [int(id) for id in raw_gpu_ids[0].get('DeviceIDs')] if raw_gpu_ids is not None and len(raw_gpu_ids) > 0 else []
         
+        network_settings = container.attrs.get('NetworkSettings', {})
+
         port_mappings_dict = {}
-        port_dict = container.attrs['NetworkSettings']['Ports']
-        for host_port, container_ports in port_dict.items():
+        for host_port, container_ports in network_settings.get('Ports', {}).items():
             if container_ports:
                 for port in container_ports:
                     port_mappings_dict[port['HostPort']] = host_port.split('/')[0]
+        
+        networks = []
+        for network_name, network_info in network_settings.get('Networks', {}).items():
+            if network_info.get('NetworkID'):
+                networks.append(network_name)
 
         container_info = ContainerInfo(
             container_id=container.id[:12] if container.id else None,
@@ -213,6 +220,7 @@ class DockerController():
             image=_get_image_name(container.image) if container.image else "unknown",
             port_mapping=[f"{host_port}:{container_port}" for host_port, container_port in port_mappings_dict.items()],
             gpu_ids=gpu_ids, 
+            networks=networks,
             memory_limit=container.attrs['HostConfig']['Memory'] if container.attrs['HostConfig']['Memory'] else -1, 
             shm_size=container.attrs['HostConfig']['ShmSize'] if container.attrs['HostConfig']['ShmSize'] else -1, 
         )

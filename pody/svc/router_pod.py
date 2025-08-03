@@ -169,7 +169,7 @@ def commit_pod(
 
 @router_pod.get("/inspect")
 @handle_exception
-def info_pod(ins: str, user: UserRecord = Depends(require_permission("all"))):
+def inspect_pod(ins: str, user: UserRecord = Depends(require_permission("all"))):
     container_name = eval_name_raise(ins, user)
     c = DockerController()
     ins_name = container_name.split('-')[-1]
