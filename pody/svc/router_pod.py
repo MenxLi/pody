@@ -21,7 +21,11 @@ router_pod = APIRouter(prefix="/pod")
 
 @router_pod.post("/create")
 @handle_exception
-def create_pod(ins: str, image: str, user: UserRecord = Depends(require_permission("all"))):
+def create_pod(
+    ins: str, image: str, 
+    net: bool = False,
+    user: UserRecord = Depends(require_permission("all"))
+    ):
     valid, reason = check_name_part(ins)
     if not valid:
         raise InvalidInputError(f"Invalid pod name: {reason}")
@@ -88,7 +92,7 @@ def create_pod(ins: str, image: str, user: UserRecord = Depends(require_permissi
         container_name=container_name,
         volumes=volume_mappings,
         port_mapping=port_mapping,
-        network=server_config.network,
+        network=server_config.network if net else "", 
         gpu_ids=parse_gpuids(user_quota.gpus),
         memory_limit=f'{user_quota.memory_limit}b' if user_quota.memory_limit > 0 else None,
         storage_size=f'{user_quota.storage_size}b' if user_quota.storage_size > 0 else None, 

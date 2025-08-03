@@ -45,6 +45,17 @@ For example, to manage images, you should first pull or build the image,
 then specify the images to expose to the client by editing the `[[images]]` section in the
 `$PODY_HOME/config.toml` file.
 
+### Optional: Communicate between containers
+If you want to allow containers to communicate with each other,
+you can create a user-defined docker network (e.g. `pody-net`) and specify it in the container configuration.
+```sh
+docker network create pody-net
+```
+then, set the `network` option in the congfiguration file:
+```toml
+network = "pody-net"
+```
+
 ## Start on boot
 To start the server on boot, you can use the `pody-util systemd-unit` helper command to generate a systemd service content:
 ```sh

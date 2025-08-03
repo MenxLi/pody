@@ -92,6 +92,13 @@ const apiData: { [key: string]: APIDescription } ={
             image: {
                 type: "string",
                 description: "The image of the pod to create from (e.g. ubuntu2204-cuda12.1:latest)"
+            }, 
+            net: {
+                type: "boolean",
+                description: "If true, the pod connects to the host-configured network. " +
+                    "If false, it uses Docker's default bridge network. " +
+                    "Defaults to true.",
+                optional: true
             }
         },
         example: {
