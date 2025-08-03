@@ -7,8 +7,9 @@ export function fmtCurlCmd(method: string, url: string, params: Record<string, s
     if (Object.keys(params).length === 0) { return cmd + '"'; }
     else { cmd += "?"; }
     for (let key in params) {
-        cmd += `${new URLSearchParams({[key]: params[key]}).toString()}`;
+        cmd += `${new URLSearchParams({[key]: params[key]}).toString()}&`;
     }
+    cmd = cmd.slice(0, -1);
     return cmd + '"';
 }
 
