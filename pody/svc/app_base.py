@@ -13,9 +13,7 @@ import docker
 from ..eng.errors import *
 from ..eng.log import get_logger
 from ..config import config
-from ..eng.user import UserDatabase, hash_password
-
-g_user_db = UserDatabase()
+from ..eng.user import UserDatabase, hash_password, UserRecord
 
 @asynccontextmanager
 async def life_span(app: FastAPI):
@@ -64,15 +62,16 @@ def handle_exception(fn):
             raise
     return wrapper
 
-async def get_user(credentials: HTTPBasicCredentials = Depends(HTTPBasic(auto_error=True))):
+async def get_user(r: Request, credentials: HTTPBasicCredentials = Depends(HTTPBasic(auto_error=True))):
     key = hash_password(credentials.username, credentials.password)
-    user = g_user_db.check_user(key)
-    if user.userid == 0:
-        raise HTTPException(403, "Invalid username or password")
+    user = UserDatabase().check_user(key)
+    r.state.user = user
     return user
 
 def require_permission(permission: Literal['all', 'admin'] = "all"):
-    def _require_permission(user = Depends(get_user)):
+    def _require_permission(user: UserRecord = Depends(get_user)):
+        if user.userid == 0:
+            raise HTTPException(403, "Invalid username or password")
         if permission == 'all' or user.is_admin: 
             return user
         if permission == 'admin' and not user.is_admin:
@@ -84,8 +83,14 @@ def require_permission(permission: Literal['all', 'admin'] = "all"):
 async def log_requests(request: Request, call_next):
     logger = get_logger('requests')
     response: Response = await call_next(request)
+    user = request.state.user if hasattr(request.state, 'user') else None
+    url_str = str(request.url) if request.url else ''
+    url_base = url_str.split('?')[0] if url_str else ''
+    url_params = url_str.split('?')[1] if '?' in url_str else ''
     logger.debug(json.dumps({
-        "url": str(request.url),
+        "url": url_base,
+        "user": user.name if user else "",
+        "params": url_params,
         "method": str(request.method),
         "client": str(request.client.host if request.client else 'unknown'),
         "headers": dict(request.headers),
@@ -93,5 +98,5 @@ async def log_requests(request: Request, call_next):
     }))
     return response
 
-__all__ = ["app", "g_user_db", "get_user", "require_permission", "handle_exception", "deprecated_route"]
+__all__ = ["app", "require_permission", "handle_exception", "deprecated_route"]
                 

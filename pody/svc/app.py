@@ -25,7 +25,7 @@ from starlette.routing import Route, BaseRoute
 from pody.eng.user import UserRecord
 @app.get("/help")
 @handle_exception
-async def help(path: Optional[str] = None, _: UserRecord = Depends(get_user)):
+async def help(path: Optional[str] = None, _: UserRecord = Depends(require_permission("all"))):
     """
     return the http method and params for the path
     """
