@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pody"
-version = "0.3.2"
+version = "0.3.3"
 description = "Pod manager for docker, give limited access to docker for clients."
 authors = ["Li, Mengxun <mengxunli@whu.edu.cn>", "Li, Jiayu <jiayu.li@whu.edu.cn>"]
 readme = "readme.md"
@@ -22,7 +22,7 @@ toml = {version = "*", optional = true}
 [tool.poetry.extras]
 server = ["docker", "nvidia-ml-py", "fastapi", "uvicorn", "psutil", "toml"]
 
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.dev.dependencies]
 pytest = "*"
 
 [tool.poetry.scripts]

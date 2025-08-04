@@ -75,6 +75,10 @@ VERSION_HISTORY = {
     ], 
     "0.3.2": [
         "Add network to configuration",
+    ], 
+    "0.3.3": [
+        "Fix pod/create image name check for user committed images",
+        "Update request logging to include user and split url params",
     ]
 }
 
