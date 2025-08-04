@@ -138,17 +138,20 @@ class ImageFilter:
         return None
     
     def has_user_image(self, q_image: str) -> bool:
+        assert self.username is not None, "Username must be set for querying user images"
         return self.username and q_image in self.raw_images and \
-            q_image == f"{self.config.commit_name}:{self.username}" or \
-            q_image.startswith(f"{self.config.commit_name}:{self.username}-")
+            (
+                q_image == f"{self.config.commit_name}:{self.username}" or \
+                q_image.startswith(f"{self.config.commit_name}:{self.username}-")
+            )
 
-    def iter(self):
+    def iter(self, allow_user_image: bool = True):
         """ 
         Iterate over valid image names, 
         filtering out those not in the config or not user images 
         """
         for image in self.raw_images:
-            if self.query_config(image, allow_user_image=True):
+            if self.query_config(image, allow_user_image=allow_user_image):
                 yield image
 
 class ImageNameTran:

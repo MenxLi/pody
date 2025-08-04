@@ -50,7 +50,8 @@ def create_pod(
     # check image
     im_filter = ImageFilter(
         config = server_config, 
-        raw_images=c.list_docker_images()
+        raw_images=c.list_docker_images(), 
+        username=user.name
         )
     target_im_config = im_filter.query_config(image)
     if not target_im_config:
