@@ -248,7 +248,7 @@ class DockerController():
                 return parse_storage_size(size_str)
         return ContainerSize(parse_size(total), parse_size(virtual))
 
-    def check_container(self, container_id: str):
+    def check_container_raise(self, container_id: str):
         """ Check if the container exists and return the very basic information """
         try:
             container = self.client.containers.get(container_id)
@@ -310,7 +310,7 @@ class DockerController():
         return used_ports
 
     def exec_container_bash(self, container_name: str, command: str, timeout: int = 30) -> tuple[int, str]:
-        self.check_container(container_name)
+        self.check_container_raise(container_name)
         start_time = time.time()
         q = Queue()
         proc = Process(target=_exec_container_bash_worker, args=(container_name, command, q), daemon=True)

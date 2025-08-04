@@ -38,7 +38,7 @@ def create_pod(
     c = DockerController()
     # first check if the container exists
     with suppress(ContainerNotFoundError):
-        c.check_container(container_name)
+        c.check_container_raise(container_name)
         raise DuplicateError(f"Container {container_name} already exists")
 
     # check user quota
