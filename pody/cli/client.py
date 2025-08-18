@@ -76,7 +76,11 @@ def parse_param_va_args(args: Optional[List[str]]):
 def fetch_impl(method: str, path: str, args: Optional[list[str]], raw: bool):
     def fmt_unit(res):
         """ Format some numeric values in the response to human-readable format """
-        storage_size_kw = set(("memory_limit", "gpu_memory_used", "memory_used", "shm_size", "commit_size_limit", "storage_size"))
+        storage_size_kw = set((
+            "memory_limit", "gpu_memory_used", "memory_used", 
+            "commit_size_limit", "storage_size", 
+            "shm_size", "tmpfs_size"
+            ))
         time_size_kw = ["uptime", "cputime"]
         if isinstance(res, list):
             return [fmt_unit(r) for r in res]

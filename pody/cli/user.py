@@ -47,14 +47,18 @@ def update_quota(
     memory_limit: Optional[str] = None, 
     storage_size: Optional[str] = None, 
     shm_size: Optional[str] = None, 
+    tmpfs_size: Optional[str] = typer.Option(None, "--tmpfs-size", help="Size of tmpfs mounts, e.g. '1g', or 'none' for no tmpfs mounts"),
     commit_count: Optional[int] = None, 
+    commit_size_limit: Optional[str] = None,
     ):
     QuotaDatabase().update_quota(
         username, max_pods=max_pods, gpu_count=gpu_count, gpus=gpus,
         memory_limit=parse_storage_size(memory_limit) if not memory_limit is None else None, 
         storage_size=parse_storage_size(storage_size) if not storage_size is None else None, 
         shm_size=parse_storage_size(shm_size) if not shm_size is None else None, 
+        tmpfs_size=parse_storage_size(tmpfs_size) if not tmpfs_size is None else None,
         commit_count=commit_count, 
+        commit_size_limit=parse_storage_size(commit_size_limit) if not commit_size_limit is None else None
         )
 
 @app.command(no_args_is_help=True, help="Remove user quota from database, so to use default fallback from config")

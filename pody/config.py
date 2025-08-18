@@ -28,6 +28,7 @@ class Config:
         memory_limit: str       # "64g"
         storage_size: str       # "100g"
         shm_size: str
+        tmpfs_size: str         # "1g", set to 'none' for no tmpfs mounts
         commit_count: int
         commit_size_limit: str  # "20g"
 
@@ -84,6 +85,10 @@ def config():
         prefix_valid, reason = check_name_part(loaded['name_prefix'])
         if not prefix_valid:
             raise ValueError(f"Invalid name prefix: {reason}")
+
+    # TODO: backward compat. remove in 0.5.0
+    if not 'tmpfs_size' in loaded['default_quota']:
+        loaded['default_quota']['tmpfs_size'] = 'none'
     
     return Config(
         name_prefix=name_prefix,

@@ -14,7 +14,8 @@ commit_image_ports = [22, 8000]
 
 volume_mappings = [
 	"/data/pody-volume/$username:/workspace/$username:rw", 
-	"/data/pody-volume/share:/workspace/share:ro"
+	"/data/pody-volume/share:/workspace/share:ro", 
+	"tmpfs:/workspace/tmpfs", 	# tmpfs mount, remove this line if you do not want tmpfs mounts
 ]
 
 # the name of the network to be created for the containers
@@ -30,9 +31,10 @@ gpu_count = -1
 gpus = "all"
 memory_limit = '64g'
 storage_size = ''
-shm_size = '2g'
 commit_count = 1
 commit_size_limit = '20g'
+shm_size = '8g'
+tmpfs_size = '1g'  			# set to 'none' for no tmpfs mount
 
 # Below are the images that will be exposed to the user, 
 # please configure them according to available images in the system

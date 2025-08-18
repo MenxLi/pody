@@ -119,6 +119,7 @@ class UserQuota:
     memory_limit: int # in bytes (per container)
     storage_size: int # in bytes (per container, exclude external volumes)
     shm_size: int # in bytes (per container)
+    tmpfs_size: int # in bytes (per container, set to 0 for no tmpfs mounts)
     commit_count: int
     commit_size_limit: int
 
@@ -127,6 +128,7 @@ class UserQuota:
                 f"memory_limit={format_storage_size(self.memory_limit) if self.memory_limit >= 0 else self.memory_limit}, "\
                 f"storage_size={format_storage_size(self.storage_size) if self.storage_size >= 0 else self.storage_size}, "\
                 f"shm_size={format_storage_size(self.shm_size) if self.shm_size >= 0 else self.shm_size}, "\
+                f"tmpfs_size={format_storage_size(self.tmpfs_size) if self.tmpfs_size >= 0 else self.tmpfs_size}, "\
                 f"commit_count={self.commit_count}, "\
                 f"commit_size_limit={format_storage_size(self.commit_size_limit) if self.commit_size_limit >= 0 else self.commit_size_limit})"
 
@@ -139,7 +141,8 @@ def get_fallback_quota(q: UserQuota, cq: Optional[Config.DefaultQuota] = None) -
     if cq is None:
         cq = config().default_quota
     def storage_size_from_str(s: str) -> int:
-        if not s: return -1
+        if s == "": return -1
+        if s == "none": return 0
         return parse_storage_size(s)
     return UserQuota(
         max_pods = q.max_pods if q.max_pods >= 0 else cq.max_pods,
@@ -150,6 +153,7 @@ def get_fallback_quota(q: UserQuota, cq: Optional[Config.DefaultQuota] = None) -
         shm_size = q.shm_size if q.shm_size >= 0 else storage_size_from_str(cq.shm_size),
         commit_count= q.commit_count if q.commit_count >= 0 else cq.commit_count, 
         commit_size_limit = q.commit_size_limit if q.commit_size_limit >= 0 else storage_size_from_str(cq.commit_size_limit),
+        tmpfs_size= q.tmpfs_size if q.tmpfs_size >= 0 else storage_size_from_str(cq.tmpfs_size),
         )
 
 class QuotaDatabase(DatabaseAbstract):
@@ -173,7 +177,8 @@ class QuotaDatabase(DatabaseAbstract):
                     storage_size INTEGER NOT NULL DEFAULT -1,
                     shm_size INTEGER NOT NULL DEFAULT -1, 
                     commit_count INTEGER NOT NULL DEFAULT -1, 
-                    commit_size_limit INTEGER NOT NULL DEFAULT -1
+                    commit_size_limit INTEGER NOT NULL DEFAULT -1, 
+                    tmpfs_size INTEGER NOT NULL DEFAULT -1
                 );
                 """
             )
@@ -181,7 +186,6 @@ class QuotaDatabase(DatabaseAbstract):
         self.__maybe_upgrade()
     
     def __maybe_upgrade(self):
-        # if commit_count is not in schema, add it
         def add_commit_count():
             with self.cursor() as cursor:
                 cursor.execute("PRAGMA table_info(quota)")
@@ -193,7 +197,6 @@ class QuotaDatabase(DatabaseAbstract):
                     "ALTER TABLE quota ADD COLUMN commit_count INTEGER NOT NULL DEFAULT -1"
                 )
                 self.logger.info("Quota database upgraded to latest version")
-        # if commit_size_limit is not in schema, add it
         def add_commit_size_limit():
             with self.cursor() as cursor:
                 cursor.execute("PRAGMA table_info(quota)")
@@ -205,8 +208,20 @@ class QuotaDatabase(DatabaseAbstract):
                     "ALTER TABLE quota ADD COLUMN commit_size_limit INTEGER NOT NULL DEFAULT -1"
                 )
                 self.logger.info("Quota database upgraded to latest version")
-        add_commit_count()
-        add_commit_size_limit()
+        def add_tmpfs_size():
+            with self.cursor() as cursor:
+                cursor.execute("PRAGMA table_info(quota)")
+                columns = [col[1] for col in cursor.fetchall()]
+                if "tmpfs_size" in columns:
+                    return
+            with self.transaction() as cursor:
+                cursor.execute(
+                    "ALTER TABLE quota ADD COLUMN tmpfs_size INTEGER NOT NULL DEFAULT 0"
+                )
+                self.logger.info("Quota database upgraded to latest version")
+        add_commit_count()          # TODO: remove in 0.4.0
+        add_commit_size_limit()     # TODO: remove in 0.4.0
+        add_tmpfs_size()            # TODO: remove in 0.5.0
     
     def delete_quota(self, usrname: str):
         with self.transaction() as cursor:
@@ -225,18 +240,21 @@ class QuotaDatabase(DatabaseAbstract):
         If use_fallback is True, the default quota in config will be used as fallback.
         """
         with self.cursor() as cur:
+            # the order must match that of UserQuota definition, 
+            # may not be the same as the schema
             cur.execute(
                 """
                 SELECT 
                     max_pods, gpu_count, gpus, 
-                    memory_limit, storage_size, shm_size, 
+                    memory_limit, storage_size, 
+                    shm_size, tmpfs_size, 
                     commit_count, commit_size_limit
                 FROM quota WHERE username = ?
                 """,
                 (usrname,),
             )
             res = cur.fetchone()
-            if res is None: q = UserQuota(-1, -1, "", -1, -1, -1, -1, -1)
+            if res is None: q = UserQuota(-1, -1, "", -1, -1, -1, -1, -1, -1)
             else: q = UserQuota(*res)
         if use_fallback:
             return get_fallback_quota(q)
@@ -251,7 +269,9 @@ class QuotaDatabase(DatabaseAbstract):
         memory_limit: Optional[int] = None,
         storage_size: Optional[int] = None,
         shm_size: Optional[int] = None,
+        tmpfs_size: Optional[int] = None,
         commit_count: Optional[int] = None, 
+        commit_size_limit: Optional[int] = None, 
         ):
         """
         Update user quota, 
@@ -302,9 +322,21 @@ class QuotaDatabase(DatabaseAbstract):
                     (shm_size, usrname),
                 )
                 self.logger.info(f"User {usrname} shm_size updated")
+            if tmpfs_size is not None:
+                cursor.execute(
+                    "UPDATE quota SET tmpfs_size = ? WHERE username = ?",
+                    (tmpfs_size, usrname),
+                )
+                self.logger.info(f"User {usrname} tmpfs_size updated")
             if commit_count is not None:
                 cursor.execute(
                     "UPDATE quota SET commit_count = ? WHERE username = ?",
                     (commit_count, usrname),
                 )
                 self.logger.info(f"User {usrname} commit_count updated")
+            if commit_size_limit is not None:
+                cursor.execute(
+                    "UPDATE quota SET commit_size_limit = ? WHERE username = ?",
+                    (commit_size_limit, usrname),
+                )
+                self.logger.info(f"User {usrname} commit_size_limit updated")

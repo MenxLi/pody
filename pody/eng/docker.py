@@ -36,6 +36,7 @@ class ContainerConfig:
     memory_limit: Optional[str] = None      # e.g. "8g"
     storage_size: Optional[str] = None      # e.g. "8g"
     shm_size: Optional[str] = None          # e.g. "8g"
+    tmpfs_size: Optional[str] = None        # e.g. "8g", None for no tmpfs mounts
 
     # other default settings
     network: str = ""                       # e.g. "pody-net", if empty, the default bridge network will be used
@@ -86,12 +87,21 @@ class DockerController():
         self.logger = get_logger('engine')
 
     def create_container(self, config: ContainerConfig) -> str:
-        def parse_mount(mount: str, create_source = True) -> docker.types.Mount:
+        def parse_mount(mount: str, create_source = True) -> Optional[docker.types.Mount]:
             mount_sp = mount.split(":")
             if len(mount_sp) < 2:
                 raise ValueError(f"Invalid volume mapping: {mount}")
             source = mount_sp[0]
             target = mount_sp[1]
+
+            if source == 'tmpfs':
+                if config.tmpfs_size is None or config.tmpfs_size.lower() == 'none':
+                    return None
+                return docker.types.Mount(
+                    target=target, type="tmpfs", tmpfs_size=config.tmpfs_size, 
+                    source = '' # somehow the api request the source input, but it must be empty
+                    )
+                
             if len(mount_sp) == 3:
                 read_only = mount_sp[2] == "ro"
             else:
@@ -132,7 +142,7 @@ class DockerController():
         container = self.client.containers.run(
             image=config.image_name,
             name=config.container_name,
-            mounts=[parse_mount(vol) for vol in config.volumes],
+            mounts=[m for vol in config.volumes if (m:=parse_mount(vol)) is not None],
             ports={port.split(":")[1]: port.split(":")[0] for port in config.port_mapping},     # type: ignore
             device_requests=parse_gpus(config.gpu_ids),
             mem_limit=config.memory_limit,

@@ -75,6 +75,7 @@ def spec(_: UserRecord = Depends(require_permission("all"))):
         "nvidia_ctk_version": get_nv_ctk_version(),
     }
 
+# TODO: remove in 0.4.0
 @router_host.get("/images")
 @deprecated_route("Use /image/list instead, will be removed in 0.4.0")
 def list_images_deprecated(_: UserRecord = Depends(require_permission("all"))):
