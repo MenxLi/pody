@@ -23,7 +23,7 @@ def list_images(user: UserRecord = Depends(require_permission("all"))):
                 username = user.name
             ).iter()
         )
-    return list(it)
+    return sorted(it, key=lambda x: (":" in x, x))
 
 @router_image.post("/delete")
 @handle_exception

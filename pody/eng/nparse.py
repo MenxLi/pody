@@ -139,7 +139,7 @@ class ImageFilter:
     
     def has_user_image(self, q_image: str) -> bool:
         assert self.username is not None, "Username must be set for querying user images"
-        return self.username and q_image in self.raw_images and \
+        return bool(self.username) and q_image in self.raw_images and \
             (
                 q_image == f"{self.config.commit_name}:{self.username}" or \
                 q_image.startswith(f"{self.config.commit_name}:{self.username}-")
@@ -162,6 +162,10 @@ class ImageNameTran:
         """
         Abbreviate the image name if it is a user commit image.
         May raise an error if the image does not contain a tag.
+        (
+            Abbreviated name is just the tag part if it is a user commit image, 
+            otherwise, return the full image name in 'image:tag' format.
+        )
         """
         assert ":" in image_full, "Image name must contain a tag"
         if image_full.startswith(self.prefix + ":"):
