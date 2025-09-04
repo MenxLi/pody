@@ -74,7 +74,7 @@ const apiData: { [key: string]: APIDescription } ={
     }, 
     "/user/ch-passwd": {
         method: "GET",
-        description: "List all usernames and their admin status in this node",
+        description: "Change password",
         parameters: {
             passwd: {
                 type: "string",
