@@ -184,6 +184,76 @@ def copy_id(
             f"cmd:mkdir -p ~/.ssh && echo \"{pub_key}\" >> ~/.ssh/authorized_keys",
         ],
     )
+
+@app.command(
+    help = "Connect to the instance via SSH",
+    rich_help_panel="Utility"
+    )
+@handle_request_error()
+def connect(
+    ins: str = typer.Argument(help="Instance name to connect to"),
+    identity_file: Optional[str] = typer.Option(
+        None, '-i', '--identity-file',
+        help="Path to the SSH private key file, e.g. ~/.ssh/id_rsa"
+    ),
+    port: int = typer.Option(
+        22, '-p', '--port', 
+        help="SSH port, default is 22"
+    ),
+    user: str = typer.Option(
+        "root", '-u', '--user',
+        help="SSH user name, default is root"
+    ),
+    tmp: bool = typer.Option(
+        False, '-t', '--tmp',
+        help="Temp access, do not check the host key, useful for internal network connections"
+    )):
+    """
+    Connect to the instance via SSH.
+    """
+    if ins.startswith("ins:") or ins.startswith("ins="):
+        ins = ins[4:]
+    if identity_file is None:
+        possible_locations = [
+            os.path.expanduser("~/.ssh/id_rsa"),
+            os.path.expanduser("~/.ssh/id_ed25519"),
+            os.path.expanduser("~/.ssh/id_dsa"),
+            os.path.expanduser("~/.ssh/id_ecdsa"),
+        ]
+        for loc in possible_locations:
+            if os.path.exists(loc):
+                identity_file = loc
+                break
+
+    api = PodyAPI()
+    def get_ssh_port() -> Optional[int]:
+        nonlocal api, port
+        r: dict = api.get("/pod/inspect", {"ins": ins})
+        port_mapping = r.get("port_mapping", [])
+        for s in port_mapping:
+            expose_p, inner_p = s.split(':')
+            if int(inner_p) == port:
+                return int(expose_p)
+        return None
+    
+    ssh_port = get_ssh_port()
+    if ssh_port is None:
+        console.print(f"[bold red]Error: Failed to get the SSH port mapping for instance {ins}")
+        exit(1)
+    ssh_cmd = ["ssh"]
+    if tmp:
+        console.print("[bold yellow]Warning: Temp access enabled, host key checking is disabled.")
+        console.print("[bold yellow]You may see a warning about adding the host to the known hosts, which is expected.")
+        ssh_cmd += ["-o", "UserKnownHostsFile=/dev/null", "-o", "StrictHostKeyChecking=no"]
+    if identity_file:
+        ssh_cmd += ["-i", identity_file]
+    ssh_cmd += [f"{user}@{api.api_base.split('//')[-1].split(':')[0]}", "-p", str(ssh_port)]
+
+    console.print(f"[bold green]{' '.join(ssh_cmd)}")
+    console.print("-- Connecting via SSH ---")
+    os.execvp("ssh", ssh_cmd)
+    
+
 class StatType(str, Enum):
     cputime = 'cputime'
     gputime = 'gputime'

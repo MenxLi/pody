@@ -69,6 +69,16 @@ enabling SSH access to the containers:
 ```sh
 pody copy-id instance_name [pub_key_path]
 ```
+Omitting the `pub_key_path` will use the default path.
+
+---
+The `connect` command is used to connect to the pods via SSH:
+```sh
+pody connect instance_name [-u USERNAME] [-i IDENTITY_FILE] [-t]
+```
+Where `-u` specifies the SSH username (default is `root`), 
+`-i` specifies the identity file (private key) to use, 
+and `-t` enables temporary access (disables host key checking).
 
 ---
 The `stat` command is used to get the statistics of the server. 
