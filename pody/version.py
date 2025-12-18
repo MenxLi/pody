@@ -79,7 +79,14 @@ VERSION_HISTORY = {
     "0.3.3": [
         "Fix pod/create image name check for user committed images",
         "Update request logging to include user and split url params",
-    ]
+    ], 
+    "0.3.4": [
+        "Add pody connect command to connect to pod via ssh",
+        "Sort image list by name",
+        "Allow tmpfs mount", 
+        "Fix doc for user/ch-passwd", 
+        "Fix user list module import",
+    ], 
 }
 
 VERSION = tuple([int(x) for x in list(VERSION_HISTORY.keys())[-1].split('.')])
