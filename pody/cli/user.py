@@ -1,5 +1,5 @@
 import typer
-import rich
+import rich.console
 from typing import Optional
 from pody.eng.user import UserDatabase, QuotaDatabase
 from ..eng.utils import parse_storage_size
