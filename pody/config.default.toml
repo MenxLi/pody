@@ -23,6 +23,19 @@ volume_mappings = [
 # if empty, the default bridge network will be used
 network = ""
 
+# if enabled, the server will fetch user record from the remote endpoint and use it for authentication
+# this will disable local user management, but user quota is still determined by local configuration
+[remote_user_profile.provider]
+enabled = false
+endpoint = "http://localhost:8799"
+access_token = ""
+
+# if enabled, the server will serve user management API for remote cluster management
+[remote_user_profile.service]
+enabled = false
+readonly = true
+access_token = ""
+
 # fallback quota for unspecified user-quota
 # ["" for string] and [-1 for integer] means no limit ("none" for gpus means no gpu)
 [default_quota]

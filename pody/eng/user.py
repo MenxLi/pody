@@ -1,13 +1,13 @@
 import sqlite3
 import hashlib
 import dataclasses
-from typing import Optional
+from typing import Optional, Literal
 
 from .db import DatabaseAbstract
 from .log import get_logger
 from .nparse import check_name_part
 from .errors import InvalidUsernameError
-from ..config import DATA_HOME
+from ..config import DATA_HOME, config
 
 def hash_password(username: str, password: str):
     return hashlib.sha256(f"{username}:{password}".encode()).hexdigest()
@@ -21,7 +21,31 @@ class UserRecord:
     name: str
     is_admin: bool
 
-class UserDatabase(DatabaseAbstract):
+class UserDatabase:
+    def __init__(self, mode: Literal['local', 'remote'] = 'local'):
+        if mode != 'local':
+            raise NotImplementedError("Only local user database is implemented for now")
+        self._impl = UserDatabase_Local()
+    
+    def add_user(self, username: str, password: str, is_admin: bool = False):
+        return self._impl.add_user(username, password, is_admin)
+    
+    def update_user(self, username: str, **kwargs):
+        return self._impl.update_user(username, **kwargs)
+    
+    def get_user(self, user_id: str | int):
+        return self._impl.get_user(user_id)
+    
+    def check_user(self, credential: str):
+        return self._impl.check_user(credential)
+    
+    def list_users(self, usernames: Optional[list[str]] = None):
+        return self._impl.list_users(usernames)
+    
+    def delete_user(self, username: str):
+        return self._impl.delete_user(username)
+
+class UserDatabase_Local(DatabaseAbstract):
     @property
     def conn(self): return self._conn
     def __init__(self):

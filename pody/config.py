@@ -16,11 +16,23 @@ SRC_HOME = pathlib.Path(__file__).parent
 
 @dataclass
 class Config:
+
     @dataclass
-    class ImageConfig:
-        name: str           # e.g. "ubuntu2204-cuda121:latest"
-        ports: list[int]    # e.g. [22, 80, 443]
-    
+    class RemoteUserProfile:
+        @dataclass
+        class RemoteUserProfileProvider:
+            enabled: bool
+            endpoint: str
+            access_token: str
+        @dataclass
+        class RemoteUserProfileService:
+            enabled: bool
+            readonly: bool
+            access_token: str
+        
+        provider: RemoteUserProfileProvider
+        service: RemoteUserProfileService
+
     @dataclass
     class DefaultQuota:
         # ["" for string] and [-1 for integer] means no limit
@@ -34,10 +46,16 @@ class Config:
         commit_count: int
         commit_size_limit: str  # "20g"
 
+    @dataclass
+    class ImageConfig:
+        name: str           # e.g. "ubuntu2204-cuda121:latest"
+        ports: list[int]    # e.g. [22, 80, 443]
+    
     name_prefix: str
     available_ports: list[int | tuple[int, int]]
     volume_mappings: list[str]
     network: str
+    remote_user_profile: RemoteUserProfile
     default_quota: DefaultQuota
     images: list[ImageConfig]
     commit_name: str
@@ -92,6 +110,28 @@ def config():
     if not 'tmpfs_size' in loaded['default_quota']:
         loaded['default_quota']['tmpfs_size'] = 'none'
     
+    # load and validate remote user profile, 
+    # added in v0.4.0
+    _remote_user_profile_dict: dict = loaded.get('remote_user_profile', {})
+    remote_user_profile = Config.RemoteUserProfile(
+        provider=Config.RemoteUserProfile.RemoteUserProfileProvider(
+            **_remote_user_profile_dict.get('provider', {
+                'enabled': False, 'endpoint': '', 'access_token': '', 
+                })
+        ),
+        service=Config.RemoteUserProfile.RemoteUserProfileService(
+            **_remote_user_profile_dict.get('service', {
+                'enabled': False, 'readonly': True, 'access_token': '',
+            })
+        )
+    )
+    if remote_user_profile.provider.enabled and not remote_user_profile.provider.endpoint:
+        raise ValueError("Remote user profile provider is enabled but endpoint is not set")
+    if remote_user_profile.provider.enabled and not remote_user_profile.provider.access_token:
+        raise ValueError("Remote user profile provider is enabled but access token is not set")
+    if remote_user_profile.service.enabled and not remote_user_profile.service.access_token:
+        raise ValueError("Remote user profile service is enabled but access token is not set")
+
     return Config(
         name_prefix=name_prefix,
         available_ports=parse_ports(loaded['available_ports']), 
@@ -100,5 +140,6 @@ def config():
         default_quota=Config.DefaultQuota(**loaded['default_quota']),
         images=[Config.ImageConfig(name=i['name'], ports=i['ports']) for i in loaded['images']], 
         commit_name=loaded.get('commit_name', 'pody-commit'),
-        commit_image_ports=loaded.get('commit_image_ports', [22])
+        commit_image_ports=loaded.get('commit_image_ports', [22]),
+        remote_user_profile=remote_user_profile
         )
