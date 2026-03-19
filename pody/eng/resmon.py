@@ -85,8 +85,8 @@ class ProcessIter(Generic[T]):
     
     def all_process(self) -> Iterator[tuple[ContainerProcessInfo, T]]:
         for proc in psutil.process_iter(['pid']):
+            pid = proc.info['pid']
             try:
-                pid = proc.info['pid']
                 if not (name:=self.docker_con.container_from_pid(pid)):
                     if self.docker_only: continue
                     else: name = ""
@@ -112,8 +112,8 @@ class ProcessIter(Generic[T]):
         gpu_procs = list_processes_on_gpus(gpu_ids)
         for _, procs in gpu_procs.items():
             for proc in procs:
+                pid = proc.pid
                 try:
-                    pid = proc.pid
                     if not (name := self.docker_con.container_from_pid(pid)):
                         if self.docker_only: continue
                         else: name = ""

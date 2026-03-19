@@ -4,7 +4,8 @@ from .app_base import *
 from fastapi import Depends
 from fastapi.routing import APIRouter
 
-from ..eng.user import UserRecord, UserDatabase, QuotaDatabase
+from ..eng.user import UserRecord, UserDatabase
+from ..eng.quota import QuotaDatabase
 
 router_user = APIRouter(prefix="/user")
 

@@ -6,8 +6,10 @@ from dataclasses import dataclass
 """
 DATA_HOME structure:
     DATA_HOME
-        |- users.db
+        |- logs/
         |- config.toml
+        |- quota.db
+        |- users.db
 """
 DATA_HOME = pathlib.Path(os.environ.get('PODY_HOME', os.path.expanduser('~/.pody')))
 SRC_HOME = pathlib.Path(__file__).parent

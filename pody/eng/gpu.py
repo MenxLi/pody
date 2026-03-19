@@ -1,7 +1,7 @@
 from typing import Optional
-import pynvml
 import dataclasses
 from .errors import InvalidInputError
+import pynvml
 
 @dataclasses.dataclass
 class GPUProcessInfo:

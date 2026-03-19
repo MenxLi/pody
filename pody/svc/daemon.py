@@ -3,7 +3,8 @@ import typing
 import docker
 import multiprocessing as mp
 from contextlib import contextmanager
-from ..eng.user import UserDatabase, QuotaDatabase
+from ..eng.user import UserDatabase
+from ..eng.quota import QuotaDatabase
 from ..eng.gpu import GPUHandler
 from ..eng.docker import DockerController
 from ..eng.resmon import ProcessIter, ContainerProcessInfo, ResourceMonitorDatabase

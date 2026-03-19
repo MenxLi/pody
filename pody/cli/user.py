@@ -1,7 +1,8 @@
 import typer
 import rich.console
 from typing import Optional
-from pody.eng.user import UserDatabase, QuotaDatabase
+from pody.eng.user import UserDatabase
+from pody.eng.quota import QuotaDatabase
 from ..eng.utils import parse_storage_size
 from ..eng.docker import ContainerAction, DockerController
 
