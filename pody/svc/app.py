@@ -53,7 +53,7 @@ async def help(path: Optional[str] = None, _: UserRecord = Depends(require_permi
         def criteria(route: BaseRoute):
             return isinstance(route, Route) and not route.path in [
                 "/docs", "/openapi.json", "/redoc", "/docs", "/docs/oauth2-redirect", 
-            ]
+            ] and not route.path.startswith("/user_api")   # user_api routes are not for public use
         return [route for route in routes if criteria(route)]   # type: ignore
 
     route_candidates = filter_routes(app.routes)
