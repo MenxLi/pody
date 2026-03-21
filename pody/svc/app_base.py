@@ -63,14 +63,14 @@ def handle_exception(fn):
             raise
     return wrapper
 
-async def get_user(r: Request, credentials: HTTPBasicCredentials = Depends(HTTPBasic(auto_error=True))):
+def user_from_credentials(r: Request, credentials: HTTPBasicCredentials = Depends(HTTPBasic(auto_error=True))):
     key = hash_password(credentials.username, credentials.password)
     user = UserDatabase().check_user(key)
     r.state.user = user
     return user
 
 def require_permission(permission: Literal['all', 'admin'] = "all"):
-    def _require_permission(user: UserRecord = Depends(get_user)):
+    def _require_permission(user: UserRecord = Depends(user_from_credentials)):
         if user.userid == 0:
             raise HTTPException(403, "Invalid username or password")
         if permission == 'all' or user.is_admin: 
