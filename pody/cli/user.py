@@ -36,9 +36,18 @@ def list(
     for idx, user in enumerate(users):
         console.print(f"{idx+1}. {user}")
 
+def __attempt_user_del(username: str, auto_proceed_on_failure: bool):
+    try:
+        UserDatabase().delete_user(username)
+    except Exception as e:
+        typer.echo(f"[Error] Failed to delete user: \n{e}.", err=True)
+
+        if not auto_proceed_on_failure:
+            typer.confirm("Would you still like to delete remaining resources?", abort=True)
+
 @app.command(help="Delete user", no_args_is_help=True)
 def delete(username: str):
-    UserDatabase().delete_user(username)
+    __attempt_user_del(username, auto_proceed_on_failure=False)
     QuotaDatabase().delete_quota(username)
 
 @app.command(help="Delete user and all related containers", no_args_is_help=True)
@@ -49,7 +58,8 @@ def purge(
     if not yes:
         typer.confirm(f"Are you sure to purge user {username}?", abort=True)
     c = DockerController()
-    UserDatabase().delete_user(username)
+
+    __attempt_user_del(username, auto_proceed_on_failure=yes)
     QuotaDatabase().delete_quota(username)
     containers = c.list_docker_containers(filter_name=username + "-")
     for container in containers:
