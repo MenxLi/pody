@@ -31,7 +31,7 @@ That means the following operations on the consumer node use the remote user dat
 - password changes;
 - CLI user-management commands such as `pody-user add`, `update`, `list`, and `delete`.
 
-::: warning NOTE
+::: info NOTE
 1. **user quota is still local to each server**. Remote user profiles only replace the user-account backend; they do not synchronize quota settings.
 2. **user management may not always work through the provider**. 
 If `remote_user_profile.service.readonly = true`, then the consumer server can only read user profiles but cannot create, update, or delete users through the service API. In that case, you must manage users directly on the service node.
