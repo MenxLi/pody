@@ -37,11 +37,14 @@ def list(
         console.print(f"{idx+1}. {user}")
 
 def __attempt_user_del(username: str, auto_proceed_on_failure: bool):
+    """
+    User deletion may fail, expecially when remote user profile is in readonly mode or is down, 
+    in these cases we may still attempt to delete remaining resources.
+    """
     try:
         UserDatabase().delete_user(username)
     except Exception as e:
-        typer.echo(f"[Error] Failed to delete user: \n{e}.", err=True)
-
+        rich.console.Console().print(f"[[red]Error[/red]] Failed to delete user: \n{e}.")
         if not auto_proceed_on_failure:
             typer.confirm("Would you still like to delete remaining resources?", abort=True)
 

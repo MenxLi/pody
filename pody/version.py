@@ -94,6 +94,11 @@ VERSION_HISTORY = {
         "Change documentation structure, add more docs",
         "Remove some upgrade scripts and deprecated routes",
         "Cache config file read with expiry",
+    ], 
+    "0.4.1": [
+        "Allow user resource cleanup even when user deletion failed",
+        "Remove `user_api` routes from help",
+        "Fix user auth async blocking issue",
     ]
 }
 
