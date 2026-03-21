@@ -3,6 +3,8 @@ import hashlib
 import dataclasses
 from typing import Optional, Literal
 
+import requests
+import urllib.parse
 from .db import DatabaseAbstract
 from .log import get_logger
 from .nparse import check_name_part
@@ -22,28 +24,105 @@ class UserRecord:
     is_admin: bool
 
 class UserDatabase:
-    def __init__(self, mode: Literal['local', 'remote'] = 'local'):
-        if mode != 'local':
-            raise NotImplementedError("Only local user database is implemented for now")
-        self._impl = UserDatabase_Local()
+    def __init__(self, mode: Literal['local', 'remote', '_auto'] = '_auto'):
+        if mode == '_auto':
+            if config().remote_user_profile.provider.enabled:
+                mode = 'remote'
+            else:
+                mode = 'local'
+        
+        match mode:
+            case 'local':
+                self._impl = UserDatabase_Local()
+            case 'remote':
+                self._impl = UserDatabase_Remote()
+            case _:
+                raise ValueError(f"Invalid user database mode: {mode}")
     
-    def add_user(self, username: str, password: str, is_admin: bool = False):
+    def close(self):
+        self._impl.close()
+    
+    def __del__(self):
+        self.close()
+    
+    def add_user(self, username: str, password: str, is_admin: bool = False) -> None:
         return self._impl.add_user(username, password, is_admin)
     
-    def update_user(self, username: str, **kwargs):
+    def update_user(self, username: str, **kwargs) -> None:
         return self._impl.update_user(username, **kwargs)
     
-    def get_user(self, user_id: str | int):
+    def delete_user(self, username: str) -> None:
+        return self._impl.delete_user(username)
+
+    def get_user(self, user_id: str | int) -> UserRecord:
         return self._impl.get_user(user_id)
     
-    def check_user(self, credential: str):
+    def check_user(self, credential: str) -> UserRecord:
         return self._impl.check_user(credential)
     
-    def list_users(self, usernames: Optional[list[str]] = None):
+    def list_users(self, usernames: Optional[list[str]] = None) -> list[UserRecord]:
         return self._impl.list_users(usernames)
+
+class UserDatabase_Remote:
+    def __init__(self):
+        self.logger = get_logger('engine')
+        self._provider = config().remote_user_profile.provider
+        if not self._provider.enabled:
+            raise NotImplementedError("Remote user profile provider is not enabled")
+        if not self._provider.access_token or not self._provider.endpoint:
+            raise ValueError("Remote user profile provider is not properly configured")
+        
+        self._session = requests.Session()
+        self._session.headers.update({"Authorization": f"Bearer {self._provider.access_token}"})
+    
+    def close(self):
+        self._session.close()
+    
+    def _fetch(self, method: str, path: str, query_params: dict = {}):
+        base_url = self._provider.endpoint.rstrip('/') + '/user_api'
+        url_raw = base_url + '/' + path.lstrip('/')
+        url = url_raw + '?' + urllib.parse.urlencode(query_params)
+        http_error_mapping = {
+            401: (PermissionError, "Unauthorized"),
+            403: (PermissionError, "Forbidden"),
+            404: (LookupError, "Not found"),
+            423: (RuntimeError, "Remote provider error"),
+            500: (RuntimeError, "Remote provider error"),
+            501: (RuntimeError, "Remote provider error"),
+        }
+
+        resp = self._session.request(method, url)
+        if resp.status_code == 200:
+            return resp.json()
+        elif resp.status_code in http_error_mapping:
+            err_cls, err_msg = http_error_mapping[resp.status_code]
+            raise err_cls(f"{err_msg} ({resp.status_code}): {resp.text}")
+        else:
+            raise RuntimeError(f"Unexpected response from remote provider ({resp.status_code}): {resp.text}")
+    
+    def add_user(self, username: str, password: str, is_admin: bool = False):
+        self._fetch("POST", "/add_user", {"username": username, "password": password, "is_admin": is_admin})
+        self.logger.info(f"Added user {username} via remote provider")
+    
+    def update_user(self, username: str, **kwargs):
+        self._fetch("POST", "/update_user", {"username": username, **kwargs})
+        self.logger.info(f"Updated user {username} via remote provider")
     
     def delete_user(self, username: str):
-        return self._impl.delete_user(username)
+        self._fetch("POST", "/delete_user", {"username": username})
+        self.logger.info(f"Deleted user {username} via remote provider")
+    
+    def get_user(self, user_id: str | int):
+        raw = self._fetch("GET", "/get_user", {"user_id": user_id} if isinstance(user_id, int) else {"username": user_id})
+        return UserRecord(**raw)
+    
+    def check_user(self, credential: str):
+        raw = self._fetch("GET", "/check_user", {"credential": credential})
+        return UserRecord(**raw)
+    
+    def list_users(self, usernames: Optional[list[str]] = None):
+        raw = self._fetch("GET", "/list_users", {"usernames": ','.join(usernames)} if usernames else {})
+        return [UserRecord(**u) for u in raw]
 
 class UserDatabase_Local(DatabaseAbstract):
     @property
@@ -88,6 +167,14 @@ class UserDatabase_Local(DatabaseAbstract):
             with self.transaction() as c:
                 c.execute("UPDATE users SET is_admin = ? WHERE username = ?", (kwargs.pop('is_admin'), username))
                 self.logger.info(f"User {username} is_admin updated") # to fix
+
+    def delete_user(self, username: str):
+        with self.transaction() as cursor:
+            cursor.execute(
+                "DELETE FROM users WHERE username = ?",
+                (username,),
+            )
+            self.logger.info(f"User {username} deleted")
     
     def get_user(self, user_id: str | int):
         """May return UserRecord of id=0 if not found"""
@@ -120,11 +207,3 @@ class UserDatabase_Local(DatabaseAbstract):
             with self.cursor() as cur:
                 cur.execute(f"SELECT id, username, is_admin FROM users WHERE username IN ({','.join(['?']*len(usernames))})", usernames)
                 return [UserRecord(*u) for u in cur.fetchall()]
-
-    def delete_user(self, username: str):
-        with self.transaction() as cursor:
-            cursor.execute(
-                "DELETE FROM users WHERE username = ?",
-                (username,),
-            )
-            self.logger.info(f"User {username} deleted")

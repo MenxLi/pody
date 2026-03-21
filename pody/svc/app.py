@@ -9,11 +9,13 @@ from .router_pod import router_pod
 from .router_user import router_user
 from .router_stat import router_stat
 from .router_image import router_image
+from .router_user_api import router_user_api
 from ..config import SRC_HOME
 from ..version import VERSION
 
 app.mount("/pody", StaticFiles(directory=SRC_HOME / "doc", html=True), name="pody-doc")
 app.include_router(router_user)
+app.include_router(router_user_api)
 app.include_router(router_pod)
 app.include_router(router_image)
 app.include_router(router_stat)
