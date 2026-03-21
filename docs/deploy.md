@@ -32,6 +32,13 @@ pody-user ...
 ```
 Please refer to `--help` for more information.
 
+### Quotas
+To manage user quotas:
+```sh
+pody-quota ...
+```
+Please refer to `--help` for more information.
+
 ### Configurations
 The server configuration is stored in `$PODY_HOME/config.toml` file. 
 There are comments in the file to help you understand the options. 
