@@ -78,4 +78,10 @@ def start_server(
     workers: Optional[int] = None,
 ):
     with daemon_context():
-        uvicorn.run(f"pody.svc.app:app", host=host, port=port, workers=workers)
+        uvicorn.run(
+            f"pody.svc.app:app", 
+            host=host, 
+            port=port, 
+            workers=workers, 
+            access_log=False
+            )

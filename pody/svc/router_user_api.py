@@ -1,6 +1,6 @@
 
 from .app_base import *
-from fastapi import Depends, Request, Query
+from fastapi import Depends, Request, Query, Response
 from fastapi.routing import APIRouter
 from fastapi.exceptions import HTTPException
 from functools import wraps
@@ -33,7 +33,7 @@ def mut_ops(fn: Callable):
     @wraps(fn)
     def wrapper(*args, **kwargs):
         if config().remote_user_profile.service.readonly:
-            raise HTTPException(status_code=423, detail="Read-only")
+            raise HTTPException(status_code=423, detail="User profile service is in read-only mode")
         return fn(*args, **kwargs)
     return wrapper
 
@@ -79,10 +79,12 @@ def delete_user(
 
 @router_user_api.get("/get_user")
 def get_user(
+    response: Response,
     user_db: UserDatabase = Depends(authorized_local_userdb),
     user_id: Optional[int] = Query(None, description="ID of the user to retrieve"),
     username: Optional[str] = Query(None, description="Username of the user to retrieve")
 ):
+    response.headers["X-Skip-Log"] = "1"
     if user_id is None and username is None:
         raise HTTPException(status_code=400, detail="Either user_id or username must be provided")
     if user_id is not None and username is not None:
@@ -92,17 +94,21 @@ def get_user(
 
 @router_user_api.get("/check_user")
 def check_user(
+    response: Response,
     user_db: UserDatabase = Depends(authorized_local_userdb),
     credential: str = Query(..., description="Credential to check")
 ):
+    response.headers["X-Skip-Log"] = "1"
     user = user_db.check_user(credential)
     return user
 
 @router_user_api.get("/list_users")
 def list_users(
+    response: Response,
     user_db: UserDatabase = Depends(authorized_local_userdb),
     usernames: Optional[str] = Query(None, description="Comma-separated list of usernames to filter by")
 ):
+    response.headers["X-Skip-Log"] = "1"
     username_list = [u.strip() for u in usernames.split(",")] if usernames else None
     users = user_db.list_users(username_list)
     return users

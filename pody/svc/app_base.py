@@ -1,4 +1,5 @@
 import inspect, json
+import rich
 import requests
 from functools import wraps
 import docker.errors
@@ -83,6 +84,25 @@ def require_permission(permission: Literal['all', 'admin'] = "all"):
 async def log_requests(request: Request, call_next):
     logger = get_logger('requests')
     response: Response = await call_next(request)
+
+    if response.headers.get("X-Skip-Log") == "1":
+        return response
+    
+    def status_color(status_code: int) -> str:
+        if status_code >= 500:
+            return "red"
+        elif status_code >= 400:
+            return "yellow"
+        elif status_code >= 300:
+            return "blue"
+        else:
+            return "green"
+    rich.print(
+        f"[{request.method}] {str(request.url).split('?')[0]} "
+        f"from [purple]{request.client.host if request.client else 'unknown'}[/purple] "
+        f"[[{status_color(response.status_code)}]{response.status_code}[/{status_color(response.status_code)}]]"
+    )
+
     user = request.state.user if hasattr(request.state, 'user') else None
     url_str = str(request.url) if request.url else ''
     url_base = url_str.split('?')[0] if url_str else ''
