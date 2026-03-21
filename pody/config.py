@@ -2,6 +2,7 @@ import os
 import toml
 import pathlib
 from dataclasses import dataclass
+from .eng.utils import expiry_cache
 
 """
 DATA_HOME structure:
@@ -61,6 +62,7 @@ class Config:
     commit_name: str
     commit_image_ports: list[int]
 
+@expiry_cache(seconds=5)
 def config():
     # prevent circular import
     from .eng.nparse import check_name_part

@@ -2,6 +2,9 @@
 General utility functions, 
 functions in this module should not depend on any other modules in the project.
 """
+import time
+from collections import OrderedDict
+from functools import wraps
 
 def parse_storage_size(s: str) -> int:
     """ Parse the file size string to bytes """
@@ -41,3 +44,20 @@ def format_time(seconds: int | float) -> str:
     if seconds < 86400:
         return f"{seconds//3600}h {seconds%3600//60}m {seconds%60}s"
     return f"{seconds//86400}d {seconds%86400//3600}h {seconds%3600//60}m {seconds%60}s"
+
+def expiry_cache(seconds: float, buffer_size: int = 128):
+    """ A decorator to cache the result of a function for a certain amount of time (in seconds) """
+    def decorator(func):
+        cache: OrderedDict[tuple, tuple] = OrderedDict()
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            key = (args, tuple(kwargs.items()))
+            if key in cache and time.time() - cache[key][1] < seconds:
+                return cache[key][0]
+            result = func(*args, **kwargs)
+            if len(cache) >= buffer_size:
+                cache.popitem(last=False)
+            cache[key] = (result, time.time())
+            return result
+        return wrapper
+    return decorator
