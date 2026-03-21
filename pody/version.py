@@ -87,6 +87,14 @@ VERSION_HISTORY = {
         "Fix doc for user/ch-passwd", 
         "Fix user list module import",
     ], 
+    "0.4.0": [
+        "Add remote user profile features",
+        "Split user and quota management CLI commands",
+        "Disable uvicorn logging, use custom logging instead",
+        "Change documentation structure, add more docs",
+        "Remove some upgrade scripts and deprecated routes",
+        "Cache config file read with expiry",
+    ]
 }
 
 VERSION = tuple([int(x) for x in list(VERSION_HISTORY.keys())[-1].split('.')])
