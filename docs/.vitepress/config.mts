@@ -15,12 +15,22 @@ export default defineConfig({
 
     sidebar: [
       {
-        text: 'Pody Documentation',
+        text: 'Introduction',
+        link: '/'
+      },
+      {
+        text: 'Client',
         items: [
-          { text: 'Introduction', link: '/' },
           { text: 'API', link: '/api' }, 
           { text: 'Pody CLI', link: '/pody-cli' }, 
-          { text: 'Deployment', link: '/deploy' }, 
+        ]
+      }, 
+      {
+        text: 'Deployment',
+        items: [
+          { text: 'Basic', link: '/deploy/' },
+          { text: 'Remote User Profile', link: '/deploy/remote_user_profile' },
+          { text: 'Start on Boot', link: '/deploy/start_on_boot' },
         ]
       }
     ],

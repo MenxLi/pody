@@ -23,7 +23,11 @@ def config(editor = typer.Option(
     The file is at `${PODY_HOME}/config.toml`.
     """
     from ..config import config as ensure_config_exists
-    ensure_config_exists()
+    try:
+        ensure_config_exists()
+    except ValueError:
+        # may fail if config file is invalid, but we can still open it for editing
+        pass
     config_path = DATA_HOME / "config.toml"
     assert config_path.exists(), "Config file does not exist at: " + str(config_path)
     if editor is None:

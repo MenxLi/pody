@@ -18,5 +18,6 @@ Specifically:
 <!-- This is an experimental setup for our lab* 😊 -->
 
 # Next
-- If you are using the API, you can check the [API documentation](./api.md).
-- If you want to deploy Pody, you can follow the [Deployment guide](./deploy.md).
+- If you use pody client, you can check the [Client documentation](./pody-cli.md).
+- If you are looking for the API documentation, please check the [API reference](./api.md).
+- If you want to deploy Pody, you can follow the [Deployment guide](./deploy/).
