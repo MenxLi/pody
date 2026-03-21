@@ -81,28 +81,6 @@ class QuotaDatabase(DatabaseAbstract):
         self.__maybe_upgrade()
     
     def __maybe_upgrade(self):
-        def add_commit_count():
-            with self.cursor() as cursor:
-                cursor.execute("PRAGMA table_info(quota)")
-                columns = [col[1] for col in cursor.fetchall()]
-                if "commit_count" in columns:
-                    return
-            with self.transaction() as cursor:
-                cursor.execute(
-                    "ALTER TABLE quota ADD COLUMN commit_count INTEGER NOT NULL DEFAULT -1"
-                )
-                self.logger.info("Quota database upgraded to latest version")
-        def add_commit_size_limit():
-            with self.cursor() as cursor:
-                cursor.execute("PRAGMA table_info(quota)")
-                columns = [col[1] for col in cursor.fetchall()]
-                if "commit_size_limit" in columns:
-                    return
-            with self.transaction() as cursor:
-                cursor.execute(
-                    "ALTER TABLE quota ADD COLUMN commit_size_limit INTEGER NOT NULL DEFAULT -1"
-                )
-                self.logger.info("Quota database upgraded to latest version")
         def add_tmpfs_size():
             with self.cursor() as cursor:
                 cursor.execute("PRAGMA table_info(quota)")
@@ -114,8 +92,6 @@ class QuotaDatabase(DatabaseAbstract):
                     "ALTER TABLE quota ADD COLUMN tmpfs_size INTEGER NOT NULL DEFAULT 0"
                 )
                 self.logger.info("Quota database upgraded to latest version")
-        add_commit_count()          # TODO: remove in 0.4.0
-        add_commit_size_limit()     # TODO: remove in 0.4.0
         add_tmpfs_size()            # TODO: remove in 0.5.0
     
     def delete_quota(self, usrname: str):

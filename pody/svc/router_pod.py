@@ -203,12 +203,6 @@ def exec_pod(
     exit_code, log = c.exec_container_bash(container_name, cmd, timeout=timeout)
     return {"exit_code": exit_code, "log": log}
 
-# TODO: remove in 0.4.0
-@router_pod.get("/info")
-@deprecated_route("Use /pod/inspect instead, will be removed in 0.4.0")
-def info_pod_old(ins: str):
-    ...
-
 # ====== admin only ======
 @router_pod.get("/listall")
 @handle_exception
