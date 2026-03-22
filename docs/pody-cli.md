@@ -32,36 +32,37 @@ source ~/pody-credentials/node1.sh
 The latter method is more flexible and allows you to switch between different servers easily.
 
 ## Make requests
-The most basic usage of the utility is to make requests to the Pody API. 
-The usage mostly follows folloiwing pattern:
+The most common way to call the Pody API is with `podx`:
 ```sh
-pody [METHOD] [ROUTE] [OPTIONS...]
+podx [ROUTE] [OPTIONS...]
 ```
 
-For example, to [restart a pod](./api.md#pod-restart) you can run:
-```sh
-pody post pod/restart ins:myins
-```
-
-The method is not strictly a HTTP method, it can be one of `get`, `post`, `fetch`. 
-Notebly, `fetch` is used to automatically select appropriate method based on the route. 
-So the above command can be written as:
-```sh
-pody fetch pod/restart ins:myins
-```
-
-### Podx
-`pody fetch` is the most used command, 
-a simple shorthand `podx` is provided for it. 
-Which means `podx ...` is equivalent to `pody fetch ...`. 
-The above command can be written as: 
+For example, to [restart a pod](./api.md#pod-restart):
 ```sh
 podx pod/restart ins:myins
 ```
 
+For raw request commands, parameters are passed as `key:value` pairs. In the
+example above, `ins:myins` means the `ins` parameter is set to `myins`.
+
+`podx` is a shorthand for `pody fetch`. The `fetch` mode automatically chooses
+the appropriate HTTP method for the route, so in most cases you do not need to
+think about whether the underlying request is `GET` or `POST`.
+
+If you do want to specify the method explicitly, use `pody` directly:
+```sh
+pody [METHOD] [ROUTE] [OPTIONS...]
+```
+
+`METHOD` can be `get`, `post`, or `fetch`. For example, the `podx` command above is equivalent to:
+```sh
+pody fetch pod/restart ins:myins
+```
+This will automatically use the `POST` method, since `pod/restart` is a mutating route.
+
 ## High-level Utilities
 In addition to the above, the subcommand of `pody` also contains some higher-level utilities, 
-namely `copy-id` and `stat`.
+namely `copy-id`, `connect`, and `stat`.
 
 ---
 The `copy-id` command is used to copy your public key to the server,
@@ -72,7 +73,7 @@ pody copy-id instance_name [pub_key_path]
 Omitting the `pub_key_path` will use the default path.
 
 ---
-The `connect` command is used to connect to the pods via SSH:
+The `connect` command is a shortcut used to connect to the pods via SSH:
 ```sh
 pody connect instance_name [-u USERNAME] [-i IDENTITY_FILE] [-t]
 ```

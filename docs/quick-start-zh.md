@@ -131,10 +131,10 @@ pody connect main
 pody help /path/to/route
 ```
 
-此外，当`podx`应用于`/`结尾的路径时，也会显示帮助，例如：
+此外，当请求命令(`pody get/post/fetch`, `podx`) 用于`/`结尾的路径时，也会显示帮助：
 <!-- ![帮助示例](./assets/help_example.png) -->
 ```sh
-pody help pod/
+podx pod/
 ```
 输出：
 | Path          | Methods | Params             |

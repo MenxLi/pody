@@ -7,7 +7,7 @@ outline: deep
 
 Pody can use another Pody server as the source of truth for user accounts.
 
-This feature is useful when you run multiple clusters and want to:
+This feature is useful when you run multiple nodes in a cluster and want to:
 
 - keep one shared user database;
 - authenticate users against a central server;
@@ -17,8 +17,6 @@ The feature has two sides:
 
 - `enable service`: exposes the local user database through a protected HTTP API;
 - `enable provider`: consumes that API from another Pody server.
-
-In practice, one server acts as the **user-profile service**, and another server acts as the **consumer**.
 
 ## What It Affects
 
@@ -44,7 +42,7 @@ If `remote_user_profile.service.readonly = true`, then the consumer server can o
 Typical deployment:
 
 - **Server A**: keeps the real user database and enables `remote_user_profile.service`.
-- **Server B**: points `remote_user_profile.provider.endpoint` to Server A and authenticates users against it.
+- **Server B**: enables `remote_user_profile.provider` and points to Server A. Users on Server B are authenticated against the user database on Server A.
 
 ## Service (provider) Side
 
@@ -59,9 +57,8 @@ readonly = true
 access_token = "replace-with-a-long-random-token"
 ```
 
-Use `readonly = true` if other nodes should only read users from this server.
-
-Set `readonly = false` only if you want remote nodes to create, update, or delete users through this server.
+Use `readonly = true` if other nodes should only read users from this server. 
+Set to `false` if you want to allow other nodes to create, update, or delete users.
 
 ## Client (consumer) Side
 

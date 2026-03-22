@@ -63,7 +63,7 @@ curl -s ... | python -m json.tool
 
 ::: tip
 Here examples of API calls are provided using `podx` utility.  
-`podx` is a shorthand for `pody fetch` command, please refer to [here](./pody-cli#podx) for more information.
+`podx` is a shorthand for `pody fetch` command, please refer to [here](./pody-cli#make-requests) for more information.
 :::
 </template>
 <template v-else>
