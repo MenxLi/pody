@@ -1,4 +1,4 @@
-# Pody client utility
+# Pody Client Utility
 
 Pody CLI is a command-line tool that allows you to interact with the Pody API from client side. 
 The utility is written in Python and can be installed using `pip`:
@@ -17,6 +17,8 @@ export PODY_USERNAME="username"
 export PODY_PASSWORD="password"
 ```
 
+:::details Manage multiple credentials using shell scripts
+
 Another way is to use a configuration file, e.g. you can create a directory to store your credentials:
 
 ```sh
@@ -29,7 +31,8 @@ Then you can source the file in your shell profile to login to the server ðŸ˜ŠðŸ
 source ~/pody-credentials/node1.sh
 ```
 
-The latter method is more flexible and allows you to switch between different servers easily.
+This method is more flexible and allows you to switch between different servers easily.
+:::
 
 ## Make requests
 The most common way to call the Pody API is with `podx`:
@@ -60,7 +63,7 @@ pody fetch pod/restart ins:myins
 ```
 This will automatically use the `POST` method, since `pod/restart` is a mutating route.
 
-## High-level Utilities
+## High-level utilities
 In addition to the above, the subcommand of `pody` also contains some higher-level utilities, 
 namely `copy-id`, `connect`, and `stat`.
 
@@ -91,7 +94,7 @@ This will return the (rough) GPU time usage of the server in the last week,
 or you can omit the time limit to get the total time usage. 
 
 
-## More Helpers
+## Helpers
 Moreover, the utility provides a `help` command to list all available routes and their parameters:
 
 You can use `help` to get help on a specific route, or a subset of routes:

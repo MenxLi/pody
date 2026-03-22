@@ -1,3 +1,7 @@
+---
+outline: deep
+---
+
 # Deploy
 
 ## Installation
@@ -23,16 +27,18 @@ pody-server --port 8799
 Then by setting appropriate environment variables, 
 you can use the [pody-cli](/pody-cli) to interact with the server.
 
+:::tip
+You can use `systemd` to start the server on boot. For details, refer to the [start on boot guide](./start_on_boot.md).
+:::
+
 ## Managements
 
-### Users
+### Users and quotas
 To manage users:
 ```sh
 pody-user ...
 ```
-Please refer to `--help` for more information.
 
-### Quotas
 To manage user quotas:
 ```sh
 pody-quota ...
@@ -43,16 +49,13 @@ Please refer to `--help` for more information.
 The server configuration is stored in `$PODY_HOME/config.toml` file. 
 There are comments in the file to help you understand the options. 
 
-This command opens the configuration file in your default editor:
-```sh
-pody-util config
-```
-
 For example, to manage images, you should first pull or build the image, 
 then specify the images to expose to the client by editing the `[[images]]` section in the
 `$PODY_HOME/config.toml` file.
 
-### Optional: Using Docker network
+For a more detailed introduction, see the [configuration guide](./configuration).
+
+### Optional: Using docker network
 If you want to allow containers to communicate with each other in a dedicated network (with DNS resolution), 
 you can create a user-defined docker network (e.g. `pody-net`) and specify it in the container configuration.
 ```sh

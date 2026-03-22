@@ -18,7 +18,7 @@ The feature has two sides:
 - `enable service`: exposes the local user database through a protected HTTP API;
 - `enable provider`: consumes that API from another Pody server.
 
-## What It Affects
+## What it affects
 
 When `remote_user_profile.provider.enabled = true`, Pody switches `UserDatabase()` from the local SQLite database to the remote provider.
 
@@ -44,7 +44,7 @@ Typical deployment:
 - **Server A**: keeps the real user database and enables `remote_user_profile.service`.
 - **Server B**: enables `remote_user_profile.provider` and points to Server A. Users on Server B are authenticated against the user database on Server A.
 
-## Service (provider) Side
+## Service (provider) side
 
 Enable the service on the server that owns the user database.
 
@@ -60,7 +60,7 @@ access_token = "replace-with-a-long-random-token"
 Use `readonly = true` if other nodes should only read users from this server. 
 Set to `false` if you want to allow other nodes to create, update, or delete users.
 
-## Client (consumer) Side
+## Client (consumer) side
 
 Enable the provider on the consumer server.
 
@@ -73,7 +73,7 @@ endpoint = "http://server-a.example.com:8799"
 access_token = "replace-with-the-same-token-used-by-the-service"
 ```
 
-## Security Notes
+## Security notes
 
 This feature is simple by design, so you should treat it as an internal service interface.
 

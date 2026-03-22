@@ -19,5 +19,5 @@ Specifically:
 
 # Next
 - If you use pody client, you can check the [Client documentation](./pody-cli.md).
-- If you are looking for the API documentation, please check the [API reference](./api.md).
+- If you are looking for API details, please check the [API reference](./api.md).
 - If you want to deploy Pody, you can follow the [Deployment guide](./deploy/).

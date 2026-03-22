@@ -29,6 +29,7 @@ export default defineConfig({
         text: 'Deployment',
         items: [
           { text: 'Basic', link: '/deploy/' },
+          { text: 'Configuration', link: '/deploy/configuration' },
           { text: 'Remote User Profile', link: '/deploy/remote_user_profile' },
           { text: 'Start on Boot', link: '/deploy/start_on_boot' },
         ]
